@@ -1,0 +1,43 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    @apply bg-white text-race-black font-sans;
+  }
+
+  h1, h2, h3 {
+    @apply font-racing;
+  }
+}
+
+@layer utilities {
+  .checkered-bg {
+    background-image:
+      linear-gradient(45deg, #000 25%, transparent 25%),
+      linear-gradient(-45deg, #000 25%, transparent 25%),
+      linear-gradient(45deg, transparent 75%, #000 75%),
+      linear-gradient(-45deg, transparent 75%, #000 75%);
+    background-size: 16px 16px;
+    background-position: 0 0, 0 8px, 8px -8px, -8px 0px;
+  }
+
+  .speed-lines::before {
+    content: '';
+    position: absolute;
+    left: -2rem;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 1.5rem;
+    height: 3px;
+    background: linear-gradient(to left, currentColor, transparent);
+    box-shadow:
+      0 -6px 0 currentColor,
+      0 6px 0 currentColor;
+  }
+}
