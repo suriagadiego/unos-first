@@ -1,14 +1,4 @@
-import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3'
-
-const s3 = new S3Client({
-  endpoint: process.env.RUSTFS_ENDPOINT,
-  region: process.env.RUSTFS_REGION ?? 'us-east-1',
-  credentials: {
-    accessKeyId: process.env.RUSTFS_ACCESS_KEY!,
-    secretAccessKey: process.env.RUSTFS_SECRET_KEY!,
-  },
-  forcePathStyle: true,
-})
+import { AwsClient } from 'aws4fetch'
 
 export default defineEventHandler(async (event) => {
   const form = await readFormData(event)
@@ -16,20 +6,30 @@ export default defineEventHandler(async (event) => {
 
   if (!file) throw createError({ statusCode: 400, message: 'No file provided' })
 
-  const buffer = Buffer.from(await file.arrayBuffer())
   const key = `${Date.now()}-${file.name.replace(/[^a-zA-Z0-9.\-_]/g, '_')}`
+  const endpoint = process.env.RUSTFS_ENDPOINT!
+  const bucket = process.env.RUSTFS_BUCKET!
 
-  try {
-    await s3.send(new PutObjectCommand({
-      Bucket: process.env.RUSTFS_BUCKET,
-      Key: key,
-      Body: buffer,
-      ContentType: file.type,
-    }))
-  } catch (err: any) {
-    console.error('RustFS upload error:', err?.message, err?.$metadata, err?.Code)
-    throw createError({ statusCode: 500, message: err?.message ?? 'Upload failed' })
+  const aws = new AwsClient({
+    accessKeyId: process.env.RUSTFS_ACCESS_KEY!,
+    secretAccessKey: process.env.RUSTFS_SECRET_KEY!,
+    region: process.env.RUSTFS_REGION ?? 'us-east-1',
+    service: 's3',
+  })
+
+  const url = `${endpoint}/${bucket}/${key}`
+  const buffer = await file.arrayBuffer()
+
+  const res = await aws.fetch(url, {
+    method: 'PUT',
+    body: buffer,
+    headers: { 'Content-Type': file.type },
+  })
+
+  if (!res.ok) {
+    const text = await res.text()
+    throw createError({ statusCode: 500, message: `RustFS error: ${text}` })
   }
 
-  return { key, url: `${process.env.RUSTFS_ENDPOINT}/${process.env.RUSTFS_BUCKET}/${key}` }
+  return { key, url }
 })
