@@ -71,7 +71,7 @@
     </div>
 
     <!-- Scroll cue -->
-    <div class="absolute bottom-4 left-1/2 -translate-x-1/2 z-10 flex flex-col items-center gap-1 animate-bounce">
+    <div class="hidden md:flex absolute bottom-4 left-1/2 -translate-x-1/2 z-10 flex-col items-center gap-1 animate-bounce">
       <span class="font-sans text-[10px] uppercase tracking-widest text-race-gray/60">Scroll</span>
       <svg class="w-4 h-4 text-race-gray/60" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
