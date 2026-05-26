@@ -1,9 +1,17 @@
 <script setup lang="ts">
-const guests = [
+const fallbackGuests = [
   'The Santos Family', 'The Reyes Crew', 'Aunt Maria', 'Uncle Jose',
   'Team Gonzalez', 'The Dela Cruz Fam', 'Lola Caring', 'Lolo Ben',
   'The Aquino Squad', 'Kuya Nico', 'Ate Bea', 'Baby Mika',
 ]
+
+const { data: apiGuests } = await useFetch<any[]>('/api/public/rsvps')
+
+const guests = computed(() => {
+  const raw = apiGuests.value
+  if (!raw || raw.length === 0) return fallbackGuests
+  return raw.map(r => r.displayName)
+})
 </script>
 
 <template>

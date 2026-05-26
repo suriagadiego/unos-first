@@ -56,13 +56,13 @@
       <!-- Event chips -->
       <div class="flex gap-1 md:gap-2 flex-wrap justify-center mb-2">
         <span class="bg-white/50 backdrop-blur-sm border border-race-blue/20 text-race-blue font-sans text-[9px] md:text-[10px] uppercase tracking-wider md:tracking-widest px-2 py-1 md:px-4 md:py-2">
-          St. John the Baptist Parish
+          Santo Domingo Church
         </span>
         <span class="bg-white/50 backdrop-blur-sm border border-race-blue/20 text-race-blue font-sans text-[9px] md:text-[10px] uppercase tracking-wider md:tracking-widest px-2 py-1 md:px-4 md:py-2">
           September 6, 2026
         </span>
         <span class="bg-white/50 backdrop-blur-sm border border-race-blue/20 text-race-blue font-sans text-[9px] md:text-[10px] uppercase tracking-wider md:tracking-widest px-2 py-1 md:px-4 md:py-2">
-          Reception to follow
+          Steelworld Tower
         </span>
       </div>
 

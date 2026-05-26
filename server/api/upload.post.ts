@@ -1,8 +1,12 @@
 import { AwsClient } from 'aws4fetch'
+import { useDb } from '../db/index'
+import { photos } from '../db/schema'
+import { logAction } from '../utils/log'
 
 export default defineEventHandler(async (event) => {
   const form = await readFormData(event)
   const file = form.get('file') as File
+  const uploaderName = form.get('uploaderName') as string | null
 
   if (!file) throw createError({ statusCode: 400, message: 'No file provided' })
 
@@ -31,5 +35,20 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 500, message: `RustFS error: ${text}` })
   }
 
-  return { key, url }
+  const now = new Date().toISOString()
+  const db = useDb()
+  const [photo] = await db.insert(photos).values({
+    url,
+    storageKey: key,
+    uploaderName: uploaderName || null,
+    status: 'pending',
+    isFeatured: false,
+    showOnPublic: false,
+    createdAt: now,
+    updatedAt: now,
+  }).returning()
+
+  logAction('created', 'photo', `Photo uploaded by ${uploaderName || 'guest'}`, photo.id)
+
+  return { key, url, photoId: photo.id }
 })

@@ -7,15 +7,34 @@ const form = reactive({
 })
 
 const submitted = ref(false)
+const loading = ref(false)
 const error = ref('')
 
-function submit() {
+async function submit() {
   if (!form.name || !form.attending) {
     error.value = 'Please fill in your name and RSVP status.'
     return
   }
   error.value = ''
-  submitted.value = true
+  loading.value = true
+
+  try {
+    await $fetch('/api/public/rsvps', {
+      method: 'POST',
+      body: {
+        displayName: form.name,
+        submitterName: form.name,
+        headcount: form.attending === 'yes' ? form.guests : 0,
+        dietaryNotes: form.dietary || null,
+        attending: form.attending,
+      },
+    })
+    submitted.value = true
+  } catch {
+    error.value = 'Something went wrong. Please try again.'
+  } finally {
+    loading.value = false
+  }
 }
 </script>
 
@@ -98,9 +117,10 @@ function submit() {
 
           <button
             type="submit"
-            class="mt-2 bg-race-blue text-white font-sans text-sm uppercase tracking-widest py-4 rounded hover:bg-race-blue/80 transition-colors"
+            :disabled="loading"
+            class="mt-2 bg-race-blue text-white font-sans text-sm uppercase tracking-widest py-4 rounded hover:bg-race-blue/80 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
           >
-            Submit RSVP
+            {{ loading ? 'Submitting…' : 'Submit RSVP' }}
           </button>
         </form>
       </Transition>

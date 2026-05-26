@@ -1,5 +1,5 @@
 <script setup lang="ts">
-const events = [
+const fallbackEvents = [
   {
     lap: '01',
     badge: 'STARTING GRID',
@@ -17,6 +17,21 @@ const events = [
     note: 'Reception to follow immediately after the ceremony.',
   },
 ]
+
+const { data: apiActivities } = await useFetch<any[]>('/api/public/activities')
+
+const events = computed(() => {
+  const raw = apiActivities.value
+  if (!raw || raw.length === 0) return fallbackEvents
+  return raw.map(a => ({
+    lap: a.lapNumber ?? '',
+    badge: a.label ?? '',
+    time: a.time ?? '',
+    venue: (a.venueName ?? '').toUpperCase(),
+    address: a.address ?? '',
+    note: a.note ?? '',
+  }))
+})
 
 const dressCodes = [
   { label: 'Racer Blue', color: '#6B8CAE' },
