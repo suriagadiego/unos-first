@@ -2,29 +2,29 @@
 </script>
 
 <template>
-  <section id="hero" class="relative min-h-screen pt-14 overflow-hidden">
+  <section id="hero" class="relative pt-14 overflow-hidden min-h-screen">
 
     <!-- Upper left — single cloud, slightly larger -->
     <img src="~/assets/images/clouds/5.png" alt="" aria-hidden="true"
-      class="cloud-float-slow pointer-events-none absolute top-16 -left-4 w-[20vw] opacity-60 select-none z-10" />
+      class="cloud-float-slow pointer-events-none absolute top-14 -left-6 w-[65vw] md:w-[20vw] opacity-65 select-none z-10" />
 
     <!-- Upper right — watercolor base with 2 white clouds spread out -->
     <img src="~/assets/images/upperright-watercolor.png" alt="" aria-hidden="true"
-      class="pointer-events-none absolute top-0 right-0 w-[76vw] opacity-75 select-none z-10" />
-    <img src="~/assets/images/clouds/4.png" alt="" aria-hidden="true"
-      class="cloud-float-slow pointer-events-none absolute top-4 right-[18vw] w-[16vw] opacity-90 select-none z-10" />
+      class="pointer-events-none absolute top-0 right-0 w-[90vw] md:w-[76vw] opacity-75 select-none z-10" />
     <img src="~/assets/images/clouds/1.png" alt="" aria-hidden="true"
-      class="cloud-float pointer-events-none absolute top-20 right-[2vw] w-[16vw] opacity-85 select-none z-10" />
+      class="cloud-float-slow pointer-events-none absolute top-4 right-[10vw] w-[55vw] md:w-[16vw] opacity-90 select-none z-10" />
+    <img src="~/assets/images/clouds/4.png" alt="" aria-hidden="true"
+      class="cloud-float pointer-events-none absolute top-24 right-0 w-[50vw] md:w-[16vw] opacity-85 select-none z-10" />
 
     <!-- Illustration pinned to bottom -->
-    <div class="absolute bottom-0 left-0 right-0">
-      <img src="~/assets/images/landing.png" class="w-full block scale-[0.85] origin-bottom-right" alt="" />
+    <div class="absolute bottom-0 left-0 right-0 scale-[1.6] origin-bottom-right md:scale-100">
+      <img src="~/assets/images/landing.png" class="w-full block md:scale-[0.85] md:origin-bottom-right" alt="" />
       <img src="~/assets/images/lowerleft-watercolor.png" alt="" aria-hidden="true"
         class="pointer-events-none absolute bottom-0 left-0 w-4/5 select-none opacity-80" />
     </div>
 
     <!-- Text in upper area, above the clouds and car -->
-    <div class="relative z-20 flex flex-col items-center text-center pt-8 pl-8 pr-[40vw]">
+    <div class="relative z-20 flex flex-col items-center text-center pt-[5vh] px-6 md:pt-8 md:pl-8 md:pr-[40vw]">
 
       <!-- Arc: LAP 1 OF A LIFETIME -->
       <svg viewBox="0 0 320 80" class="w-64 h-12 overflow-visible mb-1">
@@ -36,7 +36,7 @@
 
       <p class="font-sans text-[11px] uppercase tracking-[0.35em] text-race-gray mb-1">The First Birthday of</p>
 
-      <h1 class="font-racing text-[clamp(4rem,18vw,10rem)] leading-none text-race-black">
+      <h1 class="font-racing text-[clamp(5rem,28vw,10rem)] leading-none text-race-black md:text-[clamp(5rem,18vw,10rem)]">
         UNO
       </h1>
 
@@ -54,14 +54,14 @@
       </div>
 
       <!-- Event chips -->
-      <div class="flex gap-2 flex-wrap justify-center mb-5">
-        <span class="bg-white/50 backdrop-blur-sm border border-race-blue/20 text-race-blue font-sans text-[10px] uppercase tracking-widest px-4 py-2">
+      <div class="flex gap-1 md:gap-2 flex-wrap justify-center mb-5">
+        <span class="bg-white/50 backdrop-blur-sm border border-race-blue/20 text-race-blue font-sans text-[9px] md:text-[10px] uppercase tracking-wider md:tracking-widest px-2 py-1 md:px-4 md:py-2">
           St. John the Baptist Parish
         </span>
-        <span class="bg-white/50 backdrop-blur-sm border border-race-blue/20 text-race-blue font-sans text-[10px] uppercase tracking-widest px-4 py-2">
+        <span class="bg-white/50 backdrop-blur-sm border border-race-blue/20 text-race-blue font-sans text-[9px] md:text-[10px] uppercase tracking-wider md:tracking-widest px-2 py-1 md:px-4 md:py-2">
           September 6, 2026
         </span>
-        <span class="bg-white/50 backdrop-blur-sm border border-race-blue/20 text-race-blue font-sans text-[10px] uppercase tracking-widest px-4 py-2">
+        <span class="bg-white/50 backdrop-blur-sm border border-race-blue/20 text-race-blue font-sans text-[9px] md:text-[10px] uppercase tracking-wider md:tracking-widest px-2 py-1 md:px-4 md:py-2">
           Reception to follow
         </span>
       </div>
