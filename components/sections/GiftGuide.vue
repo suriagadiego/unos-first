@@ -1,6 +1,6 @@
 <script setup lang="ts">
 const gifts = [
-  { icon: '🧷', label: 'Baby Diaper Pants', note: 'Large size' },
+  { icon: '🧷', label: 'Millie Moon Diaper', note: 'XL size' },
   { icon: '👕', label: '12–18 Month Clothes', note: 'Any style' },
   { icon: '📚', label: 'Educational Toys/Books', note: 'Age appropriate' },
   { icon: '🐷', label: 'Monetary Gift', note: 'Always appreciated' },
