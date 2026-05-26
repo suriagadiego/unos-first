@@ -24,7 +24,7 @@
     </div>
 
     <!-- Text in upper area, above the clouds and car -->
-    <div class="relative z-20 flex flex-col items-center text-center justify-start flex-1 px-6 pt-[3vh] md:pt-8 md:flex-none md:pl-8 md:pr-[40vw]">
+    <div class="relative z-20 flex flex-col items-center text-center justify-start flex-1 px-6 pt-[1vh] md:pt-8 md:flex-none md:pl-8 md:pr-[40vw]">
 
       <!-- Arc: LAP 1 OF A LIFETIME -->
       <svg viewBox="0 0 320 80" class="w-64 h-12 overflow-visible mb-1">
