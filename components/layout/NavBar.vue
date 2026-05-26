@@ -3,13 +3,11 @@ const scrolled = ref(false)
 
 const links = [
   { label: 'Event', href: '#event' },
-  { label: 'God Parents', href: '#godparents' },
   { label: "Who's Coming", href: '#whoscoming' },
   { label: 'RSVP', href: '#rsvp' },
   { label: 'Map', href: '#map' },
-  { label: 'Camera', href: '#camera' },
-  { label: 'Time Capsule', href: '#timecapsule' },
   { label: 'Gifts', href: '#gifts' },
+  { label: 'Activities', href: '/activities' },
   { label: "Uno's Fund", href: '/fund' },
 ]
 

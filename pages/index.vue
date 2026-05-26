@@ -2,21 +2,15 @@
   <div>
     <NavBar />
     <HeroSection />
-    <CheckeredDivider height="20px" />
+    <CheckeredDivider height="40px" />
     <EventDetails />
-    <CheckeredDivider height="20px" />
-    <GodParents />
-    <CheckeredDivider height="20px" />
+    <CheckeredDivider height="40px" />
     <WhosComing />
-    <CheckeredDivider height="20px" />
+    <CheckeredDivider height="40px" />
     <RsvpForm />
-    <CheckeredDivider height="20px" />
+    <CheckeredDivider height="40px" />
     <MapSection />
-    <CheckeredDivider height="20px" />
-    <DisposableCamera />
-    <CheckeredDivider height="20px" />
-    <TimeCapsule />
-    <CheckeredDivider height="20px" />
+    <CheckeredDivider height="40px" />
     <GiftGuide />
   </div>
 </template>

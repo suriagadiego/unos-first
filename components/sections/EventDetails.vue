@@ -22,7 +22,7 @@ const dressCodes = [
 </script>
 
 <template>
-  <section id="event" class="py-20 px-4 bg-white">
+  <section id="event" class="py-20 px-4">
     <div class="max-w-4xl mx-auto">
       <h2 class="font-racing text-5xl text-center text-race-black mb-12 tracking-wide">Event Details</h2>
 

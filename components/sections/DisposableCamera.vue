@@ -37,7 +37,7 @@ function clearSlot(index: number) {
 </script>
 
 <template>
-  <section id="camera" class="py-20 px-4 bg-white">
+  <section id="camera" class="py-20 px-4">
     <div class="max-w-3xl mx-auto">
       <h2 class="font-racing text-5xl text-center text-race-black mb-2 tracking-wide">Disposable Camera</h2>
       <p class="font-sans text-xs uppercase tracking-widest text-race-gray text-center mb-2">

@@ -5,6 +5,6 @@ defineProps<{ height?: string }>()
 <template>
   <div
     class="w-full checkered-bg opacity-90"
-    :style="{ height: height ?? '20px' }"
+    :style="{ height: height ?? '40px' }"
   />
 </template>

@@ -2,85 +2,81 @@
 </script>
 
 <template>
-  <section id="hero" class="min-h-screen flex flex-col items-center justify-center bg-white pt-14 pb-8 px-4">
-    <!-- Arc text -->
-    <div class="flex flex-col items-center gap-1 mb-2">
-      <svg viewBox="0 0 300 80" class="w-64 h-16 overflow-visible">
-        <path id="arc" d="M 30,70 Q 150,-10 270,70" fill="none" />
-        <text font-family="'DM Sans', sans-serif" font-size="13" fill="#4A4A4A" letter-spacing="3">
-          <textPath href="#arc" startOffset="50%" text-anchor="middle">
-            OUR LITTLE RACER IS A
-          </textPath>
+  <section id="hero" class="relative min-h-screen pt-14 overflow-hidden">
+
+    <!-- Upper left — single cloud, slightly larger -->
+    <img src="~/assets/images/clouds/5.png" alt="" aria-hidden="true"
+      class="cloud-float-slow pointer-events-none absolute top-16 -left-4 w-[20vw] opacity-60 select-none z-10" />
+
+    <!-- Upper right — watercolor base with 2 white clouds spread out -->
+    <img src="~/assets/images/upperright-watercolor.png" alt="" aria-hidden="true"
+      class="pointer-events-none absolute top-0 right-0 w-[76vw] opacity-75 select-none z-10" />
+    <img src="~/assets/images/clouds/4.png" alt="" aria-hidden="true"
+      class="cloud-float-slow pointer-events-none absolute top-4 right-[18vw] w-[16vw] opacity-90 select-none z-10" />
+    <img src="~/assets/images/clouds/1.png" alt="" aria-hidden="true"
+      class="cloud-float pointer-events-none absolute top-20 right-[2vw] w-[16vw] opacity-85 select-none z-10" />
+
+    <!-- Illustration pinned to bottom -->
+    <div class="absolute bottom-0 left-0 right-0">
+      <img src="~/assets/images/landing.png" class="w-full block scale-[0.85] origin-bottom-right" alt="" />
+      <img src="~/assets/images/lowerleft-watercolor.png" alt="" aria-hidden="true"
+        class="pointer-events-none absolute bottom-0 left-0 w-4/5 select-none opacity-80" />
+    </div>
+
+    <!-- Text in upper area, above the clouds and car -->
+    <div class="relative z-20 flex flex-col items-center text-center pt-8 pl-8 pr-[40vw]">
+
+      <!-- Arc: LAP 1 OF A LIFETIME -->
+      <svg viewBox="0 0 320 80" class="w-64 h-12 overflow-visible mb-1">
+        <path id="arc" d="M 20,70 Q 160,-10 300,70" fill="none" />
+        <text font-family="'Plus Jakarta Sans', sans-serif" font-size="11" fill="#4A4A4A" letter-spacing="4">
+          <textPath href="#arc" startOffset="50%" text-anchor="middle">LAP 1 OF A LIFETIME</textPath>
         </text>
       </svg>
 
-      <!-- Checkered flags placeholder -->
-      <PlaceholderAsset label="Checkered Flags" width="80px" height="60px" variant="dark" />
-    </div>
+      <p class="font-sans text-[11px] uppercase tracking-[0.35em] text-race-gray mb-1">The First Birthday of</p>
 
-    <!-- FAST ONE -->
-    <h1 class="font-racing text-[clamp(4rem,15vw,9rem)] leading-none tracking-tight text-race-black italic">
-      FAST ONE
-    </h1>
+      <h1 class="font-racing text-[clamp(4rem,18vw,10rem)] leading-none text-race-black">
+        UNO
+      </h1>
 
-    <!-- Hero car placeholder -->
-    <div class="relative w-full max-w-2xl flex items-end justify-center my-4">
-      <PlaceholderAsset label="Watercolor Trophy" width="100px" height="120px" variant="light" class="absolute left-4 bottom-0" />
-      <PlaceholderAsset label="Watercolor F1 Car" width="320px" height="160px" />
-      <PlaceholderAsset label="Watercolor Tires" width="100px" height="120px" variant="dark" class="absolute right-0 bottom-0" />
-    </div>
+      <p class="font-sans text-[11px] uppercase tracking-[0.25em] text-race-gray mt-2 mb-4">
+        First Lap &nbsp;★&nbsp; First Party &nbsp;★&nbsp; First Memories
+      </p>
 
-    <!-- Checkered divider -->
-    <CheckeredDivider height="18px" class="w-full max-w-2xl my-2" />
-
-    <!-- Subtitle -->
-    <p class="font-sans text-sm uppercase tracking-[0.25em] text-race-gray mt-4 mb-2">
-      Join us as we celebrate the Christening and 1st Birthday of our little racer
-    </p>
-
-    <!-- Name with speed lines -->
-    <div class="relative flex items-center gap-4 my-2">
-      <PlaceholderAsset label="Flag" width="60px" height="70px" variant="dark" />
-      <div class="flex items-center gap-3">
-        <!-- Speed lines -->
-        <div class="flex flex-col gap-[5px]">
-          <div class="w-10 h-[2px] bg-race-black" />
-          <div class="w-7 h-[2px] bg-race-black" />
-          <div class="w-5 h-[2px] bg-race-black" />
-        </div>
-        <h2 class="font-racing text-[clamp(3rem,12vw,7rem)] text-race-blue leading-none tracking-wide italic">
-          UNO
-        </h2>
+      <!-- Lights out ticket -->
+      <div class="border border-race-gray/40 bg-white/30 backdrop-blur-sm px-6 py-3 mb-5 flex flex-col items-center gap-1">
+        <p class="font-sans text-[10px] uppercase tracking-[0.4em] text-race-gray">Lights Out</p>
+        <p class="font-script text-xl text-race-blue leading-tight">it's time to celebrate</p>
+        <p class="font-sans text-[10px] uppercase tracking-[0.3em] text-race-gray">
+          Uno is turning &nbsp;<span class="font-racing text-race-blue text-base">ONE</span>
+        </p>
       </div>
-      <PlaceholderAsset label="Flag" width="60px" height="70px" variant="dark" />
+
+      <!-- Event chips -->
+      <div class="flex gap-2 flex-wrap justify-center mb-5">
+        <span class="bg-white/50 backdrop-blur-sm border border-race-blue/20 text-race-blue font-sans text-[10px] uppercase tracking-widest px-4 py-2">
+          St. John the Baptist Parish
+        </span>
+        <span class="bg-white/50 backdrop-blur-sm border border-race-blue/20 text-race-blue font-sans text-[10px] uppercase tracking-widest px-4 py-2">
+          September 6, 2026
+        </span>
+        <span class="bg-white/50 backdrop-blur-sm border border-race-blue/20 text-race-blue font-sans text-[10px] uppercase tracking-widest px-4 py-2">
+          Reception to follow
+        </span>
+      </div>
+
+      <CountdownTimer />
+
     </div>
-
-    <p class="font-sans text-xs uppercase tracking-[0.3em] text-race-gray mb-6">
-      First Lap Around the Track
-    </p>
-
-    <!-- Info chips -->
-    <div class="flex gap-3 flex-wrap justify-center mb-8">
-      <span class="bg-race-blue-light/40 text-race-blue font-sans text-xs uppercase tracking-widest px-5 py-2 rounded-sm">
-        Church
-      </span>
-      <span class="bg-race-blue-light/40 text-race-blue font-sans text-xs uppercase tracking-widest px-5 py-2 rounded-sm">
-        September 6, 2026
-      </span>
-      <span class="bg-race-blue-light/40 text-race-blue font-sans text-xs uppercase tracking-widest px-5 py-2 rounded-sm">
-        Venue
-      </span>
-    </div>
-
-    <!-- Countdown -->
-    <CountdownTimer />
 
     <!-- Scroll cue -->
-    <div class="mt-10 flex flex-col items-center gap-1 animate-bounce">
+    <div class="absolute bottom-4 left-1/2 -translate-x-1/2 z-10 flex flex-col items-center gap-1 animate-bounce">
       <span class="font-sans text-[10px] uppercase tracking-widest text-race-gray/60">Scroll</span>
       <svg class="w-4 h-4 text-race-gray/60" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
       </svg>
     </div>
+
   </section>
 </template>

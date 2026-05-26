@@ -7,7 +7,9 @@ const guests = [
 </script>
 
 <template>
-  <section id="whoscoming" class="py-20 px-4 bg-white">
+  <section id="whoscoming" class="py-20 px-4 relative overflow-hidden">
+    <img src="~/assets/images/clouds/3.png" alt="" aria-hidden="true"
+      class="cloud-float pointer-events-none absolute -top-4 -right-12 w-72 opacity-20 select-none" />
     <div class="max-w-3xl mx-auto text-center">
       <h2 class="font-racing text-5xl text-race-black mb-3 tracking-wide">On the Grid</h2>
       <p class="font-sans text-xs uppercase tracking-widest text-race-gray mb-10">Confirmed Racers</p>

@@ -16,8 +16,9 @@ export default {
         'race-black': '#0D0D0D',
       },
       fontFamily: {
-        racing: ['"Racing Sans One"', 'cursive'],
-        sans: ['"DM Sans"', 'sans-serif'],
+        racing: ['Formula1', 'sans-serif'],
+        sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+        script: ['"Dancing Script"', 'cursive'],
       },
     },
   },

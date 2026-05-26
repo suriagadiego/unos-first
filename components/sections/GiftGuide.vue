@@ -8,7 +8,9 @@ const gifts = [
 </script>
 
 <template>
-  <section id="gifts" class="py-20 px-4 bg-white">
+  <section id="gifts" class="py-20 px-4 relative overflow-hidden">
+    <img src="~/assets/images/clouds/2.png" alt="" aria-hidden="true"
+      class="cloud-float-slow pointer-events-none absolute -bottom-8 left-1/2 -translate-x-1/2 w-96 opacity-30 select-none" />
     <div class="max-w-2xl mx-auto text-center">
       <h2 class="font-racing text-5xl text-race-black mb-4 tracking-wide">Gift Guide</h2>
       <p class="font-sans text-sm text-race-gray mb-2 max-w-md mx-auto">
