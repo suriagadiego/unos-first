@@ -2,7 +2,7 @@
 </script>
 
 <template>
-  <section id="hero" class="relative pt-14 overflow-hidden min-h-screen flex flex-col pb-[67vw] md:pb-0 md:block">
+  <section id="hero" class="relative pt-14 overflow-hidden min-h-screen flex flex-col pb-[107vw] md:pb-0 md:block">
 
     <!-- Upper left — single cloud, slightly larger -->
     <img src="~/assets/images/clouds/5.png" alt="" aria-hidden="true"
@@ -40,7 +40,7 @@
         UNO
       </h1>
 
-      <p class="font-sans text-[11px] uppercase tracking-[0.25em] text-race-gray mt-2 mb-4">
+      <p class="font-sans text-[11px] uppercase tracking-[0.1em] md:tracking-[0.25em] text-race-gray mt-2 mb-4">
         First Lap &nbsp;★&nbsp; First Party &nbsp;★&nbsp; First Memories
       </p>
 
