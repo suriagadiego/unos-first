@@ -2,7 +2,7 @@
 </script>
 
 <template>
-  <section id="hero" class="relative pt-14 overflow-hidden min-h-screen">
+  <section id="hero" class="relative pt-14 overflow-hidden min-h-screen flex flex-col pb-[67vw] md:pb-0 md:block">
 
     <!-- Upper left — single cloud, slightly larger -->
     <img src="~/assets/images/clouds/5.png" alt="" aria-hidden="true"
@@ -24,7 +24,7 @@
     </div>
 
     <!-- Text in upper area, above the clouds and car -->
-    <div class="relative z-20 flex flex-col items-center text-center pt-[5vh] px-6 md:pt-8 md:pl-8 md:pr-[40vw]">
+    <div class="relative z-20 flex flex-col items-center text-center justify-center flex-1 px-6 pt-[8vh] md:pt-8 md:flex-none md:pl-8 md:pr-[40vw]">
 
       <!-- Arc: LAP 1 OF A LIFETIME -->
       <svg viewBox="0 0 320 80" class="w-64 h-12 overflow-visible mb-1">
