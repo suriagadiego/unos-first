@@ -2,7 +2,7 @@
 </script>
 
 <template>
-  <section id="hero" class="relative pt-14 overflow-hidden h-[100dvh] flex flex-col md:min-h-screen md:h-auto md:block">
+  <section id="hero" class="relative pt-14 overflow-hidden h-[100svh] flex flex-col md:min-h-screen md:h-auto md:block">
 
     <!-- Upper left — single cloud, slightly larger -->
     <img src="~/assets/images/clouds/5.png" alt="" aria-hidden="true"
@@ -11,9 +11,9 @@
     <!-- Upper right — watercolor base with 2 white clouds spread out -->
     <img src="~/assets/images/upperright-watercolor.png" alt="" aria-hidden="true"
       class="pointer-events-none absolute top-0 right-0 w-[90vw] md:w-[76vw] opacity-75 select-none z-10" />
-    <img src="~/assets/images/clouds/1.png" alt="" aria-hidden="true"
-      class="cloud-float-slow pointer-events-none absolute top-4 right-[10vw] w-[55vw] md:w-[16vw] opacity-90 select-none z-10" />
     <img src="~/assets/images/clouds/4.png" alt="" aria-hidden="true"
+      class="cloud-float-slow pointer-events-none absolute top-4 right-[10vw] w-[55vw] md:w-[16vw] opacity-90 select-none z-10" />
+    <img src="~/assets/images/clouds/1.png" alt="" aria-hidden="true"
       class="cloud-float pointer-events-none absolute top-24 right-0 w-[50vw] md:w-[16vw] opacity-85 select-none z-10" />
 
     <!-- Illustration pinned to bottom -->
@@ -36,25 +36,25 @@
 
       <p class="font-sans text-[11px] uppercase tracking-[0.35em] text-race-gray mb-1">The First Birthday of</p>
 
-      <h1 class="font-racing text-[clamp(5rem,28vw,10rem)] leading-none text-race-black md:text-[clamp(5rem,18vw,10rem)]">
+      <h1 class="font-racing text-[clamp(4.5rem,25vw,9rem)] leading-none text-race-black md:text-[clamp(4.5rem,16vw,9rem)]">
         UNO
       </h1>
 
-      <p class="font-sans text-[11px] uppercase tracking-[0.1em] md:tracking-[0.25em] text-race-gray mt-2 mb-4">
+      <p class="font-sans text-[11px] uppercase tracking-[0.1em] md:tracking-[0.25em] text-race-gray mt-1 mb-2">
         First Lap &nbsp;★&nbsp; First Party &nbsp;★&nbsp; First Memories
       </p>
 
       <!-- Lights out ticket -->
-      <div class="border border-race-gray/40 bg-white/30 backdrop-blur-sm px-6 py-3 mb-5 flex flex-col items-center gap-1">
-        <p class="font-sans text-[10px] uppercase tracking-[0.4em] text-race-gray">Lights Out</p>
-        <p class="font-script text-xl text-race-blue leading-tight">it's time to celebrate</p>
-        <p class="font-sans text-[10px] uppercase tracking-[0.3em] text-race-gray">
-          Uno is turning &nbsp;<span class="font-racing text-race-blue text-base">ONE</span>
+      <div class="border border-race-gray/40 bg-white/30 backdrop-blur-sm px-4 py-2 mb-2 flex flex-col items-center gap-0.5">
+        <p class="font-sans text-[9px] uppercase tracking-[0.4em] text-race-gray">Lights Out</p>
+        <p class="font-script text-base text-race-blue leading-tight">it's time to celebrate</p>
+        <p class="font-sans text-[9px] uppercase tracking-[0.3em] text-race-gray">
+          Uno is turning &nbsp;<span class="font-racing text-race-blue text-sm">ONE</span>
         </p>
       </div>
 
       <!-- Event chips -->
-      <div class="flex gap-1 md:gap-2 flex-wrap justify-center mb-5">
+      <div class="flex gap-1 md:gap-2 flex-wrap justify-center mb-2">
         <span class="bg-white/50 backdrop-blur-sm border border-race-blue/20 text-race-blue font-sans text-[9px] md:text-[10px] uppercase tracking-wider md:tracking-widest px-2 py-1 md:px-4 md:py-2">
           St. John the Baptist Parish
         </span>

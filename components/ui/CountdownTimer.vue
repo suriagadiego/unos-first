@@ -9,7 +9,7 @@ const pad = (n: number) => String(n).padStart(2, '0')
   <div class="flex gap-4 justify-center items-end">
     <template v-if="!expired">
       <div v-for="(val, label) in { DAYS: days, HRS: hours, MIN: minutes, SEC: seconds }" :key="label" class="flex flex-col items-center">
-        <span class="font-racing text-5xl md:text-6xl text-race-black leading-none">{{ pad(val) }}</span>
+        <span class="font-racing text-[2.4rem] md:text-5xl text-race-black leading-none">{{ pad(val) }}</span>
         <span class="font-sans text-[10px] uppercase tracking-[0.2em] text-race-gray mt-1">{{ label }}</span>
       </div>
     </template>
