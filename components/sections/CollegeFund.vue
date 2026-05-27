@@ -1,21 +1,26 @@
 <script setup lang="ts">
-const MOCK_PERCENTAGE = 47
-const MOCK_CONTRIBUTORS = 38
 const FUND_DEADLINE = new Date('2026-09-13T00:00:00')
-
 const { days } = useCountdown(FUND_DEADLINE)
+
+const { data } = await useFetch<{ contributions: any[]; total: number; goal: number }>('/api/public/fund')
+
+const realPct = computed(() => {
+  if (!data.value?.goal) return 0
+  return Math.min(Math.round((data.value.total / data.value.goal) * 100), 100)
+})
+const realContributors = computed(() => data.value?.contributions.length ?? 0)
 
 const displayPct = ref(0)
 const displayContributors = ref(0)
 
 onMounted(() => {
   const pctTimer = setInterval(() => {
-    if (displayPct.value < MOCK_PERCENTAGE) displayPct.value++
+    if (displayPct.value < realPct.value) displayPct.value++
     else clearInterval(pctTimer)
   }, 18)
 
   const cTimer = setInterval(() => {
-    if (displayContributors.value < MOCK_CONTRIBUTORS) displayContributors.value++
+    if (displayContributors.value < realContributors.value) displayContributors.value++
     else clearInterval(cTimer)
   }, 30)
 })
@@ -78,7 +83,7 @@ onMounted(() => {
       <div class="w-full h-3 bg-race-gray/10 rounded-full overflow-hidden mb-2">
         <div
           class="h-full bg-race-blue rounded-full transition-all duration-1000"
-          :style="{ width: `${MOCK_PERCENTAGE}%` }"
+          :style="{ width: `${realPct}%` }"
         />
       </div>
       <div class="flex justify-between w-full mb-10">
