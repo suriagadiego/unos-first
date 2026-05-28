@@ -40,6 +40,8 @@
         UNO
       </h1>
 
+      <p class="font-racing text-[clamp(0.95rem,4.8vw,2rem)] leading-none text-race-blue -mt-2 mb-2">Juancho Jozel Santos</p>
+
       <p class="font-sans text-[11px] uppercase tracking-[0.1em] md:tracking-[0.25em] text-race-gray mt-1 mb-2">
         First Lap &nbsp;★&nbsp; First Party &nbsp;★&nbsp; First Memories
       </p>
@@ -59,10 +61,10 @@
           Santo Domingo Church
         </span>
         <span class="bg-white/50 backdrop-blur-sm border border-race-blue/20 text-race-blue font-sans text-[9px] md:text-[10px] uppercase tracking-wider md:tracking-widest px-2 py-1 md:px-4 md:py-2">
-          September 6, 2026
+          Steelworld Tower
         </span>
         <span class="bg-white/50 backdrop-blur-sm border border-race-blue/20 text-race-blue font-sans text-[9px] md:text-[10px] uppercase tracking-wider md:tracking-widest px-2 py-1 md:px-4 md:py-2">
-          Steelworld Tower
+          September 6, 2026
         </span>
       </div>
 
