@@ -1,7 +1,5 @@
 import { AwsClient } from 'aws4fetch'
-import { useDb } from '../../../db/index'
-import { photos } from '../../../db/schema'
-import { eq } from 'drizzle-orm'
+import { useSupabase } from '../../../utils/supabase'
 import { logAction } from '../../../utils/log'
 
 export default defineEventHandler(async (event) => {
@@ -24,9 +22,9 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 500, message: `Bucket delete failed: ${text}` })
   }
 
-  const db = useDb()
-  await db.delete(photos).where(eq(photos.storageKey, key))
+  const sb = useSupabase()
+  await sb.from('photos').delete().eq('storage_key', key)
 
-  logAction('deleted', 'photo', `Deleted photo from bucket: ${key}`)
+  void logAction('deleted', 'photo', `Deleted photo from bucket: ${key}`)
   return { ok: true }
 })

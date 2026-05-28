@@ -1,11 +1,9 @@
 import { AwsClient } from 'aws4fetch'
-import { useDb } from '../../../db/index'
-import { photos } from '../../../db/schema'
+import { useSupabase } from '../../../utils/supabase'
 
 export default defineEventHandler(async () => {
   const endpoint = process.env.RUSTFS_ENDPOINT
   const bucket = process.env.RUSTFS_BUCKET
-
   if (!endpoint || !bucket) {
     throw createError({ statusCode: 500, message: 'Storage not configured (RUSTFS_ENDPOINT / RUSTFS_BUCKET missing)' })
   }
@@ -26,27 +24,27 @@ export default defineEventHandler(async () => {
   const xml = await res.text()
   const keys = [...xml.matchAll(/<Key>([^<]+)<\/Key>/g)].map(m => m[1])
 
-  const db = useDb()
-  const existing = await db.select({ storageKey: photos.storageKey }).from(photos)
-  const existingKeys = new Set(existing.map((p: any) => p.storageKey).filter(Boolean))
+  const sb = useSupabase()
+  const { data: existing } = await sb.from('photos').select('storage_key')
+  const existingKeys = new Set((existing ?? []).map((p: any) => p.storage_key).filter(Boolean))
 
   const now = new Date().toISOString()
-  let added = 0
+  const newKeys = keys.filter(k => !existingKeys.has(k))
 
-  for (const key of keys) {
-    if (existingKeys.has(key)) continue
-    await db.insert(photos).values({
-      url: `${endpoint}/${bucket}/${key}`,
-      storageKey: key,
-      uploaderName: null,
-      status: 'pending',
-      isFeatured: false,
-      showOnPublic: false,
-      createdAt: now,
-      updatedAt: now,
-    })
-    added++
+  if (newKeys.length > 0) {
+    await sb.from('photos').insert(
+      newKeys.map(key => ({
+        url: `${endpoint}/${bucket}/${key}`,
+        storage_key: key,
+        uploader_name: null,
+        status: 'pending',
+        is_featured: false,
+        show_on_public: false,
+        created_at: now,
+        updated_at: now,
+      }))
+    )
   }
 
-  return { synced: added, total: keys.length }
+  return { synced: newKeys.length, total: keys.length }
 })

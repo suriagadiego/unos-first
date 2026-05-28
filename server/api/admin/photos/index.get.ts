@@ -1,16 +1,13 @@
-import { useDb } from '../../../db/index'
-import { photos } from '../../../db/schema'
-import { desc, eq } from 'drizzle-orm'
-import type { H3Event } from 'h3'
+import { useSupabase, toPhoto } from '../../../utils/supabase'
 
-export default defineEventHandler(async (event: H3Event) => {
+export default defineEventHandler(async (event) => {
   const query = getQuery(event)
-  const db = useDb()
+  const sb = useSupabase()
 
-  let q = db.select().from(photos).$dynamic()
-  if (query.status) {
-    q = q.where(eq(photos.status, String(query.status)))
-  }
+  let q = sb.from('photos').select('*')
+  if (query.status) q = (q as any).eq('status', String(query.status))
 
-  return q.orderBy(desc(photos.createdAt))
+  const { data, error } = await (q as any).order('created_at', { ascending: false })
+  if (error) throw createError({ statusCode: 500, message: error.message })
+  return (data ?? []).map(toPhoto)
 })

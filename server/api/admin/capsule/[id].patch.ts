@@ -1,19 +1,22 @@
-import { useDb } from '../../../db/index'
-import { timeCapsuleEntries } from '../../../db/schema'
-import { eq } from 'drizzle-orm'
+import { useSupabase, toCapsule } from '../../../utils/supabase'
 import { logAction } from '../../../utils/log'
 
 export default defineEventHandler(async (event) => {
   const id = Number(getRouterParam(event, 'id'))
   const body = await readBody(event)
-  const db = useDb()
+  const sb = useSupabase()
 
-  const updates: Record<string, unknown> = { updatedAt: new Date().toISOString() }
+  const updates: Record<string, unknown> = { updated_at: new Date().toISOString() }
   if ('status' in body) updates.status = body.status
 
-  const [updated] = await db.update(timeCapsuleEntries).set(updates).where(eq(timeCapsuleEntries.id, id)).returning()
-  if (!updated) throw createError({ statusCode: 404, message: 'Entry not found' })
+  const { data, error } = await sb
+    .from('time_capsule_entries')
+    .update(updates)
+    .eq('id', id)
+    .select()
+    .single()
+  if (error) throw createError({ statusCode: 404, message: 'Entry not found' })
 
-  logAction('updated', 'capsule', `Capsule entry ${id} → ${updated.status}`, id)
-  return updated
+  void logAction('updated', 'capsule', `Capsule entry ${id} → ${data.status}`, id)
+  return toCapsule(data)
 })

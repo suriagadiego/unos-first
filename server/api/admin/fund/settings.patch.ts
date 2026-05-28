@@ -1,20 +1,33 @@
-import { useDb } from '../../../db/index'
-import { fundSettings } from '../../../db/schema'
-import { eq } from 'drizzle-orm'
+import { useSupabase, toFundSettings } from '../../../utils/supabase'
 import { logAction } from '../../../utils/log'
 
 export default defineEventHandler(async (event) => {
   const body = await readBody(event)
-  const db = useDb()
+  const sb = useSupabase()
   const now = new Date().toISOString()
 
-  let [settings] = await db.select().from(fundSettings).limit(1)
-  if (!settings) {
-    ;[settings] = await db.insert(fundSettings).values({ goal: body.goal, createdAt: now, updatedAt: now }).returning()
+  const { data: existing } = await sb.from('fund_settings').select('id').limit(1).maybeSingle()
+
+  let result: any
+  if (!existing) {
+    const { data, error } = await sb
+      .from('fund_settings')
+      .insert({ goal: body.goal, created_at: now, updated_at: now })
+      .select()
+      .single()
+    if (error) throw createError({ statusCode: 500, message: error.message })
+    result = data
   } else {
-    ;[settings] = await db.update(fundSettings).set({ goal: body.goal, updatedAt: now }).where(eq(fundSettings.id, settings.id)).returning()
+    const { data, error } = await sb
+      .from('fund_settings')
+      .update({ goal: body.goal, updated_at: now })
+      .eq('id', existing.id)
+      .select()
+      .single()
+    if (error) throw createError({ statusCode: 500, message: error.message })
+    result = data
   }
 
-  logAction('updated', 'fund_settings', `Fund goal updated to ${body.goal}`)
-  return settings
+  void logAction('updated', 'fund_settings', `Fund goal updated to ${body.goal}`)
+  return toFundSettings(result)
 })

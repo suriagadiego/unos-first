@@ -1,5 +1,4 @@
-import { useDb } from '../../../db/index'
-import { contributions } from '../../../db/schema'
+import { useSupabase, toContribution } from '../../../utils/supabase'
 import { logAction } from '../../../utils/log'
 
 export default defineEventHandler(async (event) => {
@@ -8,18 +7,24 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 400, message: 'submitterName and amount are required' })
   }
 
-  const db = useDb()
+  const sb = useSupabase()
   const now = new Date().toISOString()
 
-  const [created] = await db.insert(contributions).values({
-    submitterName: body.submitterName,
-    amount: Number(body.amount),
-    message: body.message || null,
-    showOnPublic: body.showOnPublic !== false,
-    createdAt: now,
-    updatedAt: now,
-  }).returning()
+  const { data, error } = await sb
+    .from('contributions')
+    .insert({
+      submitter_name: body.submitterName,
+      amount: Number(body.amount),
+      message: body.message || null,
+      show_on_public: body.showOnPublic !== false,
+      created_at: now,
+      updated_at: now,
+    })
+    .select()
+    .single()
 
-  logAction('created', 'contribution', `New contribution: ₱${body.amount} from ${body.submitterName}`, created.id)
-  return created
+  if (error) throw createError({ statusCode: 500, message: error.message })
+
+  void logAction('created', 'contribution', `New contribution: ₱${body.amount} from ${body.submitterName}`, data.id)
+  return toContribution(data)
 })

@@ -1,15 +1,13 @@
-import { useDb } from '../../../db/index'
-import { contributions } from '../../../db/schema'
-import { eq } from 'drizzle-orm'
+import { useSupabase } from '../../../utils/supabase'
 import { logAction } from '../../../utils/log'
 
 export default defineEventHandler(async (event) => {
   const id = Number(getRouterParam(event, 'id'))
-  const db = useDb()
+  const sb = useSupabase()
 
-  const [deleted] = await db.delete(contributions).where(eq(contributions.id, id)).returning()
-  if (!deleted) throw createError({ statusCode: 404, message: 'Contribution not found' })
+  const { error } = await sb.from('contributions').delete().eq('id', id)
+  if (error) throw createError({ statusCode: 404, message: 'Contribution not found' })
 
-  logAction('deleted', 'contribution', `Deleted contribution ${id}`, id)
+  void logAction('deleted', 'contribution', `Deleted contribution ${id}`, id)
   return { ok: true }
 })

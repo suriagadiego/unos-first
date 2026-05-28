@@ -1,23 +1,23 @@
-import { useDb } from '../../../db/index'
-import { contributions, fundSettings } from '../../../db/schema'
-import { desc, eq, sql } from 'drizzle-orm'
+import { useSupabase, toContribution } from '../../../utils/supabase'
 
 export default defineEventHandler(async () => {
-  const db = useDb()
+  const sb = useSupabase()
 
-  const rows = await db.select().from(contributions).orderBy(desc(contributions.createdAt))
+  const [contribRes, settingsRes] = await Promise.all([
+    sb.from('contributions').select('*').order('created_at', { ascending: false }),
+    sb.from('fund_settings').select('*').limit(1).maybeSingle(),
+  ])
 
-  const [totals] = await db.select({
-    grandTotal: sql<number>`coalesce(sum(amount), 0)`,
-    visibleTotal: sql<number>`coalesce(sum(case when show_on_public = 1 then amount else 0 end), 0)`,
-  }).from(contributions)
+  if (contribRes.error) throw createError({ statusCode: 500, message: contribRes.error.message })
 
-  const [settings] = await db.select().from(fundSettings).limit(1)
+  const contributions = (contribRes.data ?? []).map(toContribution)
+  const grandTotal = contributions.reduce((sum, c) => sum + (c.amount ?? 0), 0)
+  const visibleTotal = contributions.filter(c => c.showOnPublic).reduce((sum, c) => sum + (c.amount ?? 0), 0)
 
   return {
-    contributions: rows,
-    grandTotal: Number(totals.grandTotal) || 0,
-    visibleTotal: Number(totals.visibleTotal) || 0,
-    goal: settings?.goal || 100000,
+    contributions,
+    grandTotal,
+    visibleTotal,
+    goal: settingsRes.data?.goal ?? 100000,
   }
 })

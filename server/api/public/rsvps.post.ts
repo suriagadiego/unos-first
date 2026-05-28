@@ -1,6 +1,4 @@
-import { useDb } from '../../db/index'
-import { rsvps } from '../../db/schema'
-import { sql } from 'drizzle-orm'
+import { useSupabase } from '../../utils/supabase'
 import { logAction } from '../../utils/log'
 
 export default defineEventHandler(async (event) => {
@@ -9,23 +7,35 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 400, message: 'displayName and submitterName are required' })
   }
 
-  const db = useDb()
+  const sb = useSupabase()
   const now = new Date().toISOString()
-  const [maxOrder] = await db.select({ max: sql<number>`coalesce(max(sort_order), 0)` }).from(rsvps)
 
-  const [created] = await db.insert(rsvps).values({
-    displayName: body.displayName,
-    submitterName: body.submitterName,
-    contact: body.contact || null,
-    headcount: body.headcount ?? 1,
-    dietaryNotes: body.dietaryNotes || null,
-    status: body.attending === 'no' ? 'declined' : 'pending',
-    showOnPublic: false,
-    sortOrder: (Number(maxOrder.max) || 0) + 1,
-    createdAt: now,
-    updatedAt: now,
-  }).returning()
+  const { data: maxData } = await sb
+    .from('rsvps')
+    .select('sort_order')
+    .order('sort_order', { ascending: false })
+    .limit(1)
+  const nextOrder = ((maxData?.[0]?.sort_order ?? 0) as number) + 1
 
-  logAction('created', 'rsvp', `Public RSVP: ${created.displayName}`, created.id)
-  return { ok: true, id: created.id }
+  const { data, error } = await sb
+    .from('rsvps')
+    .insert({
+      display_name: body.displayName,
+      submitter_name: body.submitterName,
+      contact: body.contact || null,
+      headcount: body.headcount ?? 1,
+      dietary_notes: body.dietaryNotes || null,
+      status: body.attending === 'no' ? 'declined' : 'pending',
+      show_on_public: false,
+      sort_order: nextOrder,
+      created_at: now,
+      updated_at: now,
+    })
+    .select()
+    .single()
+
+  if (error) throw createError({ statusCode: 500, message: error.message })
+
+  void logAction('created', 'rsvp', `Public RSVP: ${data.display_name}`, data.id)
+  return { ok: true, id: data.id }
 })

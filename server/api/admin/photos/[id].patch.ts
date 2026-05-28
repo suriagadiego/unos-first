@@ -1,25 +1,33 @@
-import { useDb } from '../../../db/index'
-import { photos } from '../../../db/schema'
-import { eq } from 'drizzle-orm'
+import { useSupabase, toPhoto } from '../../../utils/supabase'
 import { logAction } from '../../../utils/log'
 
 export default defineEventHandler(async (event) => {
   const id = Number(getRouterParam(event, 'id'))
   const body = await readBody(event)
-  const db = useDb()
+  const sb = useSupabase()
 
-  const updates: Record<string, unknown> = { updatedAt: new Date().toISOString() }
-  const allowed = ['status', 'isFeatured', 'showOnPublic', 'caption', 'uploaderName']
-  for (const key of allowed) {
-    if (key in body) updates[key] = body[key]
+  const updates: Record<string, unknown> = { updated_at: new Date().toISOString() }
+  const map: Record<string, string> = {
+    status: 'status',
+    isFeatured: 'is_featured',
+    showOnPublic: 'show_on_public',
+    caption: 'caption',
+    uploaderName: 'uploader_name',
   }
-  // when approving, auto-set showOnPublic
-  if (body.status === 'approved') updates.showOnPublic = true
-  if (body.status === 'rejected') updates.showOnPublic = false
+  for (const [camel, snake] of Object.entries(map)) {
+    if (camel in body) updates[snake] = body[camel]
+  }
+  if (body.status === 'approved') updates.show_on_public = true
+  if (body.status === 'rejected') updates.show_on_public = false
 
-  const [updated] = await db.update(photos).set(updates).where(eq(photos.id, id)).returning()
-  if (!updated) throw createError({ statusCode: 404, message: 'Photo not found' })
+  const { data, error } = await sb
+    .from('photos')
+    .update(updates)
+    .eq('id', id)
+    .select()
+    .single()
+  if (error) throw createError({ statusCode: 404, message: 'Photo not found' })
 
-  logAction('updated', 'photo', `Photo ${id} status → ${updated.status}`, id)
-  return updated
+  void logAction('updated', 'photo', `Photo ${id} status → ${data.status}`, id)
+  return toPhoto(data)
 })

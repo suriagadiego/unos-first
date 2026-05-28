@@ -1,16 +1,18 @@
-import { useDb } from '../../db/index'
-import { rsvps } from '../../db/schema'
-import { eq, asc, and } from 'drizzle-orm'
+import { useSupabase } from '../../utils/supabase'
 
 export default defineEventHandler(async () => {
-  const db = useDb()
-  return db.select({
-    id: rsvps.id,
-    displayName: rsvps.displayName,
-    headcount: rsvps.headcount,
-    sortOrder: rsvps.sortOrder,
-  })
-    .from(rsvps)
-    .where(and(eq(rsvps.showOnPublic, true), eq(rsvps.status, 'confirmed')))
-    .orderBy(asc(rsvps.sortOrder))
+  const sb = useSupabase()
+  const { data, error } = await sb
+    .from('rsvps')
+    .select('id, display_name, headcount, sort_order')
+    .eq('show_on_public', true)
+    .eq('status', 'confirmed')
+    .order('sort_order', { ascending: true })
+  if (error) throw createError({ statusCode: 500, message: error.message })
+  return ((data ?? []) as any[]).map(r => ({
+    id: r.id,
+    displayName: r.display_name,
+    headcount: r.headcount,
+    sortOrder: r.sort_order,
+  }))
 })

@@ -1,5 +1,4 @@
-import { useDb } from '../db/index'
-import { activityLog } from '../db/schema'
+import { useSupabase } from './supabase'
 
 export function logAction(
   action: string,
@@ -7,16 +6,13 @@ export function logAction(
   description: string,
   entityId?: number,
 ) {
-  try {
-    const db = useDb()
-    db.insert(activityLog).values({
+  void useSupabase()
+    .from('activity_log')
+    .insert({
       action,
-      entityType,
-      entityId: entityId ?? null,
+      entity_type: entityType,
+      entity_id: entityId ?? null,
       description,
-      createdAt: new Date().toISOString(),
-    }).run()
-  } catch {
-    // non-fatal
-  }
+      created_at: new Date().toISOString(),
+    })
 }

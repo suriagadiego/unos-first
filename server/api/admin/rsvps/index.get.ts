@@ -1,8 +1,12 @@
-import { useDb } from '../../../db/index'
-import { rsvps } from '../../../db/schema'
-import { asc } from 'drizzle-orm'
+import { useSupabase, toRsvp } from '../../../utils/supabase'
 
 export default defineEventHandler(async () => {
-  const db = useDb()
-  return db.select().from(rsvps).orderBy(asc(rsvps.sortOrder), asc(rsvps.createdAt))
+  const sb = useSupabase()
+  const { data, error } = await sb
+    .from('rsvps')
+    .select('*')
+    .order('sort_order', { ascending: true })
+    .order('created_at', { ascending: true })
+  if (error) throw createError({ statusCode: 500, message: error.message })
+  return (data ?? []).map(toRsvp)
 })

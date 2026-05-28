@@ -15,7 +15,8 @@
       "Bash(kill 3397)",
       "WebSearch",
       "Bash(node -e \"require\\('better-sqlite3'\\)\")",
-      "Bash(node -e ' *)"
+      "Bash(node -e ' *)",
+      "Bash(npm uninstall *)"
     ],
     "deny": [
       "Read(./.env)",

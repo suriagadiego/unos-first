@@ -1,28 +1,37 @@
-import { useDb } from '../../../db/index'
-import { rsvps } from '../../../db/schema'
+import { useSupabase, toRsvp } from '../../../utils/supabase'
 import { logAction } from '../../../utils/log'
-import { sql } from 'drizzle-orm'
 
 export default defineEventHandler(async (event) => {
   const body = await readBody(event)
-  const db = useDb()
+  const sb = useSupabase()
   const now = new Date().toISOString()
 
-  const [maxOrder] = await db.select({ max: sql<number>`coalesce(max(sort_order), 0)` }).from(rsvps)
+  const { data: maxData } = await sb
+    .from('rsvps')
+    .select('sort_order')
+    .order('sort_order', { ascending: false })
+    .limit(1)
+  const nextOrder = ((maxData?.[0]?.sort_order ?? 0) as number) + 1
 
-  const [created] = await db.insert(rsvps).values({
-    displayName: body.displayName,
-    submitterName: body.submitterName,
-    contact: body.contact || null,
-    headcount: body.headcount || 1,
-    dietaryNotes: body.dietaryNotes || null,
-    status: 'pending',
-    showOnPublic: false,
-    sortOrder: (Number(maxOrder.max) || 0) + 1,
-    createdAt: now,
-    updatedAt: now,
-  }).returning()
+  const { data, error } = await sb
+    .from('rsvps')
+    .insert({
+      display_name: body.displayName,
+      submitter_name: body.submitterName,
+      contact: body.contact || null,
+      headcount: body.headcount || 1,
+      dietary_notes: body.dietaryNotes || null,
+      status: 'pending',
+      show_on_public: false,
+      sort_order: nextOrder,
+      created_at: now,
+      updated_at: now,
+    })
+    .select()
+    .single()
 
-  logAction('created', 'rsvp', `New RSVP: ${created.displayName}`, created.id)
-  return created
+  if (error) throw createError({ statusCode: 500, message: error.message })
+
+  void logAction('created', 'rsvp', `New RSVP: ${data.display_name}`, data.id)
+  return toRsvp(data)
 })

@@ -1,22 +1,18 @@
-import { useDb } from '../../../db/index'
-import { timeCapsuleEntries } from '../../../db/schema'
-import { desc, like, or, eq } from 'drizzle-orm'
-import type { H3Event } from 'h3'
+import { useSupabase, toCapsule } from '../../../utils/supabase'
 
-export default defineEventHandler(async (event: H3Event) => {
+export default defineEventHandler(async (event) => {
   const query = getQuery(event)
-  const db = useDb()
+  const sb = useSupabase()
 
-  let q = db.select().from(timeCapsuleEntries).$dynamic()
+  let q = sb.from('time_capsule_entries').select('*')
 
-  if (query.status) q = q.where(eq(timeCapsuleEntries.status, String(query.status)))
+  if (query.status) q = (q as any).eq('status', String(query.status))
   if (query.search) {
     const term = `%${query.search}%`
-    q = q.where(or(
-      like(timeCapsuleEntries.submitterName, term),
-      like(timeCapsuleEntries.message, term),
-    ))
+    q = (q as any).or(`submitter_name.ilike.${term},message.ilike.${term}`)
   }
 
-  return q.orderBy(desc(timeCapsuleEntries.createdAt))
+  const { data, error } = await (q as any).order('created_at', { ascending: false })
+  if (error) throw createError({ statusCode: 500, message: error.message })
+  return (data ?? []).map(toCapsule)
 })

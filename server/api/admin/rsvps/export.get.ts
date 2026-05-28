@@ -1,25 +1,27 @@
-import { useDb } from '../../../db/index'
-import { rsvps } from '../../../db/schema'
-import { asc } from 'drizzle-orm'
+import { useSupabase } from '../../../utils/supabase'
 
 export default defineEventHandler(async (event) => {
-  const db = useDb()
-  const rows = await db.select().from(rsvps).orderBy(asc(rsvps.sortOrder))
+  const sb = useSupabase()
+  const { data: rows, error } = await sb
+    .from('rsvps')
+    .select('*')
+    .order('sort_order', { ascending: true })
+  if (error) throw createError({ statusCode: 500, message: error.message })
 
   const headers = ['ID', 'Display Name', 'Submitter Name', 'Contact', 'Headcount', 'Dietary Notes', 'Status', 'Show on Public', 'Sort Order', 'Created At']
   const csv = [
     headers.join(','),
-    ...rows.map(r => [
+    ...(rows ?? []).map((r: any) => [
       r.id,
-      `"${(r.displayName || '').replace(/"/g, '""')}"`,
-      `"${(r.submitterName || '').replace(/"/g, '""')}"`,
+      `"${(r.display_name || '').replace(/"/g, '""')}"`,
+      `"${(r.submitter_name || '').replace(/"/g, '""')}"`,
       `"${(r.contact || '').replace(/"/g, '""')}"`,
       r.headcount,
-      `"${(r.dietaryNotes || '').replace(/"/g, '""')}"`,
+      `"${(r.dietary_notes || '').replace(/"/g, '""')}"`,
       r.status,
-      r.showOnPublic ? 'Yes' : 'No',
-      r.sortOrder,
-      r.createdAt,
+      r.show_on_public ? 'Yes' : 'No',
+      r.sort_order,
+      r.created_at,
     ].join(',')),
   ].join('\n')
 

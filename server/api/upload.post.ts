@@ -1,6 +1,5 @@
 import { AwsClient } from 'aws4fetch'
-import { useDb } from '../db/index'
-import { photos } from '../db/schema'
+import { useSupabase } from '../utils/supabase'
 import { logAction } from '../utils/log'
 
 export default defineEventHandler(async (event) => {
@@ -36,19 +35,25 @@ export default defineEventHandler(async (event) => {
   }
 
   const now = new Date().toISOString()
-  const db = useDb()
-  const [photo] = await db.insert(photos).values({
-    url,
-    storageKey: key,
-    uploaderName: uploaderName || null,
-    status: 'pending',
-    isFeatured: false,
-    showOnPublic: false,
-    createdAt: now,
-    updatedAt: now,
-  }).returning()
+  const sb = useSupabase()
+  const { data: photo, error } = await sb
+    .from('photos')
+    .insert({
+      url,
+      storage_key: key,
+      uploader_name: uploaderName || null,
+      status: 'pending',
+      is_featured: false,
+      show_on_public: false,
+      created_at: now,
+      updated_at: now,
+    })
+    .select()
+    .single()
 
-  logAction('created', 'photo', `Photo uploaded by ${uploaderName || 'guest'}`, photo.id)
+  if (error) throw createError({ statusCode: 500, message: error.message })
+
+  void logAction('created', 'photo', `Photo uploaded by ${uploaderName || 'guest'}`, photo.id)
 
   return { key, url, photoId: photo.id }
 })

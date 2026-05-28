@@ -1,15 +1,18 @@
-import { useDb } from '../../../db/index'
-import { activities } from '../../../db/schema'
-import { eq } from 'drizzle-orm'
+import { useSupabase } from '../../../utils/supabase'
 import { logAction } from '../../../utils/log'
 
 export default defineEventHandler(async (event) => {
   const id = Number(getRouterParam(event, 'id'))
-  const db = useDb()
+  const sb = useSupabase()
 
-  const [deleted] = await db.delete(activities).where(eq(activities.id, id)).returning()
-  if (!deleted) throw createError({ statusCode: 404, message: 'Activity not found' })
+  const { data, error } = await sb
+    .from('activities')
+    .delete()
+    .eq('id', id)
+    .select()
+    .single()
+  if (error) throw createError({ statusCode: 404, message: 'Activity not found' })
 
-  logAction('deleted', 'activity', `Deleted activity: ${deleted.label}`, id)
+  void logAction('deleted', 'activity', `Deleted activity: ${data.label}`, id)
   return { ok: true }
 })

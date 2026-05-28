@@ -1,5 +1,4 @@
-import { useDb } from '../../db/index'
-import { timeCapsuleEntries } from '../../db/schema'
+import { useSupabase } from '../../utils/supabase'
 import { logAction } from '../../utils/log'
 
 export default defineEventHandler(async (event) => {
@@ -8,17 +7,23 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 400, message: 'submitterName and message are required' })
   }
 
-  const db = useDb()
+  const sb = useSupabase()
   const now = new Date().toISOString()
 
-  const [created] = await db.insert(timeCapsuleEntries).values({
-    submitterName: body.submitterName,
-    message: body.message,
-    status: 'pending',
-    createdAt: now,
-    updatedAt: now,
-  }).returning()
+  const { data, error } = await sb
+    .from('time_capsule_entries')
+    .insert({
+      submitter_name: body.submitterName,
+      message: body.message,
+      status: 'pending',
+      created_at: now,
+      updated_at: now,
+    })
+    .select()
+    .single()
 
-  logAction('created', 'capsule', `New time capsule from ${body.submitterName}`, created.id)
+  if (error) throw createError({ statusCode: 500, message: error.message })
+
+  void logAction('created', 'capsule', `New time capsule from ${body.submitterName}`, data.id)
   return { ok: true }
 })

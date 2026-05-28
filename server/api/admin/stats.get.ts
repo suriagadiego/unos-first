@@ -1,43 +1,42 @@
-import { useDb } from '../../db/index'
-import { rsvps, photos, timeCapsuleEntries, contributions, fundSettings, activityLog } from '../../db/schema'
-import { eq, sql, desc } from 'drizzle-orm'
+import { useSupabase, toActivityLog } from '../../utils/supabase'
 
 export default defineEventHandler(async () => {
-  const db = useDb()
+  const sb = useSupabase()
 
-  const [rsvpStats] = await db.select({
-    total: sql<number>`count(*)`,
-    confirmed: sql<number>`sum(case when status = 'confirmed' then 1 else 0 end)`,
-    totalHeadcount: sql<number>`sum(case when status = 'confirmed' then headcount else 0 end)`,
-  }).from(rsvps)
+  const [
+    rsvpTotalRes,
+    rsvpConfirmedRes,
+    photoTotalRes,
+    capsuleTotalRes,
+    fundDataRes,
+    settingsRes,
+    recentRes,
+  ] = await Promise.all([
+    sb.from('rsvps').select('*', { count: 'exact', head: true }),
+    sb.from('rsvps').select('headcount').eq('status', 'confirmed'),
+    sb.from('photos').select('*', { count: 'exact', head: true }),
+    sb.from('time_capsule_entries').select('*', { count: 'exact', head: true }),
+    sb.from('contributions').select('amount'),
+    sb.from('fund_settings').select('goal').limit(1).maybeSingle(),
+    sb.from('activity_log').select('*').order('created_at', { ascending: false }).limit(10),
+  ])
 
-  const [photoStats] = await db.select({ total: sql<number>`count(*)` }).from(photos)
-
-  const [capsuleStats] = await db.select({ total: sql<number>`count(*)` }).from(timeCapsuleEntries)
-
-  const [fundStats] = await db.select({
-    total: sql<number>`coalesce(sum(amount), 0)`,
-  }).from(contributions)
-
-  const [settings] = await db.select().from(fundSettings).limit(1)
-
-  const recentActivity = await db.select()
-    .from(activityLog)
-    .orderBy(desc(activityLog.createdAt))
-    .limit(10)
+  const confirmedRows = (rsvpConfirmedRes.data ?? []) as any[]
+  const confirmedHeadcount = confirmedRows.reduce((sum, r) => sum + (r.headcount ?? 0), 0)
+  const fundTotal = ((fundDataRes.data ?? []) as any[]).reduce((sum, r) => sum + (r.amount ?? 0), 0)
 
   return {
     rsvps: {
-      total: Number(rsvpStats.total) || 0,
-      confirmed: Number(rsvpStats.confirmed) || 0,
-      confirmedHeadcount: Number(rsvpStats.totalHeadcount) || 0,
+      total: rsvpTotalRes.count ?? 0,
+      confirmed: confirmedRows.length,
+      confirmedHeadcount,
     },
-    photos: { total: Number(photoStats.total) || 0 },
-    capsule: { total: Number(capsuleStats.total) || 0 },
+    photos: { total: photoTotalRes.count ?? 0 },
+    capsule: { total: capsuleTotalRes.count ?? 0 },
     fund: {
-      total: Number(fundStats.total) || 0,
-      goal: settings?.goal || 100000,
+      total: fundTotal,
+      goal: settingsRes.data?.goal ?? 100000,
     },
-    recentActivity,
+    recentActivity: ((recentRes.data ?? []) as any[]).map(toActivityLog),
   }
 })

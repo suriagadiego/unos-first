@@ -1,8 +1,11 @@
-import { useDb } from '../../../db/index'
-import { activities } from '../../../db/schema'
-import { asc } from 'drizzle-orm'
+import { useSupabase, toActivity } from '../../../utils/supabase'
 
 export default defineEventHandler(async () => {
-  const db = useDb()
-  return db.select().from(activities).orderBy(asc(activities.sortOrder))
+  const sb = useSupabase()
+  const { data, error } = await sb
+    .from('activities')
+    .select('*')
+    .order('sort_order', { ascending: true })
+  if (error) throw createError({ statusCode: 500, message: error.message })
+  return (data ?? []).map(toActivity)
 })

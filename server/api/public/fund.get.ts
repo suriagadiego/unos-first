@@ -1,27 +1,27 @@
-import { useDb } from '../../db/index'
-import { contributions, fundSettings } from '../../db/schema'
-import { eq, sql } from 'drizzle-orm'
+import { useSupabase } from '../../utils/supabase'
 
 export default defineEventHandler(async () => {
-  const db = useDb()
+  const sb = useSupabase()
 
-  const publicContributions = await db.select({
-    id: contributions.id,
-    submitterName: contributions.submitterName,
-    amount: contributions.amount,
-    message: contributions.message,
-    createdAt: contributions.createdAt,
-  }).from(contributions).where(eq(contributions.showOnPublic, true))
+  const [publicRes, allAmountsRes, settingsRes] = await Promise.all([
+    sb.from('contributions').select('id, submitter_name, amount, message, created_at').eq('show_on_public', true),
+    sb.from('contributions').select('amount'),
+    sb.from('fund_settings').select('goal').limit(1).maybeSingle(),
+  ])
 
-  const [totals] = await db.select({
-    total: sql<number>`coalesce(sum(amount), 0)`,
-  }).from(contributions)
+  const contributions = ((publicRes.data ?? []) as any[]).map(r => ({
+    id: r.id,
+    submitterName: r.submitter_name,
+    amount: r.amount,
+    message: r.message,
+    createdAt: r.created_at,
+  }))
 
-  const [settings] = await db.select().from(fundSettings).limit(1)
+  const total = ((allAmountsRes.data ?? []) as any[]).reduce((sum, r) => sum + (r.amount ?? 0), 0)
 
   return {
-    contributions: publicContributions,
-    total: Number(totals.total) || 0,
-    goal: settings?.goal || 100000,
+    contributions,
+    total,
+    goal: settingsRes.data?.goal ?? 100000,
   }
 })

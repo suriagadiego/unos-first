@@ -1,16 +1,11 @@
 export default defineNuxtConfig({
   compatibilityDate: '2024-11-01',
   devtools: { enabled: true },
+  nitro: { preset: 'cloudflare-pages' },
   modules: ['@nuxtjs/tailwindcss'],
   css: ['~/assets/css/main.css'],
   components: {
     dirs: [{ path: '~/components', pathPrefix: false }],
-  },
-  nitro: {
-    rollupConfig: {
-      // @ts-ignore
-      external: ['better-sqlite3'],
-    },
   },
   runtimeConfig: {
     adminPassword: process.env.ADMIN_PASSWORD || 'admin123',

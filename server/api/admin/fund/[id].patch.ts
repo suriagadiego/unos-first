@@ -1,22 +1,30 @@
-import { useDb } from '../../../db/index'
-import { contributions } from '../../../db/schema'
-import { eq } from 'drizzle-orm'
+import { useSupabase, toContribution } from '../../../utils/supabase'
 import { logAction } from '../../../utils/log'
 
 export default defineEventHandler(async (event) => {
   const id = Number(getRouterParam(event, 'id'))
   const body = await readBody(event)
-  const db = useDb()
+  const sb = useSupabase()
 
-  const updates: Record<string, unknown> = { updatedAt: new Date().toISOString() }
-  const allowed = ['submitterName', 'amount', 'message', 'showOnPublic']
-  for (const key of allowed) {
-    if (key in body) updates[key] = body[key]
+  const updates: Record<string, unknown> = { updated_at: new Date().toISOString() }
+  const map: Record<string, string> = {
+    submitterName: 'submitter_name',
+    amount: 'amount',
+    message: 'message',
+    showOnPublic: 'show_on_public',
+  }
+  for (const [camel, snake] of Object.entries(map)) {
+    if (camel in body) updates[snake] = body[camel]
   }
 
-  const [updated] = await db.update(contributions).set(updates).where(eq(contributions.id, id)).returning()
-  if (!updated) throw createError({ statusCode: 404, message: 'Contribution not found' })
+  const { data, error } = await sb
+    .from('contributions')
+    .update(updates)
+    .eq('id', id)
+    .select()
+    .single()
+  if (error) throw createError({ statusCode: 404, message: 'Contribution not found' })
 
-  logAction('updated', 'contribution', `Updated contribution ${id}`, id)
-  return updated
+  void logAction('updated', 'contribution', `Updated contribution ${id}`, id)
+  return toContribution(data)
 })

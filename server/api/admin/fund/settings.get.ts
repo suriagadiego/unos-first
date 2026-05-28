@@ -1,8 +1,7 @@
-import { useDb } from '../../../db/index'
-import { fundSettings } from '../../../db/schema'
+import { useSupabase, toFundSettings } from '../../../utils/supabase'
 
 export default defineEventHandler(async () => {
-  const db = useDb()
-  const [settings] = await db.select().from(fundSettings).limit(1)
-  return settings
+  const sb = useSupabase()
+  const { data } = await sb.from('fund_settings').select('*').limit(1).maybeSingle()
+  return data ? toFundSettings(data) : null
 })

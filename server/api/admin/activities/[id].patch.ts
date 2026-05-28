@@ -1,22 +1,34 @@
-import { useDb } from '../../../db/index'
-import { activities } from '../../../db/schema'
-import { eq } from 'drizzle-orm'
+import { useSupabase, toActivity } from '../../../utils/supabase'
 import { logAction } from '../../../utils/log'
 
 export default defineEventHandler(async (event) => {
   const id = Number(getRouterParam(event, 'id'))
   const body = await readBody(event)
-  const db = useDb()
+  const sb = useSupabase()
 
-  const updates: Record<string, unknown> = { updatedAt: new Date().toISOString() }
-  const allowed = ['label', 'time', 'venueName', 'address', 'note', 'isVisible', 'sortOrder', 'lapNumber']
-  for (const key of allowed) {
-    if (key in body) updates[key] = body[key]
+  const updates: Record<string, unknown> = { updated_at: new Date().toISOString() }
+  const map: Record<string, string> = {
+    label: 'label',
+    time: 'time',
+    venueName: 'venue_name',
+    address: 'address',
+    note: 'note',
+    isVisible: 'is_visible',
+    sortOrder: 'sort_order',
+    lapNumber: 'lap_number',
+  }
+  for (const [camel, snake] of Object.entries(map)) {
+    if (camel in body) updates[snake] = body[camel]
   }
 
-  const [updated] = await db.update(activities).set(updates).where(eq(activities.id, id)).returning()
-  if (!updated) throw createError({ statusCode: 404, message: 'Activity not found' })
+  const { data, error } = await sb
+    .from('activities')
+    .update(updates)
+    .eq('id', id)
+    .select()
+    .single()
+  if (error) throw createError({ statusCode: 404, message: 'Activity not found' })
 
-  logAction('updated', 'activity', `Updated activity: ${updated.label}`, id)
-  return updated
+  void logAction('updated', 'activity', `Updated activity: ${data.label}`, id)
+  return toActivity(data)
 })
