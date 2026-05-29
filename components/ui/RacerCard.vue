@@ -40,7 +40,7 @@ const teamName = computed(() => getTeamName(props.name, props.headcount, props.g
       :class="active ? 'opacity-0 scale-95 pointer-events-none' : 'opacity-100 scale-100'"
     >
       <p class="font-sans text-[9px] uppercase tracking-[0.4em] text-race-blue mb-2">P{{ pos }}</p>
-      <p class="font-racing text-base leading-tight" style="color: #f5f0eb;">{{ teamName }}</p>
+      <p class="font-racing text-sm leading-tight" style="color: #f5f0eb;">{{ teamName }}</p>
       <p class="font-sans text-[8px] uppercase tracking-[0.3em] mt-1" style="color: rgba(245,240,235,0.35);">{{ name }}</p>
     </div>
 
