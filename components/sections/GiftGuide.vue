@@ -98,7 +98,7 @@ const gifts = [
         class="w-40 md:w-52 select-none drop-shadow-sm"
       />
       <img
-        src="~/assets/images/wheels_flag.png"
+        src="~/assets/images/tireflag.png"
         alt=""
         aria-hidden="true"
         class="w-32 md:w-44 select-none opacity-85 mb-2"

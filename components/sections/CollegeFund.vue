@@ -116,7 +116,7 @@ async function submit() {
       <div class="flex items-end justify-center gap-6 mb-10">
         <img src="~/assets/images/mickey.png" alt="Mickey racer"
           class="w-48 md:w-64 select-none drop-shadow-sm" />
-        <img src="~/assets/images/wheels_flag.png" alt="" aria-hidden="true"
+        <img src="~/assets/images/tireflag.png" alt="" aria-hidden="true"
           class="w-28 md:w-36 select-none opacity-80 mb-4" />
       </div>
 
