@@ -2,17 +2,19 @@
 const locations = [
   {
     label: 'Church',
-    name: "St. Mary's Church",
-    address: '123 Church St, Any City, ST 12345',
+    name: 'Santo Domingo Church',
+    sublabel: 'St. Thomas Hall',
     time: '10:30 AM',
-    mapSrc: 'https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3861.802!2d121.0244!3d14.5547!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2zMTTCsDMzJzE3LjAiTiAxMjHCsDAxJzI3LjgiRQ!5e0!3m2!1sen!2sph!4v1234567890',
+    mapSrc: 'https://www.google.com/maps?q=Santo+Domingo+Church+Quezon+City+Philippines&output=embed',
+    directionsUrl: 'https://share.google/JoMzsDIvVSq1t2EtQ',
   },
   {
     label: 'Reception',
-    name: 'The Grand Ballroom',
-    address: '456 Venue Ave, Any City, ST 12345',
-    time: '11:30 AM',
-    mapSrc: 'https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3861.802!2d121.0244!3d14.5547!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2zMTTCsDMzJzE3LjAiTiAxMjHCsDAxJzI3LjgiRQ!5e0!3m2!1sen!2sph!4v1234567890',
+    name: 'Steelworld Tower',
+    sublabel: '',
+    time: '12:00 PM',
+    mapSrc: 'https://www.google.com/maps?q=Steelworld+Tower+Philippines&output=embed',
+    directionsUrl: 'https://share.google/8SVJqAhnnpPMGIAY6',
   },
 ]
 </script>
@@ -24,14 +26,12 @@ const locations = [
 
       <div class="grid md:grid-cols-2 gap-8">
         <div v-for="loc in locations" :key="loc.label" class="bg-white rounded-xl overflow-hidden shadow-sm border border-race-blue-light/30">
-          <!-- Map iframe placeholder -->
-          <div class="bg-race-blue-light/20 h-48 flex items-center justify-center border-b border-race-blue-light/30">
-            <div class="text-center">
-              <div class="text-4xl mb-2">📍</div>
-              <p class="font-sans text-xs uppercase tracking-widest text-race-blue">Map Placeholder</p>
-              <p class="font-sans text-[10px] text-race-gray/60 mt-1">Real address will show map</p>
-            </div>
-          </div>
+          <iframe
+            :src="loc.mapSrc"
+            class="w-full h-48 border-0"
+            loading="lazy"
+            referrerpolicy="no-referrer-when-downgrade"
+          />
 
           <div class="p-5">
             <div class="flex items-center gap-2 mb-1">
@@ -41,7 +41,15 @@ const locations = [
               <span class="font-sans text-xs text-race-gray">{{ loc.time }}</span>
             </div>
             <p class="font-racing text-xl text-race-black mt-1">{{ loc.name }}</p>
-            <p class="font-sans text-xs text-race-gray mt-1">{{ loc.address }}</p>
+            <p v-if="loc.sublabel" class="font-sans text-xs text-race-gray">{{ loc.sublabel }}</p>
+            <a
+              :href="loc.directionsUrl"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="inline-block mt-3 font-sans text-[10px] uppercase tracking-widest text-race-blue border border-race-blue/30 px-3 py-1.5 hover:bg-race-blue hover:text-white transition-colors"
+            >
+              Get Directions
+            </a>
           </div>
         </div>
       </div>

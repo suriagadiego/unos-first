@@ -118,7 +118,14 @@
             <div class="flex items-center gap-2">
               <div class="flex-1 min-w-0">
                 <p class="font-semibold text-gray-900 text-sm truncate">{{ r.displayName }}</p>
-                <p class="text-xs text-gray-400 truncate">{{ fmtDate(r.createdAt) }}{{ r.contact ? ' · ' + r.contact : '' }}{{ r.dietaryNotes ? ' · 🥗 ' + r.dietaryNotes : '' }}</p>
+                <div v-if="r.guestNames?.length" class="mt-1 flex flex-wrap gap-1">
+                  <span
+                    v-for="name in r.guestNames"
+                    :key="name"
+                    class="text-xs bg-gray-100 text-gray-500 px-2 py-0.5 rounded-full"
+                  >{{ name }}</span>
+                </div>
+                <p class="text-xs text-gray-400 mt-1">{{ fmtDate(r.createdAt) }}{{ r.dietaryNotes ? ' · 🥗 ' + r.dietaryNotes : '' }}</p>
               </div>
               <span class="text-sm font-bold text-gray-700 flex-shrink-0 text-right leading-none">{{ r.headcount }}<br><span class="text-[10px] font-normal text-gray-400">{{ r.headcount === 1 ? 'guest' : 'guests' }}</span></span>
               <button v-if="r.status !== 'confirmed'"
@@ -151,8 +158,7 @@
                   <th class="px-4 py-3 w-8">
                     <input type="checkbox" :checked="rsvpAllSel" @change="rsvpToggleAll" class="rounded" />
                   </th>
-                  <th class="th">Display Name</th>
-                  <th class="th">Contact</th>
+                  <th class="th">Name</th>
                   <th class="th">Guests</th>
                   <th class="th">Dietary</th>
                   <th class="th">Date</th>
@@ -167,9 +173,14 @@
                   </td>
                   <td class="px-4 py-3 font-medium text-gray-900">
                     {{ r.displayName }}
-                    <div class="text-xs text-gray-400 font-normal">{{ r.submitterName }}</div>
+                    <div v-if="r.guestNames?.length" class="mt-1 flex flex-wrap gap-1">
+                      <span
+                        v-for="name in r.guestNames"
+                        :key="name"
+                        class="text-xs bg-gray-100 text-gray-500 px-2 py-0.5 rounded-full font-normal"
+                      >{{ name }}</span>
+                    </div>
                   </td>
-                  <td class="px-4 py-3 text-gray-500">{{ r.contact || '—' }}</td>
                   <td class="px-4 py-3 text-center">{{ r.headcount }}</td>
                   <td class="px-4 py-3 text-gray-500 max-w-36 truncate">{{ r.dietaryNotes || '—' }}</td>
                   <td class="px-4 py-3 text-gray-500 whitespace-nowrap">{{ fmtDate(r.createdAt) }}</td>
@@ -368,7 +379,6 @@
           <div class="grid grid-cols-2 gap-3">
             <div><label class="label">Display Name *</label><input v-model="rs.form.displayName" class="input" required /></div>
             <div><label class="label">Submitter Name *</label><input v-model="rs.form.submitterName" class="input" required /></div>
-            <div><label class="label">Contact</label><input v-model="rs.form.contact" class="input" /></div>
             <div><label class="label">Headcount</label><input v-model.number="rs.form.headcount" type="number" min="1" class="input" /></div>
             <div class="col-span-2"><label class="label">Dietary Notes</label><textarea v-model="rs.form.dietaryNotes" class="input h-20" /></div>
             <div class="col-span-2">

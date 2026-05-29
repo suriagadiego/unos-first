@@ -12,6 +12,7 @@ export default defineEventHandler(async (event) => {
     submitterName: 'submitter_name',
     contact: 'contact',
     headcount: 'headcount',
+    guestNames: 'guest_names',
     dietaryNotes: 'dietary_notes',
     status: 'status',
     showOnPublic: 'show_on_public',

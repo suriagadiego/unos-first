@@ -39,10 +39,9 @@
               <th class="px-4 py-3 text-left w-8">
                 <input type="checkbox" :checked="allSelected" @change="toggleAll" class="rounded" />
               </th>
-              <th class="th" @click="setSort('displayName')">Display Name <SortIcon :active="sort === 'displayName'" :dir="sortDir" /></th>
-              <th class="th">Contact</th>
+              <th class="th" @click="setSort('displayName')">Name <SortIcon :active="sort === 'displayName'" :dir="sortDir" /></th>
               <th class="th" @click="setSort('headcount')">Guests <SortIcon :active="sort === 'headcount'" :dir="sortDir" /></th>
-              <th class="th">Dietary Notes</th>
+              <th class="th">Dietary</th>
               <th class="th" @click="setSort('createdAt')">Date <SortIcon :active="sort === 'createdAt'" :dir="sortDir" /></th>
               <th class="th">Status</th>
               <th class="th">Public</th>
@@ -58,11 +57,16 @@
               <td class="px-4 py-3">
                 <input type="checkbox" :checked="selected.has(row.id)" @change="toggleSelect(row.id)" class="rounded" />
               </td>
-              <td class="px-4 py-3 font-medium text-gray-900">
-                {{ row.displayName }}
-                <div class="text-xs text-gray-400 font-normal">{{ row.submitterName }}</div>
+              <td class="px-4 py-3">
+                <div class="font-medium text-gray-900">{{ row.displayName }}</div>
+                <div v-if="row.guestNames?.length" class="mt-1 flex flex-wrap gap-1">
+                  <span
+                    v-for="name in row.guestNames"
+                    :key="name"
+                    class="text-xs bg-gray-100 text-gray-500 px-2 py-0.5 rounded-full"
+                  >{{ name }}</span>
+                </div>
               </td>
-              <td class="px-4 py-3 text-gray-500">{{ row.contact || '—' }}</td>
               <td class="px-4 py-3 text-center text-gray-700">{{ row.headcount }}</td>
               <td class="px-4 py-3 text-gray-500 max-w-36 truncate">{{ row.dietaryNotes || '—' }}</td>
               <td class="px-4 py-3 text-gray-500 whitespace-nowrap">{{ formatDate(row.createdAt) }}</td>
@@ -112,16 +116,18 @@
                 <input v-model="form.displayName" class="input" required />
               </div>
               <div>
-                <label class="label">Submitter Name</label>
-                <input v-model="form.submitterName" class="input" required />
-              </div>
-              <div>
-                <label class="label">Contact</label>
-                <input v-model="form.contact" class="input" placeholder="email or phone" />
-              </div>
-              <div>
                 <label class="label">Headcount</label>
                 <input v-model.number="form.headcount" type="number" min="1" class="input" />
+              </div>
+            </div>
+            <div v-if="form.guestNames?.length">
+              <label class="label">Attendees</label>
+              <div class="flex flex-wrap gap-1 p-2 border border-gray-200 rounded-lg bg-gray-50 min-h-8">
+                <span
+                  v-for="name in form.guestNames"
+                  :key="name"
+                  class="text-xs bg-white border border-gray-200 text-gray-600 px-2 py-0.5 rounded-full"
+                >{{ name }}</span>
               </div>
             </div>
             <div>
@@ -185,7 +191,7 @@ const saving = ref(false)
 
 const form = reactive({
   displayName: '', submitterName: '', contact: '', headcount: 1,
-  dietaryNotes: '', status: 'pending', showOnPublic: false,
+  guestNames: [] as string[], dietaryNotes: '', status: 'pending', showOnPublic: false,
 })
 
 const filtered = computed(() => {
@@ -231,7 +237,7 @@ function openCreate() {
 }
 function openEdit(row: any) {
   editing.value = row
-  Object.assign(form, { displayName: row.displayName, submitterName: row.submitterName, contact: row.contact ?? '', headcount: row.headcount ?? 1, dietaryNotes: row.dietaryNotes ?? '', status: row.status, showOnPublic: row.showOnPublic })
+  Object.assign(form, { displayName: row.displayName, submitterName: row.submitterName, contact: row.contact ?? '', headcount: row.headcount ?? 1, guestNames: row.guestNames ?? [], dietaryNotes: row.dietaryNotes ?? '', status: row.status, showOnPublic: row.showOnPublic })
   modal.value = 'edit'
 }
 

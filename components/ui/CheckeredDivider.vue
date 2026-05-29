@@ -4,7 +4,7 @@ defineProps<{ height?: string }>()
 
 <template>
   <div
-    class="w-full checkered-bg opacity-90"
+    class="w-full checkered-bg opacity-[0.97]"
     :style="{ height: height ?? '40px' }"
   />
 </template>

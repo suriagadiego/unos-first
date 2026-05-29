@@ -24,6 +24,7 @@ export default defineEventHandler(async (event) => {
       submitter_name: body.submitterName,
       contact: body.contact || null,
       headcount: body.headcount ?? 1,
+      guest_names: Array.isArray(body.guestNames) && body.guestNames.length ? body.guestNames : null,
       dietary_notes: body.dietaryNotes || null,
       status: body.attending === 'no' ? 'declined' : 'pending',
       show_on_public: false,
