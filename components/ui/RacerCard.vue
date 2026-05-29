@@ -56,7 +56,10 @@ const teamName = computed(() => getTeamName(props.name, props.headcount, props.g
           <p class="font-sans text-[8px] mt-0.5 text-race-blue">{{ headcount === 1 ? 'racer' : 'racers' }}</p>
         </div>
         <div class="w-px self-stretch" style="background: rgba(245,240,235,0.12);" />
-        <div class="flex flex-col gap-0.5 overflow-hidden">
+        <div
+          class="overflow-hidden"
+          :class="guestNames.length > 5 ? 'grid grid-cols-2 gap-x-2 gap-y-0.5' : 'flex flex-col gap-0.5'"
+        >
           <p
             v-for="n in guestNames"
             :key="n"
