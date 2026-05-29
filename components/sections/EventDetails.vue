@@ -1,8 +1,19 @@
 <script setup lang="ts">
+const locationMeta = [
+  {
+    mapSrc: 'https://www.google.com/maps?q=Santo+Domingo+Church+Quezon+City+Philippines&output=embed',
+    directionsUrl: 'https://share.google/JoMzsDIvVSq1t2EtQ',
+  },
+  {
+    mapSrc: 'https://www.google.com/maps?q=Steelworld+Tower+Philippines&output=embed',
+    directionsUrl: 'https://share.google/8SVJqAhnnpPMGIAY6',
+  },
+]
+
 const fallbackEvents = [
   {
     lap: '01',
-    badge: 'STARTING GRID',
+    badge: 'CHURCH',
     time: '10:30 AM',
     venue: 'SANTO DOMINGO CHURCH',
     address: '537 Quezon Ave, Quezon City (St. Thomas Hall)',
@@ -10,7 +21,7 @@ const fallbackEvents = [
   },
   {
     lap: '02',
-    badge: 'THE PODIUM',
+    badge: 'RECEPTION',
     time: '11:30 AM',
     venue: 'STEELWORLD TOWER',
     address: 'NS Amoranto, corner Biak na Bato, Quezon City',
@@ -75,6 +86,13 @@ const dressCodes = [
             <p class="font-sans text-base font-bold uppercase tracking-widest text-race-blue mb-1">{{ ev.venue }}</p>
             <p class="font-sans text-base font-medium text-race-gray mb-2">{{ ev.address }}</p>
             <p class="font-sans text-base font-medium text-race-gray/85">{{ ev.note }}</p>
+
+            <a
+              :href="locationMeta[i]?.directionsUrl"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="inline-block mt-4 font-racing text-sm uppercase tracking-[0.4em] text-race-blue border border-race-blue/40 px-4 py-2 hover:bg-race-blue hover:text-white transition-colors duration-200"
+            >Get Directions →</a>
 
             <div v-if="i < events.length - 1" class="my-10"></div>
 

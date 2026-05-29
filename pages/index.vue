@@ -3,13 +3,11 @@
     <NavBar />
     <HeroSection />
     <CheckeredDivider height="40px" />
-    <EventDetails />
+    <EventDetailsV2 />
     <CheckeredDivider height="40px" />
     <WhosComing />
     <CheckeredDivider height="40px" />
     <RsvpForm />
-    <CheckeredDivider height="40px" />
-    <MapSection />
     <CheckeredDivider height="40px" />
     <GiftGuide />
   </div>
