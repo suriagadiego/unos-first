@@ -17,7 +17,8 @@
       "Bash(node -e \"require\\('better-sqlite3'\\)\")",
       "Bash(node -e ' *)",
       "Bash(npm uninstall *)",
-      "Bash(python3)"
+      "Bash(python3)",
+      "Bash(curl -s --http1.1 -H \"Accept: text/html\" http://localhost:3002/)"
     ],
     "deny": [
       "Read(./.env)",

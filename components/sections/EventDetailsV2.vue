@@ -52,8 +52,23 @@ const dressCodes = [
 </script>
 
 <template>
-  <section id="event-v2" class="py-20 px-8 md:px-16">
-    <div class="max-w-6xl mx-auto">
+  <section id="event-v2" class="py-20 px-8 md:px-16 relative overflow-hidden">
+
+    <!-- Watercolor blotches -->
+    <img src="~/assets/images/upperright-watercolor.png" alt="" aria-hidden="true"
+      class="pointer-events-none absolute -bottom-10 -right-10 w-[150vw] md:w-[90vw] opacity-40 select-none" style="transform: scaleY(-1);" />
+    <img src="~/assets/images/upperright-watercolor.png" alt="" aria-hidden="true"
+      class="pointer-events-none absolute -top-10 -left-10 w-[150vw] md:w-[90vw] opacity-40 select-none" style="transform: scaleX(-1);" />
+
+    <!-- Clouds -->
+    <img src="~/assets/images/clouds/3.png" alt="" aria-hidden="true"
+      class="cloud-float pointer-events-none absolute -top-6 left-[20%] w-[260px] opacity-20 select-none" />
+    <img src="~/assets/images/clouds/5.png" alt="" aria-hidden="true"
+      class="cloud-float-slow pointer-events-none absolute top-1/3 -right-16 w-[320px] opacity-15 select-none" />
+    <img src="~/assets/images/clouds/2.png" alt="" aria-hidden="true"
+      class="cloud-float pointer-events-none absolute bottom-10 left-[10%] w-[220px] opacity-15 select-none" />
+
+    <div class="max-w-6xl mx-auto relative z-10">
 
       <!-- Locations side by side -->
       <div class="grid grid-cols-1 md:grid-cols-2 gap-12 md:gap-16 mb-6">
