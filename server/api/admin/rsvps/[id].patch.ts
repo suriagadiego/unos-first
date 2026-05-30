@@ -13,6 +13,7 @@ export default defineEventHandler(async (event) => {
     contact: 'contact',
     headcount: 'headcount',
     guestNames: 'guest_names',
+    kidsNames: 'kids_names',
     dietaryNotes: 'dietary_notes',
     status: 'status',
     showOnPublic: 'show_on_public',

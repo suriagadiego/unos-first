@@ -63,8 +63,9 @@
                   <span
                     v-for="name in row.guestNames"
                     :key="name"
-                    class="text-xs bg-gray-100 text-gray-500 px-2 py-0.5 rounded-full"
-                  >{{ name }}</span>
+                    class="text-xs px-2 py-0.5 rounded-full"
+                    :class="row.kidsNames?.includes(name) ? 'bg-amber-100 text-amber-700' : 'bg-gray-100 text-gray-500'"
+                  >{{ name }}{{ row.kidsNames?.includes(name) ? ' 👶' : '' }}</span>
                 </div>
               </td>
               <td class="px-4 py-3 text-center text-gray-700">{{ row.headcount }}</td>
@@ -126,8 +127,9 @@
                 <span
                   v-for="name in form.guestNames"
                   :key="name"
-                  class="text-xs bg-white border border-gray-200 text-gray-600 px-2 py-0.5 rounded-full"
-                >{{ name }}</span>
+                  class="text-xs px-2 py-0.5 rounded-full"
+                  :class="form.kidsNames?.includes(name) ? 'bg-amber-100 border border-amber-200 text-amber-700' : 'bg-white border border-gray-200 text-gray-600'"
+                >{{ name }}{{ form.kidsNames?.includes(name) ? ' 👶' : '' }}</span>
               </div>
             </div>
             <div>
@@ -191,7 +193,7 @@ const saving = ref(false)
 
 const form = reactive({
   displayName: '', submitterName: '', contact: '', headcount: 1,
-  guestNames: [] as string[], dietaryNotes: '', status: 'pending', showOnPublic: false,
+  guestNames: [] as string[], kidsNames: [] as string[], dietaryNotes: '', status: 'pending', showOnPublic: false,
 })
 
 const filtered = computed(() => {
@@ -237,7 +239,7 @@ function openCreate() {
 }
 function openEdit(row: any) {
   editing.value = row
-  Object.assign(form, { displayName: row.displayName, submitterName: row.submitterName, contact: row.contact ?? '', headcount: row.headcount ?? 1, guestNames: row.guestNames ?? [], dietaryNotes: row.dietaryNotes ?? '', status: row.status, showOnPublic: row.showOnPublic })
+  Object.assign(form, { displayName: row.displayName, submitterName: row.submitterName, contact: row.contact ?? '', headcount: row.headcount ?? 1, guestNames: row.guestNames ?? [], kidsNames: row.kidsNames ?? [], dietaryNotes: row.dietaryNotes ?? '', status: row.status, showOnPublic: row.showOnPublic })
   modal.value = 'edit'
 }
 

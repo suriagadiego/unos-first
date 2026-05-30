@@ -32,6 +32,7 @@ export function toRsvp(r: any) {
     contact: r.contact,
     headcount: r.headcount,
     guestNames: r.guest_names ?? [],
+    kidsNames: r.kids_names ?? [],
     dietaryNotes: r.dietary_notes,
     status: r.status,
     showOnPublic: r.show_on_public,

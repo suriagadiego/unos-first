@@ -3,6 +3,7 @@ const form = reactive({
   name: '',
   attending: '' as 'yes' | 'no' | '',
   attendees: [''] as string[],
+  isKid: [false] as boolean[],
   dietary: '',
 })
 
@@ -11,11 +12,17 @@ const loading = ref(false)
 const error = ref('')
 
 function addAttendee() {
-  if (form.attendees.length < 10) form.attendees.push('')
+  if (form.attendees.length < 10) {
+    form.attendees.push('')
+    form.isKid.push(false)
+  }
 }
 
 function removeAttendee(i: number) {
-  if (form.attendees.length > 1) form.attendees.splice(i, 1)
+  if (form.attendees.length > 1) {
+    form.attendees.splice(i, 1)
+    form.isKid.splice(i, 1)
+  }
 }
 
 watch(() => form.attending, (val) => {
@@ -34,6 +41,9 @@ async function submit() {
     error.value = 'Please add at least one attendee name.'
     return
   }
+  const filledKids = form.attendees
+    .map((n, i) => (form.isKid[i] ? n.trim() : ''))
+    .filter(Boolean)
   error.value = ''
   loading.value = true
 
@@ -44,6 +54,7 @@ async function submit() {
         displayName: form.name,
         submitterName: form.name,
         guestNames: form.attending === 'yes' ? filledAttendees : [],
+        kidsNames: form.attending === 'yes' ? filledKids : [],
         headcount: form.attending === 'yes' ? filledAttendees.length : 0,
         dietaryNotes: form.dietary || null,
         attending: form.attending,
@@ -75,11 +86,11 @@ async function submit() {
         <form v-else class="flex flex-col gap-5" @submit.prevent="submit">
           <!-- Name -->
           <div>
-            <label class="block font-sans text-xs uppercase tracking-widest text-race-gray mb-2">Your Name</label>
+            <label class="block font-sans text-xs uppercase tracking-widest text-race-gray mb-2">Your Full Name</label>
             <input
               v-model="form.name"
               type="text"
-              placeholder="Your name"
+              placeholder="Your Full Name"
               class="w-full bg-white/5 border border-white/10 font-sans text-sm px-4 py-3 focus:outline-none focus:border-race-blue transition-colors placeholder:text-white/30"
               style="color: #f5f0eb;"
             />
@@ -112,13 +123,22 @@ async function submit() {
             </div>
           </div>
 
-          <!-- Attendee names -->
+          <!-- Attendee names with kid toggle -->
           <div v-if="form.attending === 'yes'">
             <label class="block font-sans text-xs uppercase tracking-widest text-race-gray mb-2">
               Who's attending?
             </label>
             <div class="flex flex-col gap-2">
-              <div v-for="(_, i) in form.attendees" :key="i" class="flex gap-2 items-center">
+              <div v-for="(_, i) in form.attendees" :key="i" class="flex gap-2 items-stretch">
+                <button
+                  type="button"
+                  class="font-sans text-[10px] font-bold uppercase tracking-widest px-3 transition-all border"
+                  :class="form.isKid[i]
+                    ? 'bg-amber-400 border-amber-400 text-black'
+                    : 'bg-transparent border-white/10 text-white/25 hover:border-white/30 hover:text-white/40'"
+                  :title="form.isKid[i] ? 'Mark as adult' : 'Mark as kid'"
+                  @click="form.isKid[i] = !form.isKid[i]"
+                >kid</button>
                 <input
                   v-model="form.attendees[i]"
                   type="text"
@@ -129,7 +149,7 @@ async function submit() {
                 <button
                   v-if="form.attendees.length > 1"
                   type="button"
-                  class="text-white/30 hover:text-white/60 transition-colors px-2 py-3 font-sans text-lg leading-none"
+                  class="text-white/30 hover:text-white/60 transition-colors px-2 font-sans text-lg leading-none"
                   @click="removeAttendee(i)"
                 >×</button>
               </div>

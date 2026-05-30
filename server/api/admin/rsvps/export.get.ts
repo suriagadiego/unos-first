@@ -8,7 +8,7 @@ export default defineEventHandler(async (event) => {
     .order('sort_order', { ascending: true })
   if (error) throw createError({ statusCode: 500, message: error.message })
 
-  const headers = ['ID', 'Display Name', 'Submitter Name', 'Contact', 'Headcount', 'Dietary Notes', 'Status', 'Show on Public', 'Sort Order', 'Created At']
+  const headers = ['ID', 'Display Name', 'Submitter Name', 'Contact', 'Headcount', 'Guest Names', 'Kids Names', 'Dietary Notes', 'Status', 'Show on Public', 'Sort Order', 'Created At']
   const csv = [
     headers.join(','),
     ...(rows ?? []).map((r: any) => [
@@ -17,6 +17,8 @@ export default defineEventHandler(async (event) => {
       `"${(r.submitter_name || '').replace(/"/g, '""')}"`,
       `"${(r.contact || '').replace(/"/g, '""')}"`,
       r.headcount,
+      `"${(r.guest_names ?? []).join('; ')}"`,
+      `"${(r.kids_names ?? []).join('; ')}"`,
       `"${(r.dietary_notes || '').replace(/"/g, '""')}"`,
       r.status,
       r.show_on_public ? 'Yes' : 'No',
