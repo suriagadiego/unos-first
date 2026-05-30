@@ -88,7 +88,14 @@
       <section id="rsvps" class="scroll-mt-20">
         <div class="flex items-center justify-between mb-3">
           <h2 class="section-title mb-0">RSVPs</h2>
-          <button class="btn-primary text-sm" @click="openRsvp()">+ Add</button>
+          <div class="flex items-center gap-2">
+            <button
+              class="inline-flex items-center justify-center px-4 py-2 text-sm font-medium rounded-lg border transition-colors"
+              :style="rs.kidsOnly ? 'background:#fef3c7;color:#92400e;border-color:#fcd34d' : 'background:white;color:#374151;border-color:#d1d5db'"
+              @click="rs.kidsOnly = !rs.kidsOnly"
+            >Kids</button>
+            <button class="btn-primary text-sm" @click="openRsvp()">+ Add</button>
+          </div>
         </div>
         <div class="flex gap-2 mb-4">
           <input v-model="rs.search" placeholder="Search name…" class="input flex-1" />
@@ -122,7 +129,8 @@
                   <span
                     v-for="name in r.guestNames"
                     :key="name"
-                    class="text-xs bg-gray-100 text-gray-500 px-2 py-0.5 rounded-full"
+                    class="text-xs px-2 py-0.5 rounded-full"
+                    :style="r.kidsNames?.includes(name) ? 'background:#fef3c7;color:#92400e;font-weight:600' : 'background:#f3f4f6;color:#6b7280'"
                   >{{ name }}</span>
                 </div>
                 <p class="text-xs text-gray-400 mt-1">{{ fmtDate(r.createdAt) }}{{ r.dietaryNotes ? ' · 🥗 ' + r.dietaryNotes : '' }}</p>
@@ -177,7 +185,8 @@
                       <span
                         v-for="name in r.guestNames"
                         :key="name"
-                        class="text-xs bg-gray-100 text-gray-500 px-2 py-0.5 rounded-full font-normal"
+                        class="text-xs px-2 py-0.5 rounded-full font-normal"
+                        :style="r.kidsNames?.includes(name) ? 'background:#fef3c7;color:#92400e;font-weight:600' : 'background:#f3f4f6;color:#6b7280'"
                       >{{ name }}</span>
                     </div>
                   </td>
@@ -380,6 +389,30 @@
             <div><label class="label">Display Name *</label><input v-model="rs.form.displayName" class="input" required /></div>
             <div><label class="label">Submitter Name *</label><input v-model="rs.form.submitterName" class="input" required /></div>
             <div><label class="label">Headcount</label><input v-model.number="rs.form.headcount" type="number" min="1" class="input" /></div>
+            <div class="col-span-2">
+              <label class="label">Guests <span class="normal-case font-normal text-gray-400">(tap name to mark as kid)</span></label>
+              <div class="flex flex-wrap gap-1.5 p-2.5 border border-gray-200 rounded-lg bg-gray-50 min-h-10">
+                <div v-for="name in rs.form.guestNames" :key="name" class="flex items-center gap-0.5">
+                  <button
+                    type="button"
+                    class="text-xs px-2.5 py-1 rounded-full border transition-colors"
+                    :style="rs.form.kidsNames.includes(name) ? 'background:#fef3c7;color:#92400e;border-color:#fcd34d;font-weight:600' : 'background:white;color:#374151;border-color:#e5e7eb'"
+                    @click="rs.form.kidsNames.includes(name) ? rs.form.kidsNames.splice(rs.form.kidsNames.indexOf(name),1) : rs.form.kidsNames.push(name)"
+                  >{{ name }}</button>
+                  <button type="button" class="text-gray-300 hover:text-red-400 text-sm leading-none px-0.5 transition-colors" @click="removeGuest(name)">×</button>
+                </div>
+              </div>
+              <div class="flex gap-2 mt-2">
+                <input
+                  v-model="newGuestName"
+                  type="text"
+                  placeholder="Add guest name…"
+                  class="input flex-1"
+                  @keydown.enter.prevent="addGuest"
+                />
+                <button type="button" class="btn-secondary text-sm" @click="addGuest">Add</button>
+              </div>
+            </div>
             <div class="col-span-2"><label class="label">Dietary Notes</label><textarea v-model="rs.form.dietaryNotes" class="input h-20" /></div>
             <div class="col-span-2">
               <label class="label">Status</label>
@@ -534,12 +567,12 @@ const fundPct = computed(() => {
 
 // ─── RSVPs ──────────────────────────────────────────────
 const rs = reactive({
-  search: '', status: '', page: 1,
+  search: '', status: '', kidsOnly: false, page: 1,
   selected: new Set<number>(),
   modal: null as null | true,
   editing: null as any,
   saving: false,
-  form: { displayName:'', submitterName:'', contact:'', headcount:1, dietaryNotes:'', status:'pending' },
+  form: { displayName:'', submitterName:'', contact:'', headcount:1, dietaryNotes:'', status:'pending', guestNames:[] as string[], kidsNames:[] as string[] },
 })
 const rm = reactive({ rsvp: null as any, activity: null as any, bucketKey: null as string | null, contribution: null as any })
 const actLogOpen = ref(false)
@@ -548,6 +581,7 @@ const rsvpFiltered = computed(() => {
   let rows = rsvpList.value ?? []
   if (rs.status) rows = rows.filter((r:any) => r.status === rs.status)
   if (rs.search) { const q = rs.search.toLowerCase(); rows = rows.filter((r:any) => r.displayName?.toLowerCase().includes(q) || r.submitterName?.toLowerCase().includes(q)) }
+  if (rs.kidsOnly) rows = rows.filter((r:any) => r.kidsNames?.length > 0)
   return rows
 })
 const rsvpPaged = computed(() => rsvpFiltered.value.slice((rs.page-1)*20, rs.page*20))
@@ -559,11 +593,26 @@ function rsvpToggleAll() {
 }
 function rsvpToggleSel(id: number) { rs.selected.has(id) ? rs.selected.delete(id) : rs.selected.add(id) }
 
+const newGuestName = ref('')
+function addGuest() {
+  const name = newGuestName.value.trim()
+  if (!name) return
+  rs.form.guestNames.push(name)
+  rs.form.headcount = rs.form.guestNames.length
+  newGuestName.value = ''
+}
+function removeGuest(name: string) {
+  rs.form.guestNames.splice(rs.form.guestNames.indexOf(name), 1)
+  rs.form.kidsNames = rs.form.kidsNames.filter((k: string) => k !== name)
+  rs.form.headcount = rs.form.guestNames.length
+}
+
 function openRsvp(row?: any) {
   rs.editing = row ?? null
+  newGuestName.value = ''
   Object.assign(rs.form, row
-    ? { displayName:row.displayName, submitterName:row.submitterName, contact:row.contact??'', headcount:row.headcount??1, dietaryNotes:row.dietaryNotes??'', status:row.status }
-    : { displayName:'', submitterName:'', contact:'', headcount:1, dietaryNotes:'', status:'pending' }
+    ? { displayName:row.displayName, submitterName:row.submitterName, contact:row.contact??'', headcount:row.headcount??1, dietaryNotes:row.dietaryNotes??'', status:row.status, guestNames:[...(row.guestNames??[])], kidsNames:[...(row.kidsNames??[])] }
+    : { displayName:'', submitterName:'', contact:'', headcount:1, dietaryNotes:'', status:'pending', guestNames:[], kidsNames:[] }
   )
   rs.modal = true
 }
@@ -571,7 +620,7 @@ function openRsvp(row?: any) {
 async function saveRsvp() {
   rs.saving = true
   try {
-    const body = { ...rs.form, showOnPublic: rs.form.status === 'confirmed' }
+    const body = { ...rs.form, kidsNames: rs.form.kidsNames, showOnPublic: rs.form.status === 'confirmed' }
     if (rs.editing) await $fetch(`/api/admin/rsvps/${rs.editing.id}`, { method:'PATCH', body })
     else await $fetch('/api/admin/rsvps', { method:'POST', body })
     rs.modal = null; await rRsvps(); await rStats()

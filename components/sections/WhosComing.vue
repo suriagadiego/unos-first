@@ -1,5 +1,5 @@
 <script setup lang="ts">
-const { data: apiGuests } = await useFetch<any[]>('/api/public/rsvps')
+const { data: apiGuests } = await useFetch<any[]>('/api/public/rsvps', { key: 'public-rsvps' })
 
 const guestCards = computed(() =>
   (apiGuests.value ?? []).map((r: any) => ({

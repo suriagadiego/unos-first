@@ -7,6 +7,11 @@ export default {
     './pages/**/*.vue',
     './app.vue',
   ],
+  safelist: [
+    'bg-amber-100', 'bg-amber-400',
+    'border-amber-200', 'border-amber-300', 'border-amber-400',
+    'text-amber-600', 'text-amber-700',
+  ],
   theme: {
     extend: {
       colors: {

@@ -2,48 +2,44 @@
 const form = reactive({
   name: '',
   attending: '' as 'yes' | 'no' | '',
-  attendees: [''] as string[],
-  isKid: [false] as boolean[],
+  attendees: [] as string[],
+  isKid: [] as boolean[],
   dietary: '',
 })
 
 const submitted = ref(false)
 const loading = ref(false)
 const error = ref('')
+const nameTouched = ref(false)
+const nameInvalid = computed(() => nameTouched.value && form.name.trim().split(/\s+/).filter(Boolean).length < 2)
 
 function addAttendee() {
-  if (form.attendees.length < 10) {
+  if (form.attendees.length < 9) {
     form.attendees.push('')
     form.isKid.push(false)
   }
 }
 
 function removeAttendee(i: number) {
-  if (form.attendees.length > 1) {
-    form.attendees.splice(i, 1)
-    form.isKid.splice(i, 1)
-  }
+  form.attendees.splice(i, 1)
+  form.isKid.splice(i, 1)
 }
 
-watch(() => form.attending, (val) => {
-  if (val === 'yes' && form.attendees[0] === '' && form.name) {
-    form.attendees[0] = form.name
-  }
-})
-
 async function submit() {
+  nameTouched.value = true
   if (!form.name || !form.attending) {
     error.value = 'Please fill in your name and RSVP status.'
     return
   }
-  const filledAttendees = form.attendees.map(n => n.trim()).filter(Boolean)
-  if (form.attending === 'yes' && filledAttendees.length === 0) {
-    error.value = 'Please add at least one attendee name.'
+  if (nameInvalid.value) {
+    error.value = 'Please enter your full name.'
     return
   }
+  const extraGuests = form.attendees.map(n => n.trim()).filter(Boolean)
   const filledKids = form.attendees
     .map((n, i) => (form.isKid[i] ? n.trim() : ''))
     .filter(Boolean)
+  const allGuests = form.attending === 'yes' ? [form.name.trim(), ...extraGuests] : []
   error.value = ''
   loading.value = true
 
@@ -53,14 +49,15 @@ async function submit() {
       body: {
         displayName: form.name,
         submitterName: form.name,
-        guestNames: form.attending === 'yes' ? filledAttendees : [],
+        guestNames: allGuests,
         kidsNames: form.attending === 'yes' ? filledKids : [],
-        headcount: form.attending === 'yes' ? filledAttendees.length : 0,
+        headcount: allGuests.length,
         dietaryNotes: form.dietary || null,
         attending: form.attending,
       },
     })
     submitted.value = true
+    refreshNuxtData('public-rsvps')
   } catch {
     error.value = 'Something went wrong. Please try again.'
   } finally {
@@ -86,19 +83,22 @@ async function submit() {
         <form v-else class="flex flex-col gap-5" @submit.prevent="submit">
           <!-- Name -->
           <div>
-            <label class="block font-sans text-xs uppercase tracking-widest text-race-gray mb-2">Your Full Name</label>
+            <label class="block font-sans text-xs uppercase tracking-widest text-white/70 mb-2">Your Full Name</label>
             <input
               v-model="form.name"
               type="text"
               placeholder="Your Full Name"
-              class="w-full bg-white/5 border border-white/10 font-sans text-sm px-4 py-3 focus:outline-none focus:border-race-blue transition-colors placeholder:text-white/30"
+              class="w-full bg-white/5 font-sans text-sm px-4 py-3 focus:outline-none transition-colors placeholder:text-white/30 border"
+              :class="nameInvalid ? 'border-red-500 focus:border-red-500' : 'border-white/10 focus:border-race-blue'"
               style="color: #f5f0eb;"
+              @blur="nameTouched = true"
             />
+            <p v-if="nameInvalid" class="mt-1 font-sans text-xs text-red-400">Please enter your full name.</p>
           </div>
 
           <!-- Attending -->
           <div>
-            <label class="block font-sans text-xs uppercase tracking-widest text-race-gray mb-2">Will you attend?</label>
+            <label class="block font-sans text-xs uppercase tracking-widest text-white/70 mb-2">Will you attend?</label>
             <div class="flex gap-3">
               <button
                 type="button"
@@ -123,10 +123,10 @@ async function submit() {
             </div>
           </div>
 
-          <!-- Attendee names with kid toggle -->
+          <!-- Additional guests -->
           <div v-if="form.attending === 'yes'">
-            <label class="block font-sans text-xs uppercase tracking-widest text-race-gray mb-2">
-              Who's attending?
+            <label class="block font-sans text-xs uppercase tracking-widest text-white/70 mb-2">
+              Who else is coming? <span class="normal-case">(optional)</span>
             </label>
             <div class="flex flex-col gap-2">
               <div v-for="(_, i) in form.attendees" :key="i" class="flex gap-2 items-stretch">
@@ -142,12 +142,11 @@ async function submit() {
                 <input
                   v-model="form.attendees[i]"
                   type="text"
-                  :placeholder="i === 0 ? 'Your name' : `Guest ${i + 1}`"
+                  :placeholder="`Guest ${i + 1}`"
                   class="flex-1 bg-white/5 border border-white/10 font-sans text-sm px-4 py-3 focus:outline-none focus:border-race-blue transition-colors placeholder:text-white/30"
                   style="color: #f5f0eb;"
                 />
                 <button
-                  v-if="form.attendees.length > 1"
                   type="button"
                   class="text-white/30 hover:text-white/60 transition-colors px-2 font-sans text-lg leading-none"
                   @click="removeAttendee(i)"
@@ -155,7 +154,7 @@ async function submit() {
               </div>
             </div>
             <button
-              v-if="form.attendees.length < 10"
+              v-if="form.attendees.length < 9"
               type="button"
               class="mt-2 font-sans text-[10px] uppercase tracking-widest text-race-blue hover:text-race-blue/70 transition-colors"
               @click="addAttendee"
@@ -166,7 +165,7 @@ async function submit() {
 
           <!-- Dietary -->
           <div v-if="form.attending === 'yes'">
-            <label class="block font-sans text-xs uppercase tracking-widest text-race-gray mb-2">
+            <label class="block font-sans text-xs uppercase tracking-widest text-white/70 mb-2">
               Dietary notes <span class="normal-case">(optional)</span>
             </label>
             <input

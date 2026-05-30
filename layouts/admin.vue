@@ -10,12 +10,8 @@
       ]"
     >
       <!-- Brand -->
-      <div class="flex items-center gap-2.5 px-5 py-5 border-b border-slate-700/60">
-        <div class="w-7 h-7 rounded-lg bg-blue-500 flex items-center justify-center text-white text-sm font-bold flex-shrink-0">U</div>
-        <div class="min-w-0">
-          <p class="text-white text-sm font-semibold leading-none">Uno's First</p>
-          <p class="text-slate-400 text-xs mt-0.5">Admin Panel</p>
-        </div>
+      <div class="px-5 py-5 border-b border-slate-700/60">
+        <NuxtLink to="/" class="font-racing text-2xl text-white tracking-wide hover:text-slate-300 transition-colors">UNO</NuxtLink>
       </div>
 
       <!-- Nav -->
