@@ -50,7 +50,7 @@ function backToTop() {
             ↑ Back to the Grid
           </button>
           <p class="font-sans text-[11px] text-white/25">
-            With love, Juancho &amp; Family, thank you for celebrating with us.
+            With love, Uno &amp; Family, thank you for celebrating with us.
           </p>
         </div>
 
