@@ -14,6 +14,7 @@
     </div>
     <RsvpForm />
     <CheckeredDivider height="40px" />
-    <GiftGuide />
+    <!-- <GiftGuide /> -->
+    <GiftGuideV2 />
   </div>
 </template>
