@@ -19,6 +19,7 @@ export default {
         'race-blue-light': '#A8C5DA',
         'race-gray': '#4A4A4A',
         'race-black': '#0D0D0D',
+        'race-cream': '#f5f0eb',
       },
       fontFamily: {
         racing: ['Formula1', 'sans-serif'],

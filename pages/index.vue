@@ -16,5 +16,6 @@
     <CheckeredDivider height="40px" />
     <!-- <GiftGuide /> -->
     <GiftGuideV2 />
+    <SiteFooter />
   </div>
 </template>

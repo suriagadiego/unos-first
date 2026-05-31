@@ -4,8 +4,6 @@
     <!-- Watercolor blotches -->
     <img src="~/assets/images/upperright-watercolor.png" alt="" aria-hidden="true"
       class="pointer-events-none absolute -top-10 -right-10 w-[70vw] opacity-20 select-none" />
-    <img src="~/assets/images/lowerleft-watercolor.png" alt="" aria-hidden="true"
-      class="pointer-events-none absolute bottom-56 -left-10 w-[60vw] opacity-15 select-none" />
 
     <!-- Speed line texture -->
     <div
@@ -58,7 +56,7 @@
           </div>
 
           <!-- Right: pit board card -->
-          <div class="w-full md:w-80 flex-shrink-0 overflow-hidden" style="border: 1px solid rgba(107,140,174,0.25); background: rgba(255,255,255,0.82);">
+          <div class="w-[85%] mx-auto md:mx-0 md:w-80 flex-shrink-0 overflow-hidden" style="border: 1px solid rgba(107,140,174,0.25); background: rgba(255,255,255,0.82);">
 
             <!-- Card header -->
             <div class="bg-race-black px-4 py-3 flex items-center gap-2">
@@ -93,22 +91,6 @@
       </div>
     </div>
 
-    <CheckeredDivider height="32px" />
-
-    <!-- Dark footer -->
-    <div class="bg-race-black py-10 text-center relative overflow-hidden">
-      <img src="~/assets/images/clouds/3.png" alt="" aria-hidden="true"
-        class="cloud-float pointer-events-none absolute left-[6%] top-1/2 -translate-y-1/2 w-40 opacity-[0.08] select-none" />
-      <img src="~/assets/images/clouds/5.png" alt="" aria-hidden="true"
-        class="cloud-float-slow pointer-events-none absolute right-[6%] top-1/2 -translate-y-1/2 w-40 opacity-[0.08] select-none" />
-
-      <p class="font-racing text-race-blue text-2xl md:text-3xl tracking-wide relative z-10">
-        See you at the finish line.
-      </p>
-      <p class="font-sans text-[11px] uppercase tracking-[0.45em] text-white/40 mt-2 relative z-10">
-        September 6, 2026
-      </p>
-    </div>
 
   </section>
 </template>
