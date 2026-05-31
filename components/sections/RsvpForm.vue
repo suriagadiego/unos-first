@@ -67,8 +67,33 @@ async function submit() {
 </script>
 
 <template>
-  <section id="rsvp" class="py-20 px-4 bg-race-black/[0.97]">
-    <div class="max-w-lg mx-auto">
+  <section id="rsvp" class="relative overflow-hidden py-20 px-4 bg-race-black/[0.97]">
+    <!-- Tire mark overlay -->
+    <div aria-hidden="true" class="absolute inset-0 pointer-events-none select-none overflow-hidden">
+      <!-- Mobile: single S-curve, zoomed -->
+      <img
+        src="~/assets/images/tiremarks/Untitled design-7.png"
+        alt=""
+        class="md:hidden absolute top-0 left-1/2 h-[130%] w-auto opacity-[0.03]"
+        style="filter: invert(1); mix-blend-mode: screen; transform: translateX(-50%) rotate(45deg) scale(1.35);"
+      />
+      <!-- Desktop: left S-curve -->
+      <img
+        src="~/assets/images/tiremarks/Untitled design-7.png"
+        alt=""
+        class="hidden md:block absolute top-0 -left-16 h-[105%] w-auto opacity-[0.03]"
+        style="filter: invert(1); mix-blend-mode: screen; transform: rotate(5deg);"
+      />
+      <!-- Desktop: right S-curve, mirrored — offset vertically to break symmetry -->
+      <img
+        src="~/assets/images/tiremarks/Untitled design-7.png"
+        alt=""
+        class="hidden md:block absolute top-0 -right-16 h-[120%] w-auto opacity-[0.03]"
+        style="filter: invert(1); mix-blend-mode: screen; transform: scaleX(-1) rotate(180deg);"
+      />
+    </div>
+
+    <div class="max-w-lg mx-auto relative">
       <h2 class="font-racing text-5xl text-center mb-2 tracking-wide" style="color: #f5f0eb;">RSVP</h2>
       <p class="font-sans text-xs uppercase tracking-widest text-race-gray text-center mb-10">
         Deadline: August 30, 2026

@@ -34,12 +34,12 @@ const gifts = [
 
         <!-- Title -->
         <div class="text-center mb-10">
-          <div class="flex items-center justify-center gap-4 mb-1">
+          <div class="flex items-center justify-center gap-0 mb-1">
             <img src="~/assets/images/flag.png" alt="" aria-hidden="true"
-              class="w-11 h-auto select-none opacity-90 -rotate-6" />
+              class="w-24 h-auto select-none opacity-90 -mr-4" style="transform: scaleX(-1) rotate(-6deg);" />
             <h2 class="font-racing text-5xl md:text-6xl text-race-black tracking-wide">Gift Guide</h2>
             <img src="~/assets/images/flag.png" alt="" aria-hidden="true"
-              class="w-11 h-auto select-none opacity-90 rotate-6" style="transform: scaleX(-1) rotate(-6deg);" />
+              class="w-24 h-auto select-none opacity-90 -ml-4" style="transform: rotate(-6deg);" />
           </div>
 
           <div class="flex items-center justify-center gap-3 mb-6 mt-2">
