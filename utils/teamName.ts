@@ -4,9 +4,6 @@ function seed(s: string) {
   return h
 }
 
-function pick<T>(arr: T[], key: string): T {
-  return arr[seed(key) % arr.length]
-}
 
 function firstName(fullName: string) {
   return fullName.trim().split(/\s+/)[0]
@@ -25,14 +22,16 @@ export function getTeamName(
   displayName: string,
   headcount: number | null | undefined,
   guestNames?: string[],
+  salt?: number | string,
 ): string {
   if (!headcount || headcount <= 0) return firstName(displayName)
 
   const first = firstName(displayName)
   const last = lastName(displayName)
+  const idx = (n: number) => typeof salt === 'number' ? salt % n : seed(`${first}:${salt ?? ''}`) % n
 
   if (headcount === 1) {
-    return pick([
+    const arr = [
       `Flying ${first}`,
       `${first} Unleashed`,
       `Maximum ${first}`,
@@ -41,7 +40,8 @@ export function getTeamName(
       `${first} Redline`,
       `${first} Apex`,
       `${first} Full Send`,
-    ], first)
+    ]
+    return arr[idx(arr.length)]
   }
 
   if (headcount === 2) {
@@ -52,7 +52,7 @@ export function getTeamName(
       ? firstName(guestNames[0])
       : first
     const pair = a !== b ? `${a} & ${b}` : a
-    return pick([
+    const arr = [
       `${pair} Twin Turbo`,
       `${pair} Full Throttle`,
       `${pair} Double Trouble`,
@@ -61,11 +61,12 @@ export function getTeamName(
       `${pair} Slipstream`,
       `${pair} Wingmen`,
       `Team ${pair} Overdrive`,
-    ], first)
+    ]
+    return arr[idx(arr.length)]
   }
 
   // 3+
-  return pick([
+  const arr = [
     `The Flying ${pluralize(last)}`,
     `${last} Racing Stable`,
     `The ${last} Pit Crew`,
@@ -74,5 +75,6 @@ export function getTeamName(
     `${last} Motorsport Club`,
     `House ${last}`,
     `The ${last} Wolfpack`,
-  ], first)
+  ]
+  return arr[idx(arr.length)]
 }

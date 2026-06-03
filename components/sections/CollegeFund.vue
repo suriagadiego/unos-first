@@ -2,7 +2,7 @@
 const FUND_DEADLINE = new Date('2026-09-13T00:00:00')
 const { days } = useCountdown(FUND_DEADLINE)
 
-const { data, refresh } = await useFetch<{ contributions: any[]; total: number; goal: number }>('/api/public/fund')
+const { data, refresh } = useFetch<{ contributions: any[]; total: number; goal: number }>('/api/public/fund')
 
 const realPct = computed(() => {
   if (!data.value?.goal) return 0

@@ -12,7 +12,7 @@ const props = defineProps<{
 const emit = defineEmits<{ select: [] }>()
 
 const pos = computed(() => String(props.position).padStart(2, '0'))
-const teamName = computed(() => getTeamName(props.name, props.headcount, props.guestNames))
+const teamName = computed(() => getTeamName(props.name, props.headcount, props.guestNames, props.position))
 </script>
 
 <template>

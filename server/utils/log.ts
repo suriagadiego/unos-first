@@ -4,7 +4,7 @@ export function logAction(
   action: string,
   entityType: string,
   description: string,
-  entityId?: number,
+  entityId?: string | number,
 ) {
   void useSupabase()
     .from('activity_log')
