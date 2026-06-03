@@ -169,7 +169,7 @@ async function submit() {
       >
         Join the Pit Crew
       </button>
-      <p class="font-sans text-[10px] text-race-gray/40">Scan · Pay · Submit proof</p>
+      <p class="font-sans text-[10px] text-race-gray/40">Scan · Send · Submit proof</p>
     </div>
 
     <div class="text-center pb-10 relative z-10">
@@ -233,7 +233,7 @@ async function submit() {
                 <p class="font-sans text-[10px] text-race-gray/50 text-center uppercase tracking-wider leading-relaxed">GCash QR<br/>coming soon</p>
               </div>
             </div>
-            <p class="font-sans text-xs text-race-gray/60 text-center">Scan with GCash to pay, then fill out the form below.</p>
+            <p class="font-sans text-xs text-race-gray/60 text-center">Scan with GCash to send, then fill out the form below.</p>
           </div>
 
           <div class="h-px bg-race-gray/15" />
@@ -266,7 +266,7 @@ async function submit() {
 
           <!-- Screenshot -->
           <div class="flex flex-col gap-1.5">
-            <label class="font-racing text-[10px] uppercase tracking-[0.3em] text-race-gray">Payment Screenshot</label>
+            <label class="font-racing text-[10px] uppercase tracking-[0.3em] text-race-gray">GCash Screenshot</label>
             <label
               class="border border-dashed border-race-gray/30 hover:border-race-blue transition-colors cursor-pointer flex flex-col items-center justify-center gap-2 py-5 px-4"
               :class="screenshotPreview ? 'border-race-blue/50' : ''"
@@ -275,11 +275,11 @@ async function submit() {
                 v-if="screenshotPreview"
                 :src="screenshotPreview"
                 class="max-h-32 object-contain"
-                alt="Payment proof preview"
+                alt="GCash screenshot preview"
               />
               <template v-else>
                 <span class="text-2xl">📎</span>
-                <p class="font-sans text-xs text-race-gray/50 text-center">Attach your GCash screenshot<br/>as proof of payment</p>
+                <p class="font-sans text-xs text-race-gray/50 text-center">Attach your GCash screenshot<br/>as proof of your transfer</p>
               </template>
               <input type="file" accept="image/*" class="hidden" @change="onFileChange" />
             </label>
