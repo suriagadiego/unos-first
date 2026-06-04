@@ -1,4 +1,5 @@
 <script setup lang="ts">
+
 const FUND_DEADLINE = new Date('2026-09-13T00:00:00')
 const { days } = useCountdown(FUND_DEADLINE)
 
@@ -10,15 +11,9 @@ const realPct = computed(() => {
 })
 const realContributors = computed(() => data.value?.contributions.length ?? 0)
 
-const displayPct = ref(0)
 const displayContributors = ref(0)
 
 onMounted(() => {
-  const pctTimer = setInterval(() => {
-    if (displayPct.value < realPct.value) displayPct.value++
-    else clearInterval(pctTimer)
-  }, 18)
-
   const cTimer = setInterval(() => {
     if (displayContributors.value < realContributors.value) displayContributors.value++
     else clearInterval(cTimer)
@@ -100,79 +95,78 @@ async function submit() {
 </script>
 
 <template>
-  <div class="min-h-screen bg-white flex flex-col relative overflow-hidden">
+  <div class="h-[100svh] relative overflow-hidden flex flex-col">
 
-    <!-- Watercolor bg -->
+    <!-- Checkered top strip -->
+    <div class="w-full h-3 checker-strip opacity-40 flex-shrink-0" />
+
+    <!-- Watercolor backgrounds — leading the vibe -->
     <img src="~/assets/images/upperright-watercolor.png" alt="" aria-hidden="true"
-      class="pointer-events-none absolute -top-10 -right-10 w-[60vw] opacity-15 select-none" />
+      class="pointer-events-none absolute -top-8 -right-8 w-[78vw] md:w-[50vw] opacity-65 select-none" />
+    <img src="~/assets/images/lowerleft-watercolor.png" alt="" aria-hidden="true"
+      class="pointer-events-none absolute bottom-0 left-0 w-[65vw] md:w-[42vw] opacity-55 select-none" />
 
-    <!-- Subtle checkered corners -->
-    <div class="absolute top-0 left-0 w-40 h-40 checkered-bg opacity-[0.04]" />
-    <div class="absolute top-0 right-0 w-40 h-40 checkered-bg opacity-[0.04]" />
+    <!-- Floating clouds -->
+    <img src="~/assets/images/clouds/4.png" alt="" aria-hidden="true"
+      class="cloud-float-slow pointer-events-none absolute top-6 right-[10vw] w-[44vw] md:w-[16vw] opacity-70 select-none" />
+    <img src="~/assets/images/clouds/2.png" alt="" aria-hidden="true"
+      class="cloud-float pointer-events-none absolute top-14 left-[2vw] w-[36vw] md:w-[13vw] opacity-50 select-none" />
 
-    <!-- Top half: illustration + title -->
-    <div class="flex-1 flex flex-col items-center justify-end pb-10 px-6 pt-20 relative z-10">
+    <!-- Main content: single centered column -->
+    <div class="flex-1 flex flex-col items-center justify-center px-6 relative z-10 gap-3 md:gap-5">
 
-      <div class="flex items-end justify-center gap-6 mb-10">
-        <img src="~/assets/images/mickey.png" alt="Mickey racer"
-          class="w-48 md:w-64 select-none drop-shadow-sm" />
+      <!-- Illustration: college building with tireflag flanking it like a scene -->
+      <div class="relative flex items-end justify-center gap-2 md:gap-4">
         <img src="~/assets/images/tireflag.png" alt="" aria-hidden="true"
-          class="w-28 md:w-36 select-none opacity-80 mb-4" />
+          class="w-14 md:w-20 select-none opacity-70 mb-1 -scale-x-100" />
+        <img src="~/assets/images/college.png" alt="Uno heading to college"
+          class="w-36 md:w-52 select-none drop-shadow-sm" />
+        <img src="~/assets/images/tireflag.png" alt="" aria-hidden="true"
+          class="w-14 md:w-20 select-none opacity-70 mb-1" />
       </div>
 
-      <p class="font-sans text-xs uppercase tracking-[0.3em] text-race-gray mb-2">His most important finish line</p>
+      <!-- Eyebrow + title + tagline -->
+      <div class="text-center">
+        <p class="font-script text-base md:text-lg text-race-blue/75 mb-0.5 leading-none">His most important finish line</p>
+        <h1 class="font-racing text-[clamp(2.4rem,8vw,5rem)] text-race-black leading-none mb-2">
+          Uno's College Fund
+        </h1>
+        <p class="font-sans text-[11px] text-race-gray/60 max-w-[260px] mx-auto leading-relaxed">
+          Every peso goes directly into Uno's PSSLAI fund —
+          locked and invested until he reaches college.
+        </p>
+      </div>
 
-      <h1 class="font-racing text-[clamp(3rem,10vw,6rem)] text-race-black text-center leading-none mb-3">
-        Uno's College Fund
-      </h1>
-
-      <p class="font-sans text-sm text-race-gray text-center max-w-sm leading-relaxed">
-        Every peso goes directly into Uno's PSSLAI fund —
-        locked and invested until he reaches college.
-      </p>
-    </div>
-
-    <CheckeredDivider height="16px" />
-
-    <!-- Stats + progress + CTA -->
-    <div class="flex flex-col items-center px-6 py-14 max-w-2xl mx-auto w-full relative z-10">
-
-      <div class="grid grid-cols-3 w-full mb-8 divide-x divide-race-blue-light/40">
-        <div class="text-center px-4">
-          <p class="font-racing text-[clamp(2.5rem,8vw,4rem)] text-race-black leading-none">{{ displayContributors }}</p>
-          <p class="font-sans text-[10px] uppercase tracking-widest text-race-gray mt-1">Contributors</p>
+      <!-- Stats row -->
+      <div class="grid grid-cols-2 w-full max-w-[240px] md:max-w-xs divide-x divide-race-blue/20">
+        <div class="text-center px-4 md:px-6">
+          <p class="font-racing text-[clamp(1.9rem,7vw,3rem)] text-race-black leading-none">{{ displayContributors }}</p>
+          <p class="font-sans text-[9px] uppercase tracking-wider text-race-gray/50 mt-0.5">Contributors</p>
         </div>
-        <div class="text-center px-4">
-          <p class="font-racing text-[clamp(2.5rem,8vw,4rem)] text-race-black leading-none">{{ days }}</p>
-          <p class="font-sans text-[10px] uppercase tracking-widest text-race-gray mt-1">Days to Go</p>
-        </div>
-        <div class="text-center px-4">
-          <p class="font-racing text-[clamp(2.5rem,8vw,4rem)] text-race-blue leading-none">{{ displayPct }}%</p>
-          <p class="font-sans text-[10px] uppercase tracking-widest text-race-gray mt-1">Funded</p>
+        <div class="text-center px-4 md:px-6">
+          <p class="font-racing text-[clamp(1.9rem,7vw,3rem)] text-race-black leading-none">{{ days }}</p>
+          <p class="font-sans text-[9px] uppercase tracking-wider text-race-gray/50 mt-0.5">Days to Go</p>
         </div>
       </div>
 
-      <div class="w-full h-3 bg-race-gray/10 rounded-full overflow-hidden mb-2">
-        <div
-          class="h-full bg-race-blue rounded-full transition-all duration-1000"
-          :style="{ width: `${realPct}%` }"
-        />
-      </div>
-      <div class="flex justify-between w-full mb-10">
-        <span class="font-sans text-[10px] text-race-gray/50 uppercase tracking-widest">Start</span>
-        <span class="font-sans text-[10px] text-race-gray/50 uppercase tracking-widest">Goal 🏁</span>
+      <!-- Race-track progress -->
+      <div style="width:100%;max-width:560px;margin:0 auto;">
+        <RaceProgress :percent="realPct" car-src="/images/uno-car.png" />
       </div>
 
+      <!-- CTA -->
       <button
         @click="openDrawer"
-        class="bg-race-blue text-white font-sans text-xs uppercase tracking-widest px-14 py-4 rounded-full hover:bg-race-blue/80 transition-colors mb-3"
+        class="bg-race-blue text-white font-sans text-xs uppercase tracking-widest px-12 py-3.5 rounded-full hover:bg-race-blue/80 transition-colors"
       >
         Join the Pit Crew
       </button>
-      <p class="font-sans text-[10px] text-race-gray/40">Scan · Send · Submit proof</p>
+      <p class="font-sans text-[10px] text-race-gray/35 -mt-1">Scan · Send · Submit proof</p>
+
     </div>
 
-    <div class="text-center pb-10 relative z-10">
+    <!-- Back link -->
+    <div class="text-center pb-5 relative z-10">
       <NuxtLink
         to="/"
         class="font-sans text-[10px] uppercase tracking-widest text-race-gray/40 hover:text-race-gray transition-colors"
