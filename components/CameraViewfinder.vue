@@ -232,8 +232,8 @@ defineExpose({ capture, start, status, flipCamera })
       <div class="absolute bottom-4 left-4 w-7 h-7 border-b-2 border-l-2 border-white/25 pointer-events-none" />
       <div class="absolute bottom-4 right-4 w-7 h-7 border-b-2 border-r-2 border-white/25 pointer-events-none" />
       <button @click="flipCamera"
-        class="absolute top-4 right-4 w-9 h-9 rounded-full bg-black/40 backdrop-blur-sm border border-white/10 flex items-center justify-center text-white/60 hover:text-white text-lg z-10 transition-colors">
-        ⟳
+        class="absolute top-8 right-4 w-10 h-10 rounded-full bg-black/40 backdrop-blur-sm border border-white/10 flex items-center justify-center z-10 transition-opacity hover:opacity-100 opacity-60">
+        <img src="~/assets/images/reverse-camera.svg" class="w-[30px] h-[30px]" alt="flip camera" />
       </button>
     </template>
 
