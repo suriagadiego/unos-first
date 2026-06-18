@@ -1,21 +1,22 @@
 <script setup lang="ts">
 definePageMeta({ layout: false })
 
-
 const viewfinderRef = ref<{ capture: () => void; start: () => void; status: Ref<string>; flipCamera: () => void }>()
 const { ensureAuth, authHeaders, fetchShots, shots, authReady, guestId } = useGuestCamera()
 
+interface Shot { src: string; status: 'uploading' | 'done' | 'error'; blob: Blob; name: string | null }
+
 const flash = ref(false)
-const uploading = ref(false)
-const uploadError = ref<string | null>(null)
-const snapSrc = ref<string | null>(null)
-const lastSrc = ref<string | null>(null)
+const firing = ref(false)        // shutter bounce on capture
+const counterPop = ref(false)    // counter tick-down pop
+const checkPulse = ref(false)    // checkmark pop when upload lands
+const lastShot = ref<Shot | null>(null)   // corner thumbnail + upload state
 
 const showNamePrompt = ref(false)
 const nameInput = ref('')
 
 const rollFull = computed(() => (shots.value?.remaining ?? 1) <= 0)
-const shutterDisabled = computed(() => rollFull.value || uploading.value)
+const shutterDisabled = computed(() => rollFull.value)
 
 onMounted(async () => {
   ensureAuth()
@@ -30,7 +31,7 @@ function saveName() {
 }
 
 function onShutter() {
-  if (uploading.value || rollFull.value) return
+  if (rollFull.value) return
   const camStatus = viewfinderRef.value?.status?.value ?? viewfinderRef.value?.status
   if (camStatus === 'idle' || camStatus === 'starting') {
     viewfinderRef.value?.start()
@@ -40,43 +41,57 @@ function onShutter() {
 }
 
 async function onCaptured(blob: Blob) {
-  if (shutterDisabled.value || blob.size === 0) return
+  if (rollFull.value || blob.size === 0) return
 
-  // Flash
+  // 1. Flash + "Snapped!"
   flash.value = true
-  setTimeout(() => (flash.value = false), 180)
+  setTimeout(() => (flash.value = false), 250)
 
-  // Snap animation
+  // 2. Shutter bounce
+  firing.value = true
+  setTimeout(() => (firing.value = false), 160)
+
   const src = URL.createObjectURL(blob)
-  snapSrc.value = src
 
-  uploading.value = true
-  uploadError.value = null
+  // 5. Thumbnail takes over with upload state
+  const name = localStorage.getItem('uno_cam_name')
+  const shot: Shot = { src, status: 'uploading', blob, name: name && name !== '__skip__' ? name : null }
+  lastShot.value = shot
 
+  await doUpload(shot)
+}
+
+async function doUpload(shot: Shot) {
+  shot.status = 'uploading'
   try {
     const form = new FormData()
-    form.append('photo', blob, 'shot.jpg')
-    const name = localStorage.getItem('uno_cam_name')
-    if (name && name !== '__skip__') form.append('guestName', name)
+    form.append('photo', shot.blob, 'shot.jpg')
+    if (shot.name) form.append('guestName', shot.name)
     const result = await $fetch<{ key: string; url: string; remaining: number }>('/api/cam/upload', {
       method: 'POST',
       headers: authHeaders(),
       body: form,
     })
+    shot.status = 'done'
+
+    // 4. Counter ticks down with a pop
     if (shots.value) {
       shots.value.remaining = result.remaining
       shots.value.taken = shots.value.limit - result.remaining
     }
-    lastSrc.value = src
-  } catch (err: any) {
-    uploadError.value = err?.data?.message ?? 'Upload failed'
-  } finally {
-    uploading.value = false
+    counterPop.value = true
+    setTimeout(() => (counterPop.value = false), 320)
+
+    // Checkmark pulse
+    checkPulse.value = true
+    setTimeout(() => (checkPulse.value = false), 900)
+  } catch {
+    shot.status = 'error'
   }
 }
 
-function onSnapEnd() {
-  snapSrc.value = null
+function retry() {
+  if (lastShot.value?.status === 'error') doUpload(lastShot.value)
 }
 </script>
 
@@ -93,17 +108,12 @@ function onSnapEnd() {
         @captured="onCaptured"
       />
 
-      <!-- Flash -->
-      <div v-if="flash" class="absolute inset-0 z-50 bg-white pointer-events-none"
-        style="animation:snapFlash 0.18s ease forwards" />
-
-      <!-- Snap-to-corner animation -->
-      <div v-if="snapSrc"
-        class="absolute z-40 pointer-events-none rounded-xl overflow-hidden shadow-2xl"
-        style="width:90px;height:90px;left:calc(50% - 45px);top:calc(50% - 45px);animation:snapFly 0.7s cubic-bezier(0.4,0,0.2,1) forwards"
-        @animationend="onSnapEnd">
-        <img :src="snapSrc" class="w-full h-full object-cover" />
-      </div>
+      <!-- Flash + "Snapped!" -->
+      <Transition name="flash">
+        <div v-if="flash" class="absolute inset-0 z-50 bg-white flex items-center justify-center pointer-events-none">
+          <span class="font-script text-[#6B8CAE] text-5xl" style="animation:snapText 0.5s ease forwards">Snapped!</span>
+        </div>
+      </Transition>
 
       <!-- Name prompt -->
       <Transition name="dev">
@@ -159,11 +169,39 @@ function onSnapEnd() {
         style="background:linear-gradient(to top,rgba(0,0,0,0.65) 0%,transparent 100%)">
         <div class="relative flex items-center justify-center" style="height:78px">
 
-          <!-- Last photo thumbnail — left -->
+          <!-- Corner thumbnail with upload state -->
           <div class="absolute left-8">
-            <NuxtLink v-if="lastSrc" to="/gallery" class="block w-12 h-12 rounded-xl overflow-hidden border border-white/20">
-              <img :src="lastSrc" class="w-full h-full object-cover" style="filter:saturate(0.55) brightness(0.75)" />
-            </NuxtLink>
+            <div v-if="lastShot" class="relative w-12 h-12">
+              <!-- Error → tappable retry; otherwise → gallery link -->
+              <button v-if="lastShot.status === 'error'" @click="retry"
+                class="relative block w-12 h-12 rounded-xl overflow-hidden border border-red-400/70">
+                <img :src="lastShot.src" class="w-full h-full object-cover" style="filter:saturate(0.4) brightness(0.5)" />
+                <div class="absolute inset-0 flex items-center justify-center bg-red-900/50">
+                  <span class="text-white text-lg leading-none">↻</span>
+                </div>
+              </button>
+
+              <NuxtLink v-else to="/gallery"
+                class="relative block w-12 h-12 rounded-xl overflow-hidden border border-white/20">
+                <img :src="lastShot.src" class="w-full h-full object-cover"
+                  :style="lastShot.status === 'uploading' ? 'filter:saturate(0.4) brightness(0.5)' : 'filter:saturate(0.55) brightness(0.75)'" />
+
+                <!-- Uploading: progress ring -->
+                <div v-if="lastShot.status === 'uploading'" class="absolute inset-0 flex items-center justify-center">
+                  <div class="w-5 h-5 rounded-full border-2 border-white/30 border-t-[#6B8CAE] animate-spin" />
+                </div>
+
+                <!-- Done: checkmark pulse -->
+                <div v-else-if="checkPulse"
+                  class="absolute inset-0 flex items-center justify-center bg-black/30"
+                  style="animation:checkFade 0.9s ease forwards">
+                  <div class="w-5 h-5 rounded-full bg-[#6B8CAE] flex items-center justify-center"
+                    style="animation:checkPop 0.4s cubic-bezier(0.34,1.56,0.64,1)">
+                    <span class="text-white text-[11px] font-bold leading-none">✓</span>
+                  </div>
+                </div>
+              </NuxtLink>
+            </div>
             <div v-else class="w-12 h-12 rounded-xl border border-white/[0.1] flex items-center justify-center">
               <span class="text-white/15 text-xl">🎞</span>
             </div>
@@ -173,7 +211,8 @@ function onSnapEnd() {
           <button
             @click="onShutter"
             :disabled="shutterDisabled"
-            class="relative w-[78px] h-[78px] rounded-full flex items-center justify-center transition-all active:scale-[0.88] disabled:opacity-25"
+            class="relative w-[78px] h-[78px] rounded-full flex items-center justify-center transition-transform active:scale-[0.88] disabled:opacity-25"
+            :class="{ 'shutter-fire': firing }"
           >
             <div class="absolute inset-0 rounded-full border-[3px] border-white/30" />
             <div class="w-[64px] h-[64px] rounded-full bg-white flex items-center justify-center shadow-2xl">
@@ -182,7 +221,8 @@ function onSnapEnd() {
           </button>
 
           <!-- LAP / LEFT — right -->
-          <div class="absolute right-4 flex items-stretch gap-1.5 bg-black/40 backdrop-blur-sm border border-white/[0.1] rounded-xl px-2 py-1.5">
+          <div class="absolute right-4 flex items-stretch gap-1.5 bg-black/40 backdrop-blur-sm border border-white/[0.1] rounded-xl px-2 py-1.5 transition-transform"
+            :class="{ 'counter-pop': counterPop }">
             <div class="text-center">
               <p class="text-[5px] text-[#6B8CAE] uppercase tracking-[0.2em] font-sans mb-0.5">LAP</p>
               <p class="font-racing text-white text-[19px] leading-none">{{ String(shots?.taken ?? 0).padStart(2, '0') }}</p>
@@ -190,33 +230,54 @@ function onSnapEnd() {
             <div class="w-px bg-white/10 self-stretch" />
             <div class="text-center">
               <p class="text-[5px] text-white/25 uppercase tracking-[0.2em] font-sans mb-0.5">LEFT</p>
-              <p class="font-racing text-white/35 text-[19px] leading-none">{{ String(shots?.remaining ?? '--') }}</p>
+              <p class="font-racing text-[#A8C5DA] text-[19px] leading-none">{{ String(shots?.remaining ?? '--') }}</p>
             </div>
           </div>
 
         </div>
       </div>
 
-      <!-- Upload error toast -->
-      <Transition name="dev">
-        <div v-if="uploadError"
-          class="absolute bottom-32 left-1/2 -translate-x-1/2 z-20 px-4 py-2.5 rounded-xl bg-red-900/80 backdrop-blur-sm text-red-200 text-xs font-sans whitespace-nowrap">
-          {{ uploadError }} — try again
-        </div>
-      </Transition>
-
     </div><!-- end bezel -->
   </div>
 </template>
 
 <style scoped>
-@keyframes snapFlash { 0% { opacity:1 } 100% { opacity:0 } }
+/* Flash appears instantly, fades out smoothly */
+.flash-enter-active { transition: none; }
+.flash-leave-active { transition: opacity 0.6s ease-out; }
+.flash-leave-to { opacity: 0; }
 
-/* Photo snaps from center, shrinks and flies to bottom-left thumbnail */
-@keyframes snapFly {
-  0%   { transform: scale(1);    opacity: 1; }
-  15%  { transform: scale(1.06); opacity: 1; }
-  100% { transform: scale(0) translate(-180%, 220%); opacity: 0.4; }
+/* "Snapped!" pops in */
+@keyframes snapText {
+  0%   { opacity: 0; transform: scale(0.6); }
+  50%  { opacity: 1; transform: scale(1.08); }
+  100% { opacity: 1; transform: scale(1); }
+}
+
+/* Shutter bounce on capture */
+.shutter-fire { animation: shutterFire 0.16s ease; }
+@keyframes shutterFire {
+  0%   { transform: scale(1); }
+  45%  { transform: scale(0.85); }
+  100% { transform: scale(1); }
+}
+
+/* Counter tick-down pop */
+.counter-pop { animation: counterPop 0.32s cubic-bezier(0.34,1.56,0.64,1); }
+@keyframes counterPop {
+  0%   { transform: scale(1); }
+  40%  { transform: scale(1.18); }
+  100% { transform: scale(1); }
+}
+
+/* Checkmark */
+@keyframes checkPop {
+  0%   { transform: scale(0); }
+  100% { transform: scale(1); }
+}
+@keyframes checkFade {
+  0%, 70% { opacity: 1; }
+  100%    { opacity: 0; }
 }
 
 .dev-enter-active, .dev-leave-active { transition: opacity 0.4s ease; }
