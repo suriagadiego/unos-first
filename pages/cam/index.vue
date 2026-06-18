@@ -7,6 +7,7 @@ const { ensureAuth, authHeaders, fetchShots, shots, authReady, guestId } = useGu
 interface Shot { src: string; status: 'uploading' | 'done' | 'error'; blob: Blob; name: string | null }
 
 const flash = ref(false)
+const snapSrc = ref<string | null>(null)  // snapshot pop preview
 const firing = ref(false)        // shutter bounce on capture
 const counterPop = ref(false)    // counter tick-down pop
 const checkPulse = ref(false)    // checkmark pop when upload lands
@@ -43,15 +44,18 @@ function onShutter() {
 async function onCaptured(blob: Blob) {
   if (rollFull.value || blob.size === 0) return
 
-  // 1. Flash + "Snapped!"
+  // 1. Flash
   flash.value = true
-  setTimeout(() => (flash.value = false), 250)
+  setTimeout(() => (flash.value = false), 200)
 
   // 2. Shutter bounce
   firing.value = true
   setTimeout(() => (firing.value = false), 160)
 
+  // 3. Snapshot pop
   const src = URL.createObjectURL(blob)
+  snapSrc.value = src
+  setTimeout(() => { snapSrc.value = null }, 900)
 
   // 5. Thumbnail takes over with upload state
   const name = localStorage.getItem('uno_cam_name')
@@ -108,10 +112,20 @@ function retry() {
         @captured="onCaptured"
       />
 
-      <!-- Flash + "Snapped!" -->
+      <!-- White flash -->
       <Transition name="flash">
-        <div v-if="flash" class="absolute inset-0 z-50 bg-white flex items-center justify-center pointer-events-none">
-          <span class="font-script text-[#6B8CAE] text-5xl" style="animation:snapText 0.5s ease forwards">Snapped!</span>
+        <div v-if="flash" class="absolute inset-0 z-50 bg-white pointer-events-none" />
+      </Transition>
+
+      <!-- Snapshot pop — photo zooms in as a tilted Polaroid -->
+      <Transition name="polaroid">
+        <div v-if="snapSrc" class="absolute inset-0 z-[51] flex items-center justify-center pointer-events-none">
+          <div class="polaroid-card bg-white rounded-md shadow-2xl p-2 pb-9">
+            <div class="w-44 h-44 rounded-sm overflow-hidden bg-black">
+              <img :src="snapSrc" class="w-full h-full object-cover" style="filter:contrast(1.05) saturate(0.85)" />
+            </div>
+            <p class="font-script text-[#6B8CAE] text-3xl text-center mt-1.5 leading-none">Snapped!</p>
+          </div>
         </div>
       </Transition>
 
@@ -247,11 +261,18 @@ function retry() {
 .flash-leave-active { transition: opacity 0.6s ease-out; }
 .flash-leave-to { opacity: 0; }
 
-/* "Snapped!" pops in */
-@keyframes snapText {
-  0%   { opacity: 0; transform: scale(0.6); }
-  50%  { opacity: 1; transform: scale(1.08); }
-  100% { opacity: 1; transform: scale(1); }
+/* Snapshot Polaroid: springy pop in, gentle drop-away on leave */
+.polaroid-card { transform: rotate(-5deg); }
+.polaroid-enter-active .polaroid-card { animation: polaroidPop 0.55s cubic-bezier(0.34,1.56,0.64,1); }
+.polaroid-enter-active, .polaroid-leave-active { transition: opacity 0.45s ease; }
+.polaroid-leave-active .polaroid-card { transition: transform 0.45s ease-in; }
+.polaroid-enter-from, .polaroid-leave-to { opacity: 0; }
+.polaroid-leave-to .polaroid-card { transform: rotate(-5deg) scale(0.88) translateY(40px); }
+
+@keyframes polaroidPop {
+  0%   { transform: scale(0.5) rotate(-8deg); }
+  60%  { transform: scale(1.05) rotate(-4deg); }
+  100% { transform: scale(1) rotate(-5deg); }
 }
 
 /* Shutter bounce on capture */
