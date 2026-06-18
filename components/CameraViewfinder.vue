@@ -140,7 +140,7 @@ function stopTracks() {
 
 onUnmounted(stopTracks)
 
-defineExpose({ capture, start })
+defineExpose({ capture, start, status })
 </script>
 
 <template>

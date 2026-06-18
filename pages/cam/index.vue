@@ -1,7 +1,7 @@
 <script setup lang="ts">
 definePageMeta({ layout: false })
 
-const viewfinderRef = ref<{ capture: () => void }>()
+const viewfinderRef = ref<{ capture: () => void; start: () => void; status: Ref<string> }>()
 const { ensureAuth, authHeaders, fetchShots, shots, authReady, guestId } = useGuestCamera()
 
 // Local list of photos shot this session (for the film strip)
@@ -19,7 +19,7 @@ const nameInput = ref('')
 const nameSaved = ref(false)
 
 const rollFull = computed(() => (shots.value?.remaining ?? 1) <= 0)
-const shutterDisabled = computed(() => rollFull.value || developing.value || uploading.value || !authReady.value)
+const shutterDisabled = computed(() => rollFull.value || developing.value || uploading.value)
 
 onMounted(async () => {
   ensureAuth() // sync — just reads/writes localStorage
@@ -34,8 +34,13 @@ function saveName() {
 }
 
 function onShutter() {
-  if (shutterDisabled.value) return
-  viewfinderRef.value?.capture()
+  if (developing.value || uploading.value || rollFull.value) return
+  const camStatus = viewfinderRef.value?.status?.value ?? viewfinderRef.value?.status
+  if (camStatus === 'idle' || camStatus === 'starting') {
+    viewfinderRef.value?.start()
+  } else {
+    viewfinderRef.value?.capture()
+  }
 }
 
 async function onCaptured(blob: Blob) {
