@@ -234,12 +234,12 @@
           No photos in bucket yet
         </div>
         <div v-else class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-3">
-          <div v-for="p in bucketPhotos" :key="p.key"
-            class="relative group rounded-xl overflow-hidden bg-gray-100 aspect-square">
+          <div v-for="(p, i) in bucketPhotos" :key="p.key"
+            class="relative group rounded-xl overflow-hidden bg-gray-100 aspect-square cursor-pointer"
+            @click="lb.open(i)">
             <img :src="p.url" class="w-full h-full object-cover" loading="lazy" />
             <div class="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col justify-end p-2">
-              <p class="text-white/60 text-[10px] truncate mb-1">{{ p.key }}</p>
-              <button class="photo-btn bg-red-700 w-full justify-center" @click="rm.bucketKey = p.key">🗑 Delete</button>
+              <button class="photo-btn bg-red-700 w-full justify-center" @click.stop="rm.bucketKey = p.key">🗑 Delete</button>
             </div>
           </div>
         </div>
@@ -487,6 +487,37 @@
         </ul>
       </Modal>
 
+      <!-- Lightbox -->
+      <Teleport to="body">
+        <div v-if="lb.index !== null && bucketPhotos"
+          class="fixed inset-0 z-[60] bg-black/95 flex flex-col"
+          @keydown.left="lb.prev()" @keydown.right="lb.next()" @keydown.esc="lb.close()" tabindex="0" ref="lbEl">
+
+          <!-- Top bar -->
+          <div class="flex items-center justify-between px-5 py-3 flex-shrink-0">
+            <span class="text-white/40 text-sm">{{ lb.index + 1 }} / {{ bucketPhotos.length }}</span>
+            <button class="text-white/50 hover:text-white text-2xl leading-none transition-colors" @click="lb.close()">×</button>
+          </div>
+
+          <!-- Main image -->
+          <div class="flex-1 flex items-center justify-center relative min-h-0 px-14">
+            <button class="absolute left-3 text-white/40 hover:text-white text-4xl leading-none transition-colors select-none" @click="lb.prev()">‹</button>
+            <img :src="bucketPhotos[lb.index].url" class="max-h-full max-w-full object-contain rounded-lg" />
+            <button class="absolute right-3 text-white/40 hover:text-white text-4xl leading-none transition-colors select-none" @click="lb.next()">›</button>
+          </div>
+
+          <!-- Thumbnail strip -->
+          <div class="flex-shrink-0 flex gap-2 overflow-x-auto px-5 py-3 scrollbar-hide">
+            <div v-for="(p, i) in bucketPhotos" :key="p.key"
+              class="flex-shrink-0 w-14 h-14 rounded-lg overflow-hidden cursor-pointer transition-all"
+              :class="i === lb.index ? 'ring-2 ring-white opacity-100' : 'opacity-40 hover:opacity-70'"
+              @click="lb.index = i">
+              <img :src="p.url" class="w-full h-full object-cover" loading="lazy" />
+            </div>
+          </div>
+        </div>
+      </Teleport>
+
       <Confirm v-if="rm.rsvp" @cancel="rm.rsvp=null" @confirm="deleteRsvp"
         :message="`Delete RSVP for ${rm.rsvp.displayName}?`" />
       <Confirm v-if="rm.activity" @cancel="rm.activity=null" @confirm="deleteActivity"
@@ -732,6 +763,14 @@ async function deleteActivity() {
 
 // ─── Photos ─────────────────────────────────────────────
 const ph = reactive({ refreshing: false })
+const lbEl = ref<HTMLElement>()
+const lb = reactive({
+  index: null as number | null,
+  open(i: number) { this.index = i; nextTick(() => lbEl.value?.focus()) },
+  close() { this.index = null },
+  prev() { if (this.index === null || !bucketPhotos.value) return; this.index = (this.index - 1 + bucketPhotos.value.length) % bucketPhotos.value.length },
+  next() { if (this.index === null || !bucketPhotos.value) return; this.index = (this.index + 1) % bucketPhotos.value.length },
+})
 
 async function deleteBucketPhoto() {
   try {
