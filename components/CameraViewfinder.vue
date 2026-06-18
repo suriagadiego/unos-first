@@ -64,26 +64,19 @@ function capture() {
   const vh = v.videoHeight
   if (!vw || !vh) return
 
-  // Crop center to 3:4 portrait — matches what the preview shows
-  const cropW = Math.round(Math.min(vw, vh * 3 / 4))
-  const cropH = Math.round(Math.min(vh, vw * 4 / 3))
-  const srcX = Math.round((vw - cropW) / 2)
-  const srcY = Math.round((vh - cropH) / 2)
-
   const canvas = document.createElement('canvas')
-  canvas.width = cropW
-  canvas.height = cropH
+  canvas.width = vw
+  canvas.height = vh
   const ctx = canvas.getContext('2d')!
 
-  // Mirror selfie so saved photo matches preview
   if (facingMode.value === 'user') {
-    ctx.translate(cropW, 0)
+    ctx.translate(vw, 0)
     ctx.scale(-1, 1)
   }
-  ctx.drawImage(v, srcX, srcY, cropW, cropH, 0, 0, cropW, cropH)
+  ctx.drawImage(v, 0, 0, vw, vh)
   ctx.setTransform(1, 0, 0, 1, 0, 0)
 
-  applyDisposableLook(ctx, cropW, cropH)
+  applyDisposableLook(ctx, vw, vh)
 
   flashing.value = true
   setTimeout(() => (flashing.value = false), 120)
@@ -146,110 +139,103 @@ function stopTracks() {
 
 onUnmounted(stopTracks)
 
-defineExpose({ capture, start, status })
+defineExpose({ capture, start, status, flipCamera })
 </script>
 
 <template>
-  <!-- Outer shell: full area, dark, centers the 3:4 frame -->
-  <div class="absolute inset-0 bg-[#080808] flex items-center justify-center"
+  <div class="absolute inset-0 bg-[#080808] overflow-hidden"
     style="user-select:none;-webkit-user-select:none">
 
-    <!-- ── 3:4 PHOTO FRAME ── -->
-    <!-- h-full + aspect-ratio:3/4 sizes by height; max-width:100% keeps it on screen -->
-    <div class="relative overflow-hidden rounded-xl h-full"
-      style="aspect-ratio:3/4;max-width:100%">
+    <!-- Live video -->
+    <video
+      ref="videoEl"
+      autoplay muted playsinline webkit-playsinline
+      class="absolute inset-0 w-full h-full object-cover"
+      :class="{ 'scale-x-[-1]': facingMode === 'user' }"
+    />
 
-      <!-- Live video (always in DOM so srcObject assignment works) -->
-      <video
-        ref="videoEl"
-        autoplay muted playsinline webkit-playsinline
-        class="absolute inset-0 w-full h-full object-cover"
-        :class="{ 'scale-x-[-1]': facingMode === 'user' }"
-      />
+    <!-- Shutter flash -->
+    <div v-if="flashing" class="absolute inset-0 bg-white pointer-events-none z-20"
+      style="animation:camFlash 0.12s ease-out forwards" />
 
-      <!-- Shutter flash -->
-      <div v-if="flashing" class="absolute inset-0 bg-white pointer-events-none z-20"
-        style="animation:camFlash 0.12s ease-out forwards" />
-
-      <!-- ── IN-APP BROWSER ── -->
-      <div v-if="isInAppBrowser"
-        class="absolute inset-0 z-10 bg-[#080808] flex flex-col items-center justify-center gap-5 px-6 text-center">
-        <div class="text-5xl">📵</div>
-        <div>
-          <p class="font-racing text-white text-lg tracking-widest mb-2">OPEN IN SAFARI</p>
-          <p class="font-sans text-white/50 text-sm leading-relaxed">
-            Tap <span class="text-[#6B8CAE]">⋯</span> →
-            <span class="text-[#6B8CAE] font-semibold">{{ isIOS ? 'Open in Safari' : 'Open in Chrome' }}</span>
-          </p>
-        </div>
-        <label class="cursor-pointer px-4 py-2.5 rounded-xl border border-white/15 text-white/60 text-sm font-sans">
-          …or upload from library
-          <input type="file" accept="image/*" class="sr-only" @change="onFileFallback" />
-        </label>
+    <!-- ── IN-APP BROWSER ── -->
+    <div v-if="isInAppBrowser"
+      class="absolute inset-0 z-10 flex flex-col items-center justify-center gap-6 px-8 text-center">
+      <div class="text-5xl">📵</div>
+      <div>
+        <p class="font-racing text-white text-xl tracking-widest mb-2">OPEN IN SAFARI</p>
+        <p class="font-sans text-white/50 text-sm leading-relaxed">
+          Tap <span class="text-[#6B8CAE]">⋯</span> and choose
+          <span class="text-[#6B8CAE] font-semibold">{{ isIOS ? 'Open in Safari' : 'Open in Chrome' }}</span>.
+        </p>
       </div>
-
-      <!-- ── DENIED ── -->
-      <div v-else-if="status === 'denied'"
-        class="absolute inset-0 z-10 bg-[#080808] flex flex-col items-center justify-center gap-5 px-6 text-center">
-        <div class="text-5xl">🔒</div>
-        <p class="font-racing text-white text-lg tracking-widest">CAMERA BLOCKED</p>
-        <p class="font-sans text-white/50 text-sm">Allow camera in browser settings, then reload.</p>
-        <label class="cursor-pointer px-4 py-2.5 rounded-xl border border-white/15 text-white/60 text-sm font-sans">
-          Upload instead
-          <input type="file" accept="image/*" class="sr-only" @change="onFileFallback" />
-        </label>
-      </div>
-
-      <!-- ── NO CAM / UNSUPPORTED ── -->
-      <div v-else-if="status === 'nocam' || status === 'unsupported'"
-        class="absolute inset-0 z-10 bg-[#080808] flex flex-col items-center justify-center gap-5 px-6 text-center">
-        <div class="text-5xl">📁</div>
-        <p class="font-racing text-white text-lg tracking-widest">UPLOAD MODE</p>
-        <label class="cursor-pointer px-4 py-2.5 rounded-xl border border-[#6B8CAE]/50 text-[#6B8CAE] text-sm font-sans">
-          Choose photo
-          <input type="file" accept="image/*" capture="environment" class="sr-only" @change="onFileFallback" />
-        </label>
-      </div>
-
-      <!-- ── IDLE / STARTING ── -->
-      <button v-else-if="status === 'idle' || status === 'starting'"
-        @click="start" :disabled="status === 'starting'"
-        class="absolute inset-0 z-10 bg-[#080808] flex flex-col items-center justify-center gap-4 w-full disabled:opacity-50">
-        <div class="absolute inset-0"
-          style="background-image:linear-gradient(rgba(107,140,174,.06) 1px,transparent 1px),linear-gradient(90deg,rgba(107,140,174,.06) 1px,transparent 1px);background-size:40px 40px" />
-        <div class="absolute top-4 left-4 w-7 h-7 border-t-[2px] border-l-[2px] border-[#6B8CAE]/60" />
-        <div class="absolute top-4 right-4 w-7 h-7 border-t-[2px] border-r-[2px] border-[#6B8CAE]/60" />
-        <div class="absolute bottom-4 left-4 w-7 h-7 border-b-[2px] border-l-[2px] border-[#6B8CAE]/60" />
-        <div class="absolute bottom-4 right-4 w-7 h-7 border-b-[2px] border-r-[2px] border-[#6B8CAE]/60" />
-        <div class="relative text-center">
-          <div v-if="status === 'starting'" class="w-8 h-8 mx-auto rounded-full border-2 border-[#6B8CAE]/60 border-t-transparent animate-spin mb-3" />
-          <div v-else class="text-4xl mb-3 opacity-25">📷</div>
-          <p class="font-racing text-white text-lg tracking-[0.3em]">
-            {{ status === 'starting' ? 'STARTING…' : 'TAP TO START' }}
-          </p>
-          <p class="font-sans text-white/25 text-[9px] uppercase tracking-[0.25em] mt-1">Allow camera when prompted</p>
-        </div>
-      </button>
-
-      <!-- ── LIVE OVERLAYS ── -->
-      <template v-if="status === 'live'">
-        <div class="absolute inset-0 pointer-events-none"
-          style="background:radial-gradient(ellipse at center,transparent 50%,rgba(0,0,0,0.5) 100%)" />
-        <div class="absolute inset-0 flex items-center justify-center pointer-events-none">
-          <div class="absolute inset-x-16 h-px bg-[#6B8CAE]/10" />
-          <div class="absolute inset-y-16 w-px bg-[#6B8CAE]/10" />
-          <div class="w-2.5 h-2.5 rounded-full border border-[#6B8CAE]/20" />
-        </div>
-        <div class="absolute top-4 left-4 w-7 h-7 border-t-2 border-l-2 border-white/30 pointer-events-none" />
-        <div class="absolute top-4 right-4 w-7 h-7 border-t-2 border-r-2 border-white/30 pointer-events-none" />
-        <div class="absolute bottom-4 left-4 w-7 h-7 border-b-2 border-l-2 border-white/30 pointer-events-none" />
-        <div class="absolute bottom-4 right-4 w-7 h-7 border-b-2 border-r-2 border-white/30 pointer-events-none" />
-        <button @click="flipCamera"
-          class="absolute top-3 right-3 w-9 h-9 rounded-full bg-black/50 backdrop-blur-sm flex items-center justify-center text-white/70 text-lg z-10 transition-colors hover:text-white">
-          ⟳
-        </button>
-      </template>
+      <label class="cursor-pointer px-5 py-3 rounded-xl border border-white/15 text-white/60 text-sm font-sans">
+        …or upload from library
+        <input type="file" accept="image/*" class="sr-only" @change="onFileFallback" />
+      </label>
     </div>
+
+    <!-- ── DENIED ── -->
+    <div v-else-if="status === 'denied'"
+      class="absolute inset-0 z-10 flex flex-col items-center justify-center gap-6 px-8 text-center">
+      <div class="text-5xl">🔒</div>
+      <p class="font-racing text-white text-xl tracking-widest">CAMERA BLOCKED</p>
+      <p class="font-sans text-white/50 text-sm">Allow camera in browser settings, then reload.</p>
+      <label class="cursor-pointer px-5 py-3 rounded-xl border border-white/15 text-white/60 text-sm font-sans">
+        Upload instead
+        <input type="file" accept="image/*" class="sr-only" @change="onFileFallback" />
+      </label>
+    </div>
+
+    <!-- ── NO CAM / UNSUPPORTED ── -->
+    <div v-else-if="status === 'nocam' || status === 'unsupported'"
+      class="absolute inset-0 z-10 flex flex-col items-center justify-center gap-6 px-8 text-center">
+      <div class="text-5xl">📁</div>
+      <p class="font-racing text-white text-xl tracking-widest">UPLOAD MODE</p>
+      <label class="cursor-pointer px-5 py-3 rounded-xl border border-[#6B8CAE]/50 text-[#6B8CAE] text-sm font-sans">
+        Choose photo
+        <input type="file" accept="image/*" capture="environment" class="sr-only" @change="onFileFallback" />
+      </label>
+    </div>
+
+    <!-- ── IDLE / STARTING ── -->
+    <button v-else-if="status === 'idle' || status === 'starting'"
+      @click="start" :disabled="status === 'starting'"
+      class="absolute inset-0 z-10 flex flex-col items-center justify-center gap-5 w-full disabled:opacity-50">
+      <div class="absolute inset-0"
+        style="background-image:linear-gradient(rgba(107,140,174,.06) 1px,transparent 1px),linear-gradient(90deg,rgba(107,140,174,.06) 1px,transparent 1px);background-size:40px 40px" />
+      <div class="absolute top-5 left-5 w-8 h-8 border-t-[2.5px] border-l-[2.5px] border-[#6B8CAE]/60" />
+      <div class="absolute top-5 right-5 w-8 h-8 border-t-[2.5px] border-r-[2.5px] border-[#6B8CAE]/60" />
+      <div class="absolute bottom-5 left-5 w-8 h-8 border-b-[2.5px] border-l-[2.5px] border-[#6B8CAE]/60" />
+      <div class="absolute bottom-5 right-5 w-8 h-8 border-b-[2.5px] border-r-[2.5px] border-[#6B8CAE]/60" />
+      <div class="relative text-center">
+        <div v-if="status === 'starting'" class="w-8 h-8 mx-auto rounded-full border-2 border-[#6B8CAE]/60 border-t-transparent animate-spin mb-4" />
+        <div v-else class="text-5xl mb-4 opacity-30">📷</div>
+        <p class="font-racing text-white text-xl tracking-[0.3em] mb-2">
+          {{ status === 'starting' ? 'STARTING…' : 'TAP TO START' }}
+        </p>
+        <p class="font-sans text-white/30 text-[10px] uppercase tracking-[0.25em]">Allow camera when prompted</p>
+      </div>
+    </button>
+
+    <!-- ── LIVE OVERLAYS ── -->
+    <template v-if="status === 'live'">
+      <div class="absolute inset-0 pointer-events-none"
+        style="background:radial-gradient(ellipse at center,transparent 55%,rgba(0,0,0,0.4) 100%)" />
+      <div class="absolute inset-0 flex items-center justify-center pointer-events-none">
+        <div class="absolute inset-x-20 h-px bg-[#6B8CAE]/10" />
+        <div class="absolute inset-y-20 w-px bg-[#6B8CAE]/10" />
+        <div class="w-3 h-3 rounded-full border border-[#6B8CAE]/25" />
+      </div>
+      <div class="absolute top-4 left-4 w-7 h-7 border-t-2 border-l-2 border-white/25 pointer-events-none" />
+      <div class="absolute top-4 right-4 w-7 h-7 border-t-2 border-r-2 border-white/25 pointer-events-none" />
+      <div class="absolute bottom-4 left-4 w-7 h-7 border-b-2 border-l-2 border-white/25 pointer-events-none" />
+      <div class="absolute bottom-4 right-4 w-7 h-7 border-b-2 border-r-2 border-white/25 pointer-events-none" />
+      <button @click="flipCamera"
+        class="absolute top-4 right-4 w-9 h-9 rounded-full bg-black/40 backdrop-blur-sm border border-white/10 flex items-center justify-center text-white/60 hover:text-white text-lg z-10 transition-colors">
+        ⟳
+      </button>
+    </template>
 
     <input ref="fileRef" type="file" accept="image/*" class="sr-only" @change="onFileFallback" />
   </div>
