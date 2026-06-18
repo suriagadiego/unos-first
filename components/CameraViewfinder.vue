@@ -144,7 +144,7 @@ defineExpose({ capture, start, status })
 </script>
 
 <template>
-  <div class="relative w-full h-full bg-[#080808] overflow-hidden flex items-center justify-center"
+  <div class="absolute inset-0 bg-[#080808] overflow-hidden flex items-center justify-center"
     style="user-select:none;-webkit-user-select:none">
 
     <!-- Live video -->
