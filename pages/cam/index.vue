@@ -202,7 +202,7 @@ const lastDeveloped = computed(() => [...sessionPhotos.value].reverse().find(p =
     <div class="flex-shrink-0 pt-3 pb-2">
       <div class="flex gap-2.5 overflow-x-auto px-4 scrollbar-hide">
         <div v-for="(p, i) in sessionPhotos" :key="p.id" class="flex-shrink-0 flex flex-col items-center gap-1.5">
-          <div class="relative w-[52px] h-[52px] rounded-lg overflow-hidden bg-black/50">
+          <div class="relative w-[39px] h-[52px] rounded-lg overflow-hidden bg-black/50">
             <template v-if="p.developed">
               <img :src="p.src" class="w-full h-full object-cover"
                 style="filter:contrast(1.08) saturate(0.75) brightness(0.9)" />
