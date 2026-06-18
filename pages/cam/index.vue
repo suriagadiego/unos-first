@@ -2,7 +2,7 @@
 definePageMeta({ layout: false })
 
 const viewfinderRef = ref<{ capture: () => void }>()
-const { ensureAuth, authHeaders, setDisplayName, fetchShots, shots, authReady } = useGuestCamera()
+const { ensureAuth, authHeaders, fetchShots, shots, authReady, guestId } = useGuestCamera()
 
 // Local list of photos shot this session (for the film strip)
 interface SessionPhoto { id: string; src: string; developed: boolean }
@@ -22,23 +22,14 @@ const rollFull = computed(() => (shots.value?.remaining ?? 1) <= 0)
 const shutterDisabled = computed(() => rollFull.value || developing.value || uploading.value || !authReady.value)
 
 onMounted(async () => {
-  await ensureAuth()
+  ensureAuth() // sync — just reads/writes localStorage
   await fetchShots()
-  // Show name prompt on first visit (no prior name saved in localStorage)
-  if (import.meta.client) {
-    const hadName = localStorage.getItem('uno_cam_name')
-    if (!hadName) showNamePrompt.value = true
-  }
+  const hadName = localStorage.getItem('uno_cam_name')
+  if (!hadName) showNamePrompt.value = true
 })
 
-async function saveName() {
-  if (nameInput.value.trim()) {
-    await setDisplayName(nameInput.value)
-    localStorage.setItem('uno_cam_name', nameInput.value.trim())
-  } else {
-    localStorage.setItem('uno_cam_name', '__skip__')
-  }
-  nameSaved.value = true
+function saveName() {
+  localStorage.setItem('uno_cam_name', nameInput.value.trim() || '__skip__')
   showNamePrompt.value = false
 }
 
@@ -72,6 +63,8 @@ async function onCaptured(blob: Blob) {
   try {
     const form = new FormData()
     form.append('photo', blob, 'shot.jpg')
+    const name = localStorage.getItem('uno_cam_name')
+    if (name && name !== '__skip__') form.append('guestName', name)
     const result = await $fetch<{ key: string; url: string; remaining: number }>('/api/cam/upload', {
       method: 'POST',
       headers: authHeaders(),
