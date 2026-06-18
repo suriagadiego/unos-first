@@ -10,11 +10,16 @@ export default defineNuxtConfig({
   runtimeConfig: {
     adminPassword: process.env.ADMIN_PASSWORD || 'admin123',
     adminJwtSecret: process.env.ADMIN_JWT_SECRET || 'change-this-secret-before-deploying',
+    public: {
+      supabaseUrl: process.env.SUPABASE_URL || '',
+      supabaseAnonKey: process.env.SUPABASE_ANON_KEY || '',
+    },
   },
   app: {
     head: {
       title: "Uno's First — Fast One",
       link: [
+        { rel: 'manifest', href: '/manifest.json' },
         {
           rel: 'preconnect',
           href: 'https://fonts.googleapis.com',

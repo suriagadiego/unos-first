@@ -1,0 +1,17 @@
+{
+  "name": "Uno's First — Camera",
+  "short_name": "Uno Cam",
+  "description": "Snap moments at Uno's First Birthday Party",
+  "start_url": "/cam",
+  "display": "standalone",
+  "background_color": "#080808",
+  "theme_color": "#6B8CAE",
+  "icons": [
+    {
+      "src": "/images/uno-car.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
