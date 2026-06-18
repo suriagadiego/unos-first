@@ -6,7 +6,7 @@ export function logAction(
   description: string,
   entityId?: string | number,
 ) {
-  void useSupabase()
+  useSupabase()
     .from('activity_log')
     .insert({
       action,
@@ -14,5 +14,8 @@ export function logAction(
       entity_id: entityId ?? null,
       description,
       created_at: new Date().toISOString(),
+    })
+    .then(({ error }: { error: any }) => {
+      if (error) console.error('[logAction] failed:', error.message)
     })
 }

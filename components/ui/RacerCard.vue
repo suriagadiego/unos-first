@@ -6,13 +6,14 @@ const props = defineProps<{
   name: string
   headcount?: number | null
   guestNames?: string[]
+  salt?: number
   active?: boolean
 }>()
 
 const emit = defineEmits<{ select: [] }>()
 
 const pos = computed(() => String(props.position).padStart(2, '0'))
-const teamName = computed(() => getTeamName(props.name, props.headcount, props.guestNames, props.position))
+const teamName = computed(() => getTeamName(props.name, props.headcount, props.guestNames, props.salt ?? props.position))
 </script>
 
 <template>

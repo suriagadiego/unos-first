@@ -2,12 +2,10 @@
 const scrolled = ref(false)
 
 const links = [
-  { label: 'Event', href: '#event' },
-  { label: "Who's Coming", href: '#whoscoming' },
-  { label: 'RSVP', href: '#rsvp' },
-  { label: 'Map', href: '#map' },
-  { label: 'Gifts', href: '#gifts' },
-  { label: 'Activities', href: '/activities' },
+  { label: 'Event', href: '/#event-v2' },
+  { label: "Who's Coming", href: '/#whoscoming' },
+  { label: 'RSVP', href: '/#rsvp' },
+  { label: 'Gifts', href: '/#gifts' },
   { label: "Uno's Fund", href: '/fund' },
 ]
 

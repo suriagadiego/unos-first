@@ -57,26 +57,31 @@
           </div>
 
           <!-- Activity feed -->
-          <div class="lg:col-span-3 bg-white rounded-2xl border border-gray-100 shadow-sm">
+          <div class="lg:col-span-3 bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
             <div class="px-5 py-3.5 border-b border-gray-100 flex items-center justify-between">
               <p class="text-sm font-bold text-gray-800">Recent Activity</p>
               <button v-if="stats?.recentActivity?.length" @click="actLogOpen = true"
                 class="text-xs text-blue-500 hover:text-blue-700 transition-colors">View all</button>
             </div>
-            <div v-if="!stats?.recentActivity.length" class="py-10 text-center text-sm text-gray-400">No activity yet</div>
+            <div v-if="!stats?.recentActivity?.length" class="py-10 text-center text-sm text-gray-400">No activity yet</div>
             <ul v-else class="divide-y divide-gray-50">
-              <li v-for="item in stats.recentActivity.slice(0, 3)" :key="item.id" class="px-5 py-2.5 flex items-start gap-3">
-                <span :class="item.action.includes('delet') ? 'bg-red-400' : item.action.includes('creat') ? 'bg-green-400' : 'bg-blue-400'"
-                  class="mt-1.5 w-2 h-2 rounded-full flex-shrink-0" />
-                <div class="flex-1 min-w-0">
-                  <p class="text-sm text-gray-700 truncate">{{ item.description }}</p>
-                  <p class="text-xs text-gray-400">{{ fmt(item.createdAt) }}</p>
+              <li v-for="item in stats.recentActivity.slice(0, 5)" :key="item.id"
+                class="px-5 py-3 flex items-center gap-3 hover:bg-gray-50/60 transition-colors">
+                <div :class="actMeta(item).bg" class="w-8 h-8 rounded-xl flex items-center justify-center text-base flex-shrink-0">
+                  {{ actMeta(item).icon }}
                 </div>
+                <div class="flex-1 min-w-0">
+                  <p class="text-sm text-gray-800 truncate leading-snug">{{ item.description }}</p>
+                  <p class="text-[11px] text-gray-400 mt-0.5">{{ relTime(item.createdAt) }}</p>
+                </div>
+                <span :class="actMeta(item).chip" class="text-[10px] font-semibold px-2 py-0.5 rounded-full flex-shrink-0 uppercase tracking-wide">
+                  {{ actMeta(item).label }}
+                </span>
               </li>
             </ul>
-            <button v-if="stats?.recentActivity?.length > 3" @click="actLogOpen = true"
+            <button v-if="stats?.recentActivity?.length > 5" @click="actLogOpen = true"
               class="w-full px-5 py-2.5 text-xs text-gray-400 hover:text-gray-600 hover:bg-gray-50 transition-colors text-center border-t border-gray-50">
-              + {{ stats.recentActivity.length - 3 }} more
+              + {{ stats.recentActivity.length - 5 }} more
             </button>
           </div>
         </div>
@@ -384,45 +389,50 @@
 
       <!-- RSVP edit/create -->
       <Modal v-if="rs.modal" @close="rs.modal=null" :title="rs.editing ? 'Edit RSVP' : 'Add RSVP'">
-        <form @submit.prevent="saveRsvp" class="space-y-3">
-          <div class="grid grid-cols-2 gap-3">
-            <div><label class="label">Display Name *</label><input v-model="rs.form.displayName" class="input" required /></div>
-            <div><label class="label">Submitter Name *</label><input v-model="rs.form.submitterName" class="input" required /></div>
-            <div><label class="label">Headcount</label><input v-model.number="rs.form.headcount" type="number" min="1" class="input" /></div>
-            <div class="col-span-2">
-              <label class="label">Guests <span class="normal-case font-normal text-gray-400">(tap name to mark as kid)</span></label>
-              <div class="flex flex-wrap gap-1.5 p-2.5 border border-gray-200 rounded-lg bg-gray-50 min-h-10">
-                <div v-for="name in rs.form.guestNames" :key="name" class="flex items-center gap-0.5">
-                  <button
-                    type="button"
-                    class="text-xs px-2.5 py-1 rounded-full border transition-colors"
-                    :style="rs.form.kidsNames.includes(name) ? 'background:#fef3c7;color:#92400e;border-color:#fcd34d;font-weight:600' : 'background:white;color:#374151;border-color:#e5e7eb'"
-                    @click="rs.form.kidsNames.includes(name) ? rs.form.kidsNames.splice(rs.form.kidsNames.indexOf(name),1) : rs.form.kidsNames.push(name)"
-                  >{{ name }}</button>
-                  <button type="button" class="text-gray-300 hover:text-red-400 text-sm leading-none px-0.5 transition-colors" @click="removeGuest(name)">×</button>
-                </div>
-              </div>
-              <div class="flex gap-2 mt-2">
-                <input
-                  v-model="newGuestName"
-                  type="text"
-                  placeholder="Add guest name…"
-                  class="input flex-1"
-                  @keydown.enter.prevent="addGuest"
-                />
-                <button type="button" class="btn-secondary text-sm" @click="addGuest">Add</button>
-              </div>
-            </div>
-            <div class="col-span-2"><label class="label">Dietary Notes</label><textarea v-model="rs.form.dietaryNotes" class="input h-20" /></div>
-            <div class="col-span-2">
-              <label class="label">Status</label>
-              <select v-model="rs.form.status" class="input">
-                <option value="pending">Pending</option>
-                <option value="confirmed">Confirmed</option>
-                <option value="declined">Declined</option>
-              </select>
+        <form @submit.prevent="saveRsvp" class="space-y-4">
+          <div>
+            <label class="label">Full Name *</label>
+            <input v-model="rs.form.displayName" class="input" placeholder="Full name" required />
+          </div>
+
+          <div>
+            <label class="label">Status</label>
+            <div class="flex gap-2">
+              <button v-for="s in ['confirmed','pending','declined']" :key="s" type="button"
+                class="flex-1 py-2 text-sm rounded-lg border transition-colors capitalize"
+                :class="rs.form.status === s
+                  ? s === 'confirmed' ? 'bg-green-500 text-white border-green-500'
+                  : s === 'declined'  ? 'bg-red-400 text-white border-red-400'
+                  : 'bg-gray-700 text-white border-gray-700'
+                  : 'bg-white text-gray-500 border-gray-200 hover:border-gray-300'"
+                @click="rs.form.status = s">
+                {{ s }}
+              </button>
             </div>
           </div>
+
+          <div v-if="rs.form.status !== 'declined'">
+            <label class="label">Guests <span class="normal-case font-normal text-gray-400">(optional)</span></label>
+            <div class="flex flex-col gap-2 mb-2">
+              <div v-for="(name, i) in rs.form.guestNames" :key="i" class="flex gap-2 items-center">
+                <button type="button"
+                  class="text-xs font-bold uppercase tracking-widest px-3 py-2 border transition-all rounded"
+                  :class="rs.form.kidsNames.includes(name) ? 'bg-amber-400 border-amber-400 text-black' : 'border-gray-200 text-gray-300 hover:border-gray-400 hover:text-gray-400'"
+                  @click="rs.form.kidsNames.includes(name) ? rs.form.kidsNames.splice(rs.form.kidsNames.indexOf(name),1) : rs.form.kidsNames.push(name)">
+                  kid
+                </button>
+                <input v-model="rs.form.guestNames[i]" type="text" :placeholder="`Guest ${i + 1}`" class="input flex-1" />
+                <button type="button" class="text-gray-300 hover:text-red-400 text-lg leading-none px-1 transition-colors" @click="removeGuest(name)">×</button>
+              </div>
+            </div>
+            <button type="button" class="text-xs text-blue-500 hover:text-blue-700 transition-colors" @click="addGuest">+ Add guest</button>
+          </div>
+
+          <div v-if="rs.form.status !== 'declined'">
+            <label class="label">Dietary notes <span class="normal-case font-normal text-gray-400">(optional)</span></label>
+            <input v-model="rs.form.dietaryNotes" class="input" placeholder="Allergies, restrictions, etc." />
+          </div>
+
           <ModalActions @cancel="rs.modal=null" :saving="rs.saving" />
         </form>
       </Modal>
@@ -527,6 +537,27 @@ const sections = [
 function fmt(iso: string) {
   return new Date(iso).toLocaleString('en-PH', { month:'short', day:'numeric', hour:'2-digit', minute:'2-digit' })
 }
+
+function relTime(iso: string) {
+  const diff = Date.now() - new Date(iso).getTime()
+  const mins = Math.floor(diff / 60000)
+  if (mins < 1) return 'just now'
+  if (mins < 60) return `${mins}m ago`
+  const hrs = Math.floor(mins / 60)
+  if (hrs < 24) return `${hrs}h ago`
+  const days = Math.floor(hrs / 24)
+  if (days < 7) return `${days}d ago`
+  return fmt(iso)
+}
+
+function actMeta(item: any) {
+  const t = item.entityType
+  if (t === 'rsvp')         return { icon: '✉️',  bg: 'bg-blue-50',   chip: 'bg-blue-50 text-blue-600',   label: 'RSVP' }
+  if (t === 'contribution') return { icon: '💰',  bg: 'bg-amber-50',  chip: 'bg-amber-50 text-amber-600', label: 'Fund' }
+  if (t === 'photo')        return { icon: '📷',  bg: 'bg-purple-50', chip: 'bg-purple-50 text-purple-600', label: 'Photo' }
+  if (t === 'capsule')      return { icon: '💌',  bg: 'bg-pink-50',   chip: 'bg-pink-50 text-pink-600',   label: 'Capsule' }
+  return                           { icon: '📋',  bg: 'bg-gray-50',   chip: 'bg-gray-100 text-gray-500',  label: item.action }
+}
 function fmtDate(iso: string) {
   return new Date(iso).toLocaleDateString('en-PH', { month:'short', day:'numeric', year:'numeric' })
 }
@@ -593,23 +624,17 @@ function rsvpToggleAll() {
 }
 function rsvpToggleSel(id: number) { rs.selected.has(id) ? rs.selected.delete(id) : rs.selected.add(id) }
 
-const newGuestName = ref('')
 function addGuest() {
-  const name = newGuestName.value.trim()
-  if (!name) return
-  rs.form.guestNames.push(name)
-  rs.form.headcount = rs.form.guestNames.length
-  newGuestName.value = ''
+  rs.form.guestNames.push('')
 }
 function removeGuest(name: string) {
-  rs.form.guestNames.splice(rs.form.guestNames.indexOf(name), 1)
+  const i = rs.form.guestNames.indexOf(name)
+  if (i !== -1) rs.form.guestNames.splice(i, 1)
   rs.form.kidsNames = rs.form.kidsNames.filter((k: string) => k !== name)
-  rs.form.headcount = rs.form.guestNames.length
 }
 
 function openRsvp(row?: any) {
   rs.editing = row ?? null
-  newGuestName.value = ''
   Object.assign(rs.form, row
     ? { displayName:row.displayName, submitterName:row.submitterName, contact:row.contact??'', headcount:row.headcount??1, dietaryNotes:row.dietaryNotes??'', status:row.status, guestNames:[...(row.guestNames??[])], kidsNames:[...(row.kidsNames??[])] }
     : { displayName:'', submitterName:'', contact:'', headcount:1, dietaryNotes:'', status:'pending', guestNames:[], kidsNames:[] }
@@ -620,7 +645,13 @@ function openRsvp(row?: any) {
 async function saveRsvp() {
   rs.saving = true
   try {
-    const body = { ...rs.form, kidsNames: rs.form.kidsNames, showOnPublic: rs.form.status === 'confirmed' }
+    const body = {
+      ...rs.form,
+      submitterName: rs.form.submitterName || rs.form.displayName,
+      headcount: rs.form.guestNames.length || 1,
+      kidsNames: rs.form.kidsNames,
+      showOnPublic: rs.form.status === 'confirmed',
+    }
     if (rs.editing) await $fetch(`/api/admin/rsvps/${rs.editing.id}`, { method:'PATCH', body })
     else await $fetch('/api/admin/rsvps', { method:'POST', body })
     rs.modal = null; await rRsvps(); await rStats()

@@ -24,16 +24,27 @@ export default defineEventHandler(async () => {
   const xml = await res.text()
   const blocks = [...xml.matchAll(/<Contents>([\s\S]*?)<\/Contents>/g)]
 
-  const files = blocks
-    .map(m => {
-      const block = m[1]
-      const key = block.match(/<Key>([^<]+)<\/Key>/)?.[1] ?? ''
-      const lastModified = block.match(/<LastModified>([^<]+)<\/LastModified>/)?.[1] ?? ''
-      const size = parseInt(block.match(/<Size>([^<]+)<\/Size>/)?.[1] ?? '0')
-      return { key, url: `${endpoint}/${bucket}/${key}`, lastModified, size }
-    })
-    .filter(f => /\.(jpg|jpeg|png|gif|webp|heic|heif|avif)$/i.test(f.key))
-    .sort((a, b) => b.lastModified.localeCompare(a.lastModified))
+  const expiresIn = 3600 // 1 hour
+
+  const files = await Promise.all(
+    blocks
+      .map(m => {
+        const block = m[1]
+        const key = block.match(/<Key>([^<]+)<\/Key>/)?.[1] ?? ''
+        const lastModified = block.match(/<LastModified>([^<]+)<\/LastModified>/)?.[1] ?? ''
+        const size = parseInt(block.match(/<Size>([^<]+)<\/Size>/)?.[1] ?? '0')
+        return { key, lastModified, size }
+      })
+      .filter(f => /\.(jpg|jpeg|png|gif|webp|heic|heif|avif)$/i.test(f.key))
+      .sort((a, b) => b.lastModified.localeCompare(a.lastModified))
+      .map(async f => {
+        const objectUrl = `${endpoint}/${bucket}/${f.key}`
+        const signed = await aws.sign(new Request(objectUrl, { method: 'GET' }), {
+          aws: { signQuery: true, expiresIn },
+        })
+        return { ...f, url: signed.url }
+      })
+  )
 
   return files
 })

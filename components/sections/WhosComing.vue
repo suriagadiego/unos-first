@@ -1,13 +1,21 @@
 <script setup lang="ts">
 const { data: apiGuests } = await useFetch<any[]>('/api/public/rsvps', { key: 'public-rsvps' })
 
-const guestCards = computed(() =>
-  (apiGuests.value ?? []).map((r: any) => ({
-    name: r.displayName,
-    headcount: r.headcount ?? null,
-    guestNames: r.guestNames ?? [],
-  }))
-)
+const guestCards = computed(() => {
+  const counters: Record<string, number> = {}
+  return (apiGuests.value ?? []).map((r: any) => {
+    const hc = r.headcount ?? 1
+    const key = hc <= 2 ? String(hc) : 'group'
+    const salt = counters[key] ?? 0
+    counters[key] = salt + 1
+    return {
+      name: r.displayName,
+      headcount: r.headcount ?? null,
+      guestNames: r.guestNames ?? [],
+      salt,
+    }
+  })
+})
 
 const activeCard = ref<number | null>(null)
 let flipTimer: ReturnType<typeof setTimeout> | null = null
@@ -65,6 +73,7 @@ function selectCard(i: number) {
           :name="card.name"
           :headcount="card.headcount"
           :guest-names="card.guestNames"
+          :salt="card.salt"
           :active="activeCard === i"
           @select="selectCard(i)"
         />
