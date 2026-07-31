@@ -482,7 +482,7 @@ async function submit() {
           <div class="text-center">
             <div class="flex items-center justify-center gap-2">
               <img src="~/assets/images/left-flag.svg" alt="" aria-hidden="true" class="w-7 h-7 select-none" />
-              <p class="font-racing text-2xl tracking-wide">Fuel Uno's Journey</p>
+              <p class="font-racing text-2xl tracking-wide w-fit">Fuel Uno's Journey</p>
               <img src="~/assets/images/right-flag.svg" alt="" aria-hidden="true" class="w-7 h-7 select-none" />
             </div>
             <p class="font-sans text-xs text-race-gray/60 text-center">Scan the QR with GCash, then tell us about your gift below.</p>
