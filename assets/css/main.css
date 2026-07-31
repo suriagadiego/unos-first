@@ -24,24 +24,48 @@
     background-repeat: no-repeat;
   }
 
-  h1, h2, h3 {
+  h1,
+  h2,
+  h3 {
     @apply font-racing;
   }
 }
 
 @keyframes cloud-drift {
-  0%, 100% { transform: translateX(0px) translateY(0px); }
-  33%       { transform: translateX(12px) translateY(-6px); }
-  66%       { transform: translateX(-8px) translateY(4px); }
+
+  0%,
+  100% {
+    transform: translateX(0px) translateY(0px);
+  }
+
+  33% {
+    transform: translateX(12px) translateY(-6px);
+  }
+
+  66% {
+    transform: translateX(-8px) translateY(4px);
+  }
 }
 
 @keyframes cloud-drift-slow {
-  0%, 100% { transform: translateX(0px) translateY(0px); }
-  50%       { transform: translateX(-14px) translateY(8px); }
+
+  0%,
+  100% {
+    transform: translateX(0px) translateY(0px);
+  }
+
+  50% {
+    transform: translateX(-14px) translateY(8px);
+  }
 }
 
-.cloud-float      { animation: cloud-drift      18s ease-in-out infinite; }
-.cloud-float-slow { animation: cloud-drift-slow 26s ease-in-out infinite; }
+.cloud-float {
+  animation: cloud-drift 18s ease-in-out infinite;
+}
+
+.cloud-float-slow {
+  animation: cloud-drift-slow 26s ease-in-out infinite;
+}
 
 .checker-strip {
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12'%3E%3Crect width='6' height='6' fill='%230D0D0D' fill-opacity='0.15'/%3E%3Crect x='6' y='6' width='6' height='6' fill='%230D0D0D' fill-opacity='0.15'/%3E%3C/svg%3E");
@@ -49,37 +73,56 @@
 }
 
 @layer components {
+
   /* Admin UI utilities */
   .btn-primary {
     @apply inline-flex items-center justify-center px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors;
   }
+
   .btn-secondary {
     @apply inline-flex items-center justify-center px-4 py-2 bg-white text-gray-700 text-sm font-medium rounded-lg border border-gray-300 hover:bg-gray-50 disabled:opacity-50 transition-colors;
   }
+
   .btn-danger {
     @apply inline-flex items-center justify-center px-4 py-2 bg-red-600 text-white text-sm font-medium rounded-lg hover:bg-red-700 transition-colors;
   }
+
   .btn-xs {
     @apply inline-flex items-center px-2.5 py-1.5 text-xs font-medium text-gray-600 bg-gray-100 rounded-md hover:bg-gray-200 disabled:opacity-50 transition-colors;
   }
+
   .input {
     @apply w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white resize-none;
   }
+
   .label {
     @apply block text-xs font-medium text-gray-600 mb-1;
   }
+
   .th {
     @apply px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide cursor-pointer select-none whitespace-nowrap;
   }
+
   .badge {
     @apply inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium;
   }
-  .badge-green { @apply bg-green-100 text-green-700; }
-  .badge-red   { @apply bg-red-100 text-red-700; }
-  .badge-gray  { @apply bg-gray-100 text-gray-600; }
+
+  .badge-green {
+    @apply bg-green-100 text-green-700;
+  }
+
+  .badge-red {
+    @apply bg-red-100 text-red-700;
+  }
+
+  .badge-gray {
+    @apply bg-gray-100 text-gray-600;
+  }
+
   .toggle-on {
     @apply px-2.5 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-700 hover:bg-blue-200 transition-colors;
   }
+
   .toggle-off {
     @apply px-2.5 py-1 text-xs font-semibold rounded-full bg-gray-100 text-gray-500 hover:bg-gray-200 transition-colors;
   }
