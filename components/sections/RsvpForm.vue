@@ -153,8 +153,8 @@ async function submit() {
             <label class="block font-sans text-xs uppercase tracking-widest text-white/70 mb-2">
               Who else is coming? <span class="normal-case">(optional)</span>
             </label>
-            <div class="flex flex-col gap-2">
-              <div v-for="(_, i) in form.attendees" :key="i" class="border border-white/10 bg-white/[0.02] p-3">
+            <div class="flex flex-col gap-3">
+              <div v-for="(_, i) in form.attendees" :key="i" class="border-b border-white/10 pb-3 last:border-b-0">
                 <div class="flex gap-2 items-stretch">
                   <input
                     v-model="form.attendees[i]"
@@ -170,14 +170,33 @@ async function submit() {
                     @click="removeAttendee(i)"
                   >×</button>
                 </div>
-                <label class="mt-2 inline-flex min-h-11 cursor-pointer items-center gap-3 px-1 font-sans text-sm text-white/70">
-                  <input
-                    v-model="form.isKid[i]"
-                    type="checkbox"
-                    class="h-5 w-5 cursor-pointer accent-race-blue"
-                  />
-                  <span>This guest is a child</span>
-                </label>
+                <div class="mt-3 flex items-center gap-3 px-1">
+                  <span class="font-sans text-[10px] uppercase tracking-widest text-white/40">Guest type</span>
+                  <div
+                    class="inline-flex rounded-full border border-white/15 bg-black/20 p-1"
+                    role="group"
+                    :aria-label="`Guest ${i + 1} type`"
+                  >
+                    <button
+                      type="button"
+                      class="min-h-9 rounded-full px-4 font-sans text-[10px] font-semibold uppercase tracking-widest transition-all"
+                      :class="!form.isKid[i]
+                        ? 'bg-race-blue text-white shadow-sm'
+                        : 'text-white/45 hover:text-white/70'"
+                      :aria-pressed="!form.isKid[i]"
+                      @click="form.isKid[i] = false"
+                    >Adult</button>
+                    <button
+                      type="button"
+                      class="min-h-9 rounded-full px-4 font-sans text-[10px] font-semibold uppercase tracking-widest transition-all"
+                      :class="form.isKid[i]
+                        ? 'bg-race-blue text-white shadow-sm'
+                        : 'text-white/45 hover:text-white/70'"
+                      :aria-pressed="form.isKid[i]"
+                      @click="form.isKid[i] = true"
+                    >Kid</button>
+                  </div>
+                </div>
               </div>
             </div>
             <button
