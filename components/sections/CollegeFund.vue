@@ -1,8 +1,8 @@
 <script setup lang="ts">
 
 const FUND_DEADLINE = new Date('2026-09-13T00:00:00')
-const QR_CODE_URL = '/images/college-fund-qr.png'
-const QR_CODE_FILENAME = 'uno-college-fund-qr.png'
+const QR_CODE_URL = '/images/uno-college-fund-qr.jpg'
+const QR_CODE_FILENAME = 'uno-college-fund-qr.jpg'
 const { days } = useCountdown(FUND_DEADLINE)
 
 const { data, refresh } = useFetch<{
