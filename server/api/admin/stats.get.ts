@@ -40,11 +40,11 @@ export default defineEventHandler(async () => {
     settingsRes,
     recentRes,
   ] = await Promise.all([
-    sb.from('rsvps').select('*', { count: 'exact', head: true }),
-    sb.from('rsvps').select('headcount').eq('status', 'confirmed'),
-    sb.from('photos').select('*', { count: 'exact', head: true }),
+    sb.from('rsvps').select('*', { count: 'exact', head: true }).is('deleted_at', null),
+    sb.from('rsvps').select('headcount').is('deleted_at', null).eq('status', 'confirmed'),
+    sb.from('photos').select('*', { count: 'exact', head: true }).is('deleted_at', null),
     sb.from('time_capsule_entries').select('*', { count: 'exact', head: true }),
-    sb.from('contributions').select('amount'),
+    sb.from('contributions').select('amount').is('deleted_at', null),
     sb.from('fund_settings').select('goal').limit(1).maybeSingle(),
     sb.from('activity_log').select('*').order('created_at', { ascending: false }).limit(10),
   ])

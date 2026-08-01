@@ -10,6 +10,7 @@ export default defineEventHandler(async (event) => {
     .from('camera_uploads')
     .select('*', { count: 'exact', head: true })
     .eq('guest_id', guestId)
+    .is('deleted_at', null)
 
   if (error) throw createError({ statusCode: 500, message: error.message })
 

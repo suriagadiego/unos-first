@@ -12,7 +12,7 @@ export default defineEventHandler(async (event) => {
   else if (action === 'reject') { updates.status = 'rejected'; updates.show_on_public = false }
   else throw createError({ statusCode: 400, message: 'Invalid action' })
 
-  const { error } = await sb.from('photos').update(updates).in('id', ids)
+  const { error } = await sb.from('photos').update(updates).in('id', ids).is('deleted_at', null)
   if (error) throw createError({ statusCode: 500, message: error.message })
   return { ok: true, count: ids.length }
 })

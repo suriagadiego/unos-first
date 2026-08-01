@@ -13,7 +13,7 @@ export default defineEventHandler(async (event) => {
         sort_order: index,
         lap_number: String(index + 1).padStart(2, '0'),
         updated_at: now,
-      }).eq('id', id)
+      }).eq('id', id).is('deleted_at', null)
     )
   )
 

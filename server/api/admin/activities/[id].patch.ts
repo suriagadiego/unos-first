@@ -25,6 +25,7 @@ export default defineEventHandler(async (event) => {
     .from('activities')
     .update(updates)
     .eq('id', id)
+    .is('deleted_at', null)
     .select()
     .single()
   if (error) throw createError({ statusCode: 404, message: 'Activity not found' })

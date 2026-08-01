@@ -24,6 +24,7 @@ export default defineEventHandler(async (event) => {
     .from('photos')
     .update(updates)
     .eq('id', id)
+    .is('deleted_at', null)
     .select()
     .single()
   if (error) throw createError({ statusCode: 404, message: 'Photo not found' })

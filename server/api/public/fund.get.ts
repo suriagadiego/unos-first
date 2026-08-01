@@ -4,8 +4,8 @@ export default defineEventHandler(async () => {
   const sb = useSupabase()
 
   const [publicRes, allAmountsRes, settingsRes] = await Promise.all([
-    sb.from('contributions').select('id, submitter_name, amount, message, created_at').eq('show_on_public', true),
-    sb.from('contributions').select('amount'),
+    sb.from('contributions').select('id, submitter_name, amount, message, created_at').is('deleted_at', null).eq('show_on_public', true),
+    sb.from('contributions').select('amount').is('deleted_at', null),
     sb.from('fund_settings').select('goal').limit(1).maybeSingle(),
   ])
 

@@ -5,6 +5,7 @@ export default defineEventHandler(async (event) => {
   const { data: rows, error } = await sb
     .from('rsvps')
     .select('*')
+    .is('deleted_at', null)
     .order('sort_order', { ascending: true })
   if (error) throw createError({ statusCode: 500, message: error.message })
 

@@ -21,6 +21,7 @@ export default defineEventHandler(async (event) => {
     .from('contributions')
     .update(updates)
     .eq('id', id)
+    .is('deleted_at', null)
     .select()
     .single()
   if (error) throw createError({ statusCode: 404, message: 'Contribution not found' })

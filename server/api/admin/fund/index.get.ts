@@ -11,8 +11,9 @@ export default defineEventHandler(async () => {
   if (contribRes.error) throw createError({ statusCode: 500, message: contribRes.error.message })
 
   const contributions = (contribRes.data ?? []).map(toContribution)
-  const grandTotal = contributions.reduce((sum, c) => sum + (c.amount ?? 0), 0)
-  const visibleTotal = contributions.filter(c => c.showOnPublic).reduce((sum, c) => sum + (c.amount ?? 0), 0)
+  const activeContributions = contributions.filter(c => !c.deletedAt)
+  const grandTotal = activeContributions.reduce((sum, c) => sum + (c.amount ?? 0), 0)
+  const visibleTotal = activeContributions.filter(c => c.showOnPublic).reduce((sum, c) => sum + (c.amount ?? 0), 0)
 
   return {
     contributions,

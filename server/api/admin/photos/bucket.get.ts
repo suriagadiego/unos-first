@@ -1,6 +1,8 @@
 import { AwsClient } from 'aws4fetch'
+import { useSupabase } from '../../../utils/supabase'
 
-export default defineEventHandler(async () => {
+export default defineEventHandler(async (event) => {
+  const showTrashed = getQuery(event).trashed === 'true'
   const endpoint = process.env.RUSTFS_ENDPOINT
   const bucket = process.env.RUSTFS_BUCKET
 
@@ -23,6 +25,18 @@ export default defineEventHandler(async () => {
 
   const xml = await res.text()
   const blocks = [...xml.matchAll(/<Contents>([\s\S]*?)<\/Contents>/g)]
+  const sb = useSupabase()
+  const [photosRes, cameraRes] = await Promise.all([
+    sb.from('photos').select('storage_key, deleted_at'),
+    sb.from('camera_uploads').select('storage_key, deleted_at'),
+  ])
+  if (photosRes.error) throw createError({ statusCode: 500, message: photosRes.error.message })
+  if (cameraRes.error) throw createError({ statusCode: 500, message: cameraRes.error.message })
+
+  const tracked = new Map<string, boolean>()
+  for (const row of [...(photosRes.data ?? []), ...(cameraRes.data ?? [])]) {
+    if (row.storage_key) tracked.set(row.storage_key, Boolean(row.deleted_at))
+  }
 
   const expiresIn = 3600 // 1 hour
 
@@ -36,13 +50,14 @@ export default defineEventHandler(async () => {
         return { key, lastModified, size }
       })
       .filter(f => /\.(jpg|jpeg|png|gif|webp|heic|heif|avif)$/i.test(f.key))
+      .filter(f => showTrashed ? tracked.get(f.key) === true : tracked.get(f.key) !== true)
       .sort((a, b) => b.lastModified.localeCompare(a.lastModified))
       .map(async f => {
         const objectUrl = `${endpoint}/${bucket}/${f.key}`
         const signed = await aws.sign(new Request(objectUrl, { method: 'GET' }), {
           aws: { signQuery: true, expiresIn },
         })
-        return { ...f, url: signed.url }
+        return { ...f, url: signed.url, deleted: tracked.get(f.key) === true }
       })
   )
 

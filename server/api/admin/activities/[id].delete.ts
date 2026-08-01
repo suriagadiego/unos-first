@@ -7,12 +7,13 @@ export default defineEventHandler(async (event) => {
 
   const { data, error } = await sb
     .from('activities')
-    .delete()
+    .update({ deleted_at: new Date().toISOString(), updated_at: new Date().toISOString() })
     .eq('id', id)
+    .is('deleted_at', null)
     .select()
     .single()
   if (error) throw createError({ statusCode: 404, message: 'Activity not found' })
 
-  void logAction('deleted', 'activity', `Deleted activity: ${data.label}`, id)
+  void logAction('deleted', 'activity', `Moved activity to trash: ${data.label}`, id)
   return { ok: true }
 })

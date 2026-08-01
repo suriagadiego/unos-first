@@ -96,6 +96,12 @@
           <div class="flex items-center gap-2">
             <button
               class="inline-flex items-center justify-center px-4 py-2 text-sm font-medium rounded-lg border transition-colors"
+              :style="rs.trashedOnly ? 'background:#fee2e2;color:#991b1b;border-color:#fecaca' : 'background:white;color:#374151;border-color:#d1d5db'"
+              @click="toggleRsvpTrash"
+            >{{ rs.trashedOnly ? '← Active' : 'Trash' }}</button>
+            <button
+              v-if="!rs.trashedOnly"
+              class="inline-flex items-center justify-center px-4 py-2 text-sm font-medium rounded-lg border transition-colors"
               :style="rs.kidsOnly ? 'background:#fef3c7;color:#92400e;border-color:#fcd34d' : 'background:white;color:#374151;border-color:#d1d5db'"
               @click="rs.kidsOnly = !rs.kidsOnly"
             >Kids</button>
@@ -121,11 +127,11 @@
         <!-- Mobile cards -->
         <div class="md:hidden space-y-2">
           <div v-if="!rsvpPaged.length" class="bg-white rounded-xl border border-gray-100 shadow-sm py-10 text-center text-sm text-gray-400">
-            No RSVPs yet
+            {{ rs.trashedOnly ? 'Trash is empty' : 'No RSVPs yet' }}
           </div>
           <div v-for="r in rsvpPaged" :key="r.id"
             class="bg-white rounded-xl border border-gray-100 shadow-sm px-3 py-2.5"
-            :class="r.status === 'confirmed' ? 'border-l-4 border-l-green-400' : r.status === 'declined' ? 'border-l-4 border-l-red-300' : 'border-l-4 border-l-amber-300'">
+            :class="r.deletedAt ? 'border-l-4 border-l-gray-300 opacity-60' : r.status === 'confirmed' ? 'border-l-4 border-l-green-400' : r.status === 'declined' ? 'border-l-4 border-l-red-300' : 'border-l-4 border-l-amber-300'">
 
             <div class="flex items-center gap-2">
               <div class="flex-1 min-w-0">
@@ -141,7 +147,12 @@
                 <p class="text-xs text-gray-400 mt-1">{{ fmtDate(r.createdAt) }}{{ r.dietaryNotes ? ' · 🥗 ' + r.dietaryNotes : '' }}</p>
               </div>
               <span class="text-sm font-bold text-gray-700 flex-shrink-0 text-right leading-none">{{ r.headcount }}<br><span class="text-[10px] font-normal text-gray-400">{{ r.headcount === 1 ? 'guest' : 'guests' }}</span></span>
-              <button v-if="r.status !== 'confirmed'"
+              <button v-if="r.deletedAt"
+                class="flex-shrink-0 px-3 py-1.5 rounded-lg bg-blue-500 text-white text-xs font-semibold active:bg-blue-600 transition-colors"
+                @click="restoreRsvp(r)">
+                Restore
+              </button>
+              <button v-else-if="r.status !== 'confirmed'"
                 class="flex-shrink-0 px-3 py-1.5 rounded-lg bg-green-500 text-white text-xs font-semibold active:bg-green-600 transition-colors"
                 @click="rsvpPatch(r.id, { status: 'confirmed', showOnPublic: true })">
                 Confirm
@@ -151,7 +162,7 @@
                 @click="rsvpPatch(r.id, { status: 'pending', showOnPublic: false })">
                 ✓ Done
               </button>
-              <button class="flex-shrink-0 px-2.5 py-1.5 rounded-lg bg-gray-100 text-gray-500 text-xs"
+              <button v-if="!r.deletedAt" class="flex-shrink-0 px-2.5 py-1.5 rounded-lg bg-gray-100 text-gray-500 text-xs"
                 @click="openRsvp(r)">
                 ···
               </button>
@@ -180,9 +191,9 @@
                 </tr>
               </thead>
               <tbody>
-                <tr v-for="r in rsvpPaged" :key="r.id" class="border-b border-gray-50 hover:bg-gray-50">
+                <tr v-for="r in rsvpPaged" :key="r.id" class="border-b border-gray-50 hover:bg-gray-50" :class="r.deletedAt ? 'opacity-60' : ''">
                   <td class="px-4 py-3">
-                    <input type="checkbox" :checked="rs.selected.has(r.id)" @change="rsvpToggleSel(r.id)" class="rounded" />
+                    <input v-if="!r.deletedAt" type="checkbox" :checked="rs.selected.has(r.id)" @change="rsvpToggleSel(r.id)" class="rounded" />
                   </td>
                   <td class="px-4 py-3 font-medium text-gray-900">
                     {{ r.displayName }}
@@ -198,11 +209,14 @@
                   <td class="px-4 py-3 text-center">{{ r.headcount }}</td>
                   <td class="px-4 py-3 text-gray-500 max-w-36 truncate">{{ r.dietaryNotes || '—' }}</td>
                   <td class="px-4 py-3 text-gray-500 whitespace-nowrap">{{ fmtDate(r.createdAt) }}</td>
-                  <td class="px-4 py-3"><span :class="statusBadge(r.status)" class="badge">{{ r.status }}</span></td>
+                  <td class="px-4 py-3"><span :class="r.deletedAt ? 'badge-red' : statusBadge(r.status)" class="badge">{{ r.deletedAt ? 'trashed' : r.status }}</span></td>
                   <td class="px-4 py-3">
                     <div class="flex gap-1">
-                      <button class="btn-xs" @click="openRsvp(r)">Edit</button>
-                      <button class="btn-xs text-red-600 hover:bg-red-50" @click="rm.rsvp=r">Del</button>
+                      <button v-if="r.deletedAt" class="btn-xs text-blue-600 hover:bg-blue-50" @click="restoreRsvp(r)">Restore</button>
+                      <template v-else>
+                        <button class="btn-xs" @click="openRsvp(r)">Edit</button>
+                        <button class="btn-xs text-red-600 hover:bg-red-50" @click="rm.rsvp=r">Del</button>
+                      </template>
                     </div>
                   </td>
                 </tr>
@@ -219,9 +233,12 @@
       <section id="photos" class="scroll-mt-20">
         <div class="flex items-center justify-between mb-4">
           <h2 class="section-title mb-0">Photos <span v-if="bucketPhotos?.length" class="text-sm font-normal text-gray-400">({{ bucketPhotos.length }})</span></h2>
-          <button class="btn-secondary text-sm" :disabled="ph.refreshing" @click="rBucket()">
-            {{ ph.refreshing ? 'Loading…' : 'Refresh' }}
-          </button>
+          <div class="flex items-center gap-2">
+            <button class="btn-secondary text-sm" @click="togglePhotoTrash">{{ photoTrash ? '← Active' : 'Trash' }}</button>
+            <button class="btn-secondary text-sm" :disabled="ph.refreshing" @click="rBucket()">
+              {{ ph.refreshing ? 'Loading…' : 'Refresh' }}
+            </button>
+          </div>
         </div>
 
         <div v-if="bucketError" class="bg-red-50 border border-red-200 rounded-xl p-4 text-sm text-red-700">
@@ -231,7 +248,7 @@
           Loading…
         </div>
         <div v-else-if="!bucketPhotos.length" class="bg-white rounded-xl border border-gray-100 shadow-sm py-14 text-center text-sm text-gray-400">
-          No photos in bucket yet
+          {{ photoTrash ? 'Photo trash is empty' : 'No photos in bucket yet' }}
         </div>
         <div v-else class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-3">
           <div v-for="(p, i) in bucketPhotos" :key="p.key"
@@ -239,7 +256,8 @@
             @click="lb.open(i)">
             <img :src="p.url" class="w-full h-full object-cover" loading="lazy" />
             <div class="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col justify-end p-2">
-              <button class="photo-btn bg-red-700 w-full justify-center" @click.stop="rm.bucketKey = p.key">🗑 Delete</button>
+              <button v-if="photoTrash" class="photo-btn bg-blue-600 w-full justify-center" @click.stop="restoreBucketPhoto(p.key)">Restore</button>
+              <button v-else class="photo-btn bg-red-700 w-full justify-center" @click.stop="rm.bucketKey = p.key">🗑 Trash</button>
             </div>
           </div>
         </div>
@@ -350,7 +368,10 @@
       <section id="fund" class="scroll-mt-20">
         <div class="flex items-center justify-between mb-4">
           <h2 class="section-title mb-0">Uno's Fund</h2>
-          <button class="btn-primary text-sm" @click="openFund()">+ Add</button>
+          <div class="flex items-center gap-2">
+            <button class="btn-secondary text-sm" @click="toggleFundTrash">{{ fd.trashedOnly ? '← Active' : 'Trash' }}</button>
+            <button v-if="!fd.trashedOnly" class="btn-primary text-sm" @click="openFund()">+ Add</button>
+          </div>
         </div>
 
         <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 mb-4">
@@ -397,7 +418,7 @@
                 </tr>
               </thead>
               <tbody>
-                <tr v-for="c in fundPaged" :key="c.id" class="border-b border-gray-50 hover:bg-gray-50">
+                <tr v-for="c in fundPaged" :key="c.id" class="border-b border-gray-50 hover:bg-gray-50" :class="c.deletedAt ? 'opacity-60' : ''">
                   <td class="px-4 py-3 font-medium text-gray-900">{{ c.submitterName }}</td>
                   <td class="px-4 py-3 font-semibold">₱{{ Number(c.amount).toLocaleString() }}</td>
                   <td class="px-4 py-3 text-gray-500 max-w-48 truncate">{{ c.message || '—' }}</td>
@@ -420,21 +441,25 @@
                   </td>
                   <td class="px-4 py-3 text-gray-500 whitespace-nowrap">{{ fmtDate(c.createdAt) }}</td>
                   <td class="px-4 py-3 text-center">
-                    <button :class="c.showOnPublic?'toggle-on':'toggle-off'" @click="fundPatch(c.id,{showOnPublic:!c.showOnPublic})">
+                    <button v-if="!c.deletedAt" :class="c.showOnPublic?'toggle-on':'toggle-off'" @click="fundPatch(c.id,{showOnPublic:!c.showOnPublic})">
                       {{ c.showOnPublic ? 'On' : 'Off' }}
                     </button>
+                    <span v-else class="badge badge-red">trashed</span>
                   </td>
                   <td class="px-4 py-3">
                     <div class="flex gap-1">
-                      <button class="btn-xs" @click="openFund(c)">Edit</button>
-                      <button class="btn-xs text-red-600 hover:bg-red-50" @click="rm.contribution=c">Del</button>
+                      <button v-if="c.deletedAt" class="btn-xs text-blue-600 hover:bg-blue-50" @click="restoreContrib(c)">Restore</button>
+                      <template v-else>
+                        <button class="btn-xs" @click="openFund(c)">Edit</button>
+                        <button class="btn-xs text-red-600 hover:bg-red-50" @click="rm.contribution=c">Del</button>
+                      </template>
                     </div>
                   </td>
                 </tr>
               </tbody>
             </table>
           </div>
-          <div v-if="!fundContribs.length" class="py-10 text-center text-sm text-gray-400">No contributions yet</div>
+          <div v-if="!fundContribs.length" class="py-10 text-center text-sm text-gray-400">{{ fd.trashedOnly ? 'Contribution trash is empty' : 'No contributions yet' }}</div>
           <Pagination :total="fundContribs.length" :per-page="25" v-model:page="fd.page" />
         </div>
       </section>
@@ -630,13 +655,13 @@
       </Teleport>
 
       <Confirm v-if="rm.rsvp" @cancel="rm.rsvp=null" @confirm="deleteRsvp"
-        :message="`Delete RSVP for ${rm.rsvp.displayName}?`" />
+        :message="`Move RSVP for ${rm.rsvp.displayName} to trash? You can restore it later.`" />
       <Confirm v-if="rm.activity" @cancel="rm.activity=null" @confirm="deleteActivity"
-        :message="`Delete activity: ${rm.activity.label}?`" />
+        :message="`Move activity ${rm.activity.label} to trash? It can be restored later.`" />
       <Confirm v-if="rm.bucketKey" @cancel="rm.bucketKey=null" @confirm="deleteBucketPhoto"
-        message="Delete this photo from the bucket? This cannot be undone." />
+        message="Move this photo to trash? The original file will be kept and can be restored." />
       <Confirm v-if="rm.contribution" @cancel="rm.contribution=null" @confirm="deleteContrib"
-        :message="`Delete contribution from ${rm.contribution.submitterName}?`" />
+        :message="`Move contribution from ${rm.contribution.submitterName} to trash? You can restore it later.`" />
 
     </Teleport>
 
@@ -723,7 +748,9 @@ onUnmounted(() => document.body.classList.remove('admin-mode'))
 const { data: stats, refresh: rStats } = useFetch<any>('/api/admin/stats')
 const { data: rsvpList, refresh: rRsvps } = useFetch<any[]>('/api/admin/rsvps')
 const { data: actList,  refresh: rActs  } = useFetch<any[]>('/api/admin/activities')
-const { data: bucketPhotos, error: bucketError, refresh: rBucket } = useFetch<any[]>('/api/admin/photos/bucket')
+const photoTrash = ref(false)
+const bucketPhotosUrl = computed(() => photoTrash.value ? '/api/admin/photos/bucket?trashed=true' : '/api/admin/photos/bucket')
+const { data: bucketPhotos, error: bucketError, refresh: rBucket } = useFetch<any[]>(bucketPhotosUrl)
 const { data: povs, refresh: rPovs } = useFetch<any[]>('/api/admin/cam/povs')
 const { data: capsuleList, refresh: rCapsule } = useFetch<any[]>('/api/admin/capsule')
 const { data: fundData, refresh: rFund } = useFetch<any>('/api/admin/fund')
@@ -742,7 +769,7 @@ const fundPct = computed(() => {
 
 // ─── RSVPs ──────────────────────────────────────────────
 const rs = reactive({
-  search: '', status: '', kidsOnly: false, page: 1,
+  search: '', status: '', kidsOnly: false, trashedOnly: false, page: 1,
   selected: new Set<number>(),
   modal: null as null | true,
   editing: null as any,
@@ -754,6 +781,7 @@ const actLogOpen = ref(false)
 
 const rsvpFiltered = computed(() => {
   let rows = rsvpList.value ?? []
+  rows = rows.filter((r:any) => rs.trashedOnly ? Boolean(r.deletedAt) : !r.deletedAt)
   if (rs.status) rows = rows.filter((r:any) => r.status === rs.status)
   if (rs.search) { const q = rs.search.toLowerCase(); rows = rows.filter((r:any) => r.displayName?.toLowerCase().includes(q) || r.submitterName?.toLowerCase().includes(q)) }
   if (rs.kidsOnly) rows = rows.filter((r:any) => r.kidsNames?.length > 0)
@@ -767,6 +795,12 @@ function rsvpToggleAll() {
   else rsvpPaged.value.forEach((r:any) => rs.selected.add(r.id))
 }
 function rsvpToggleSel(id: number) { rs.selected.has(id) ? rs.selected.delete(id) : rs.selected.add(id) }
+
+function toggleRsvpTrash() {
+  rs.trashedOnly = !rs.trashedOnly
+  rs.page = 1
+  rs.selected.clear()
+}
 
 function addGuest() {
   rs.form.guestNames.push('')
@@ -817,8 +851,13 @@ async function rsvpBulk(action: string) {
 }
 
 async function deleteRsvp() {
-  try { await $fetch(`/api/admin/rsvps/${rm.rsvp.id}`, { method:'DELETE' }); rm.rsvp=null; await rRsvps(); await rStats(); toast.success('Deleted') }
-  catch { toast.error('Failed to delete') }
+  try { await $fetch(`/api/admin/rsvps/${rm.rsvp.id}`, { method:'DELETE' }); rm.rsvp=null; await rRsvps(); await rStats(); toast.success('Moved to trash') }
+  catch { toast.error('Failed to move RSVP to trash') }
+}
+
+async function restoreRsvp(rsvp: any) {
+  try { await $fetch(`/api/admin/rsvps/${rsvp.id}/restore`, { method:'POST' }); await rRsvps(); await rStats(); toast.success('RSVP restored') }
+  catch { toast.error('Failed to restore RSVP') }
 }
 
 // ─── Activities ─────────────────────────────────────────
@@ -870,8 +909,8 @@ async function actPatch(id: number, patch: object) {
 }
 
 async function deleteActivity() {
-  try { await $fetch(`/api/admin/activities/${rm.activity.id}`, { method:'DELETE' }); rm.activity=null; await rActs(); toast.success('Deleted') }
-  catch { toast.error('Failed to delete') }
+  try { await $fetch(`/api/admin/activities/${rm.activity.id}`, { method:'DELETE' }); rm.activity=null; await rActs(); toast.success('Moved to trash') }
+  catch { toast.error('Failed to move activity to trash') }
 }
 
 // ─── Photos ─────────────────────────────────────────────
@@ -890,8 +929,23 @@ async function deleteBucketPhoto() {
     await $fetch('/api/admin/photos/bucket-delete', { method: 'POST', body: { key: rm.bucketKey } })
     rm.bucketKey = null
     await rBucket()
-    toast.success('Photo deleted')
-  } catch { toast.error('Failed to delete') }
+    await rStats()
+    toast.success('Photo moved to trash')
+  } catch { toast.error('Failed to move photo to trash') }
+}
+
+function togglePhotoTrash() {
+  photoTrash.value = !photoTrash.value
+  lb.close()
+}
+
+async function restoreBucketPhoto(key: string) {
+  try {
+    await $fetch('/api/admin/photos/bucket-restore', { method: 'POST', body: { key } })
+    await rBucket()
+    await rStats()
+    toast.success('Photo restored')
+  } catch { toast.error('Failed to restore photo') }
 }
 
 // ─── POVs ───────────────────────────────────────────────
@@ -933,7 +987,7 @@ async function capPatch(id: number, status: string) {
 
 // ─── Fund ────────────────────────────────────────────────
 const fd = reactive({
-  goal: 100000, page: 1,
+  goal: 100000, page: 1, trashedOnly: false,
   modal: null as null | true,
   editing: null as any,
   saving: false,
@@ -942,7 +996,7 @@ const fd = reactive({
 
 watch(() => fundData.value, (v) => { if (v?.goal) fd.goal = v.goal }, { immediate: true })
 
-const fundContribs = computed(() => fundData.value?.contributions ?? [])
+const fundContribs = computed(() => (fundData.value?.contributions ?? []).filter((c:any) => fd.trashedOnly ? Boolean(c.deletedAt) : !c.deletedAt))
 const fundPaged = computed(() => fundContribs.value.slice((fd.page-1)*25, fd.page*25))
 const fundGoalPct = computed(() => fd.goal ? Math.round(((fundData.value?.grandTotal??0) / fd.goal)*100) : 0)
 const proofLbEl = ref<HTMLElement>()
@@ -991,8 +1045,18 @@ async function fundPatch(id: number, patch: object) {
 }
 
 async function deleteContrib() {
-  try { await $fetch(`/api/admin/fund/${rm.contribution.id}`, { method:'DELETE' }); rm.contribution=null; await rFund(); await rStats(); toast.success('Deleted') }
-  catch { toast.error('Failed') }
+  try { await $fetch(`/api/admin/fund/${rm.contribution.id}`, { method:'DELETE' }); rm.contribution=null; await rFund(); await rStats(); toast.success('Moved to trash') }
+  catch { toast.error('Failed to move contribution to trash') }
+}
+
+function toggleFundTrash() {
+  fd.trashedOnly = !fd.trashedOnly
+  fd.page = 1
+}
+
+async function restoreContrib(contribution: any) {
+  try { await $fetch(`/api/admin/fund/${contribution.id}/restore`, { method:'POST' }); await rFund(); await rStats(); toast.success('Contribution restored') }
+  catch { toast.error('Failed to restore contribution') }
 }
 
 // ─── inline components ──────────────────────────────────

@@ -9,6 +9,7 @@ export default defineEventHandler(async () => {
   const { data, error } = await sb
     .from('camera_uploads')
     .select('id, guest_id, guest_name, storage_key, created_at')
+    .is('deleted_at', null)
     .order('created_at', { ascending: false })
 
   if (error) throw createError({ statusCode: 500, message: error.message })

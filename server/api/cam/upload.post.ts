@@ -12,6 +12,7 @@ export default defineEventHandler(async (event) => {
     .from('camera_uploads')
     .select('*', { count: 'exact', head: true })
     .eq('guest_id', guestId)
+    .is('deleted_at', null)
 
   if (countErr) throw createError({ statusCode: 500, message: countErr.message })
   if ((count ?? 0) >= SHOT_LIMIT) throw createError({ statusCode: 403, message: 'Shot limit reached' })

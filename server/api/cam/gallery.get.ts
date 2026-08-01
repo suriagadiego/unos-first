@@ -9,6 +9,7 @@ export default defineEventHandler(async () => {
   const { data, error } = await sb
     .from('camera_uploads')
     .select('id, storage_key, guest_id, created_at')
+    .is('deleted_at', null)
     .order('created_at', { ascending: false })
     .limit(200)
 

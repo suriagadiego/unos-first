@@ -5,6 +5,8 @@ export default defineEventHandler(async (event) => {
   const sb = useSupabase()
 
   let q = sb.from('photos').select('*')
+  if (query.trashed === 'true') q = (q as any).not('deleted_at', 'is', null)
+  else q = (q as any).is('deleted_at', null)
   if (query.status) q = (q as any).eq('status', String(query.status))
 
   const { data, error } = await (q as any).order('created_at', { ascending: false })

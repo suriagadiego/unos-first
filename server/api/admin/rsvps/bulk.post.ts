@@ -15,7 +15,7 @@ export default defineEventHandler(async (event) => {
   else if (action === 'show') updates.show_on_public = true
   else throw createError({ statusCode: 400, message: 'Invalid action' })
 
-  const { error } = await sb.from('rsvps').update(updates).in('id', ids)
+  const { error } = await sb.from('rsvps').update(updates).in('id', ids).is('deleted_at', null)
   if (error) throw createError({ statusCode: 500, message: error.message })
 
   void logAction('bulk_' + action, 'rsvp', `Bulk ${action} on ${ids.length} RSVPs`)

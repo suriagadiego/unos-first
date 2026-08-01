@@ -39,6 +39,7 @@ export function toRsvp(r: any) {
     sortOrder: r.sort_order,
     createdAt: r.created_at,
     updatedAt: r.updated_at,
+    deletedAt: r.deleted_at,
   }
 }
 
@@ -55,6 +56,7 @@ export function toActivity(r: any) {
     sortOrder: r.sort_order,
     createdAt: r.created_at,
     updatedAt: r.updated_at,
+    deletedAt: r.deleted_at,
   }
 }
 
@@ -70,6 +72,7 @@ export function toPhoto(r: any) {
     showOnPublic: r.show_on_public,
     createdAt: r.created_at,
     updatedAt: r.updated_at,
+    deletedAt: r.deleted_at,
   }
 }
 
@@ -94,6 +97,7 @@ export function toContribution(r: any) {
     showOnPublic: r.show_on_public,
     createdAt: r.created_at,
     updatedAt: r.updated_at,
+    deletedAt: r.deleted_at,
   }
 }
 

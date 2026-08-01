@@ -9,7 +9,7 @@ export default defineEventHandler(async (event) => {
 
   await Promise.all(
     order.map((id: number, index: number) =>
-      sb.from('rsvps').update({ sort_order: index, updated_at: now }).eq('id', id)
+      sb.from('rsvps').update({ sort_order: index, updated_at: now }).eq('id', id).is('deleted_at', null)
     )
   )
 
