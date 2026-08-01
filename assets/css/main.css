@@ -18,7 +18,7 @@
   body {
     @apply text-race-black font-sans;
     background-color: #f5f0eb;
-    background-image: url('~/assets/images/paperbg.png');
+    background-image: url('~/assets/images/optimized/paperbg.webp');
     background-size: cover;
     background-attachment: fixed;
     background-repeat: no-repeat;

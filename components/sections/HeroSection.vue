@@ -5,21 +5,21 @@
   <section id="hero" class="relative pt-14 overflow-hidden h-[100svh] flex flex-col md:min-h-screen md:h-auto md:block">
 
     <!-- Upper left — single cloud, slightly larger -->
-    <img src="~/assets/images/clouds/5.png" alt="" aria-hidden="true"
+    <img src="~/assets/images/optimized/clouds/5.webp" alt="" aria-hidden="true" decoding="async"
       class="cloud-float-slow pointer-events-none absolute top-14 -left-6 w-[65vw] md:w-[20vw] opacity-65 select-none z-10" />
 
     <!-- Upper right — watercolor base with 2 white clouds spread out -->
-    <img src="~/assets/images/upperright-watercolor.png" alt="" aria-hidden="true"
+    <img src="~/assets/images/optimized/upperright-watercolor.webp" alt="" aria-hidden="true" decoding="async"
       class="pointer-events-none absolute top-0 right-0 w-[90vw] md:w-[76vw] opacity-75 select-none z-10" />
-    <img src="~/assets/images/clouds/4.png" alt="" aria-hidden="true"
+    <img src="~/assets/images/optimized/clouds/4.webp" alt="" aria-hidden="true" decoding="async"
       class="cloud-float-slow pointer-events-none absolute top-4 right-[10vw] w-[55vw] md:w-[16vw] opacity-90 select-none z-10" />
-    <img src="~/assets/images/clouds/1.png" alt="" aria-hidden="true"
+    <img src="~/assets/images/optimized/clouds/1.webp" alt="" aria-hidden="true" decoding="async"
       class="cloud-float pointer-events-none absolute top-24 right-0 w-[50vw] md:w-[16vw] opacity-85 select-none z-10" />
 
     <!-- Illustration pinned to bottom -->
     <div class="absolute bottom-0 left-0 right-0 scale-[1.6] origin-bottom-right md:scale-100">
-      <img src="~/assets/images/landing.png" class="w-full block md:scale-[0.85] md:origin-bottom-right" alt="" />
-      <img src="~/assets/images/lowerleft-watercolor.png" alt="" aria-hidden="true"
+      <img src="~/assets/images/optimized/landing.webp" class="w-full block md:scale-[0.85] md:origin-bottom-right" alt="" decoding="async" fetchpriority="high" />
+      <img src="~/assets/images/optimized/lowerleft-watercolor.webp" alt="" aria-hidden="true" decoding="async"
         class="pointer-events-none absolute bottom-0 left-0 w-4/5 select-none opacity-80" />
     </div>
 

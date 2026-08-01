@@ -21,11 +21,11 @@ function backToTop() {
     <div class="bg-race-black -mt-px relative overflow-hidden">
 
       <!-- Decorative layer -->
-      <img src="~/assets/images/finishline.png" alt="" aria-hidden="true"
+      <img src="~/assets/images/optimized/finishline.webp" alt="" aria-hidden="true" loading="lazy" decoding="async"
         class="pointer-events-none select-none absolute bottom-0 left-1/2 -translate-x-1/2 w-full max-w-2xl opacity-[0.04]" />
-      <img src="~/assets/images/clouds/3.png" alt="" aria-hidden="true"
+      <img src="~/assets/images/optimized/clouds/3.webp" alt="" aria-hidden="true" loading="lazy" decoding="async"
         class="cloud-float pointer-events-none select-none absolute left-[4%] top-1/3 w-44 opacity-[0.07]" />
-      <img src="~/assets/images/clouds/5.png" alt="" aria-hidden="true"
+      <img src="~/assets/images/optimized/clouds/5.webp" alt="" aria-hidden="true" loading="lazy" decoding="async"
         class="cloud-float-slow pointer-events-none select-none absolute right-[4%] top-1/2 w-44 opacity-[0.07]" />
 
       <div class="relative z-10 max-w-lg mx-auto px-6 py-10 flex flex-col items-center text-center gap-6">

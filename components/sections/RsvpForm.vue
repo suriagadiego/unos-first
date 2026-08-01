@@ -72,22 +72,28 @@ async function submit() {
     <div aria-hidden="true" class="absolute inset-0 pointer-events-none select-none overflow-hidden">
       <!-- Mobile: single S-curve, zoomed -->
       <img
-        src="~/assets/images/tiremarks/Untitled design-7.png"
+        src="~/assets/images/optimized/tiremarks/tiremarks.webp"
         alt=""
+        loading="lazy"
+        decoding="async"
         class="md:hidden absolute top-0 left-1/2 h-[130%] w-auto opacity-[0.03]"
         style="filter: invert(1); mix-blend-mode: screen; transform: translateX(-50%) rotate(45deg) scale(1.35);"
       />
       <!-- Desktop: left S-curve -->
       <img
-        src="~/assets/images/tiremarks/Untitled design-7.png"
+        src="~/assets/images/optimized/tiremarks/tiremarks.webp"
         alt=""
+        loading="lazy"
+        decoding="async"
         class="hidden md:block absolute top-0 -left-16 h-[105%] w-auto opacity-[0.03]"
         style="filter: invert(1); mix-blend-mode: screen; transform: rotate(5deg);"
       />
       <!-- Desktop: right S-curve, mirrored — offset vertically to break symmetry -->
       <img
-        src="~/assets/images/tiremarks/Untitled design-7.png"
+        src="~/assets/images/optimized/tiremarks/tiremarks.webp"
         alt=""
+        loading="lazy"
+        decoding="async"
         class="hidden md:block absolute top-0 -right-16 h-[120%] w-auto opacity-[0.03]"
         style="filter: invert(1); mix-blend-mode: screen; transform: scaleX(-1) rotate(180deg);"
       />

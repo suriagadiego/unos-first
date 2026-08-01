@@ -11,9 +11,9 @@ const gifts = [
   <section id="gifts" class="relative overflow-hidden pb-0">
 
     <!-- Watercolor blotches -->
-    <img src="~/assets/images/upperright-watercolor.png" alt="" aria-hidden="true"
+    <img src="~/assets/images/optimized/upperright-watercolor.webp" alt="" aria-hidden="true"
       class="pointer-events-none absolute -top-10 -right-10 w-[70vw] opacity-20 select-none" />
-    <img src="~/assets/images/lowerleft-watercolor.png" alt="" aria-hidden="true"
+    <img src="~/assets/images/optimized/lowerleft-watercolor.webp" alt="" aria-hidden="true"
       class="pointer-events-none absolute bottom-56 -left-10 w-[60vw] opacity-15 select-none" />
 
     <!-- Speed line texture overlay -->
@@ -35,10 +35,10 @@ const gifts = [
         <!-- Title -->
         <div class="text-center mb-10">
           <div class="flex items-center justify-center gap-0 mb-1">
-            <img src="~/assets/images/flag.png" alt="" aria-hidden="true"
+            <img src="~/assets/images/optimized/flag.webp" alt="" aria-hidden="true"
               class="w-24 h-auto select-none opacity-90 -mr-4" style="transform: scaleX(-1) rotate(-6deg);" />
             <h2 class="font-racing text-5xl md:text-6xl text-race-black tracking-wide">Gift Guide</h2>
-            <img src="~/assets/images/flag.png" alt="" aria-hidden="true"
+            <img src="~/assets/images/optimized/flag.webp" alt="" aria-hidden="true"
               class="w-24 h-auto select-none opacity-90 -ml-4" style="transform: rotate(-6deg);" />
           </div>
 
@@ -93,12 +93,12 @@ const gifts = [
     <!-- Mascot row: Mickey left, Wheels+Flags right -->
     <div class="relative z-10 flex justify-between items-end px-6 md:px-20">
       <img
-        src="~/assets/images/mickey.png"
+        src="~/assets/images/optimized/mickey.webp"
         alt="Mickey in racing suit"
         class="w-40 md:w-52 select-none drop-shadow-sm"
       />
       <img
-        src="~/assets/images/tireflag.png"
+        src="~/assets/images/optimized/tireflag.webp"
         alt=""
         aria-hidden="true"
         class="w-32 md:w-44 select-none opacity-85 mb-2"
@@ -107,7 +107,7 @@ const gifts = [
 
     <!-- Finish Line band -->
     <img
-      src="~/assets/images/finishline.png"
+      src="~/assets/images/optimized/finishline.webp"
       alt=""
       aria-hidden="true"
       class="w-full select-none block"
@@ -116,9 +116,9 @@ const gifts = [
 
     <!-- Dark footer -->
     <div class="bg-race-black py-10 text-center relative overflow-hidden">
-      <img src="~/assets/images/clouds/3.png" alt="" aria-hidden="true"
+      <img src="~/assets/images/optimized/clouds/3.webp" alt="" aria-hidden="true"
         class="cloud-float pointer-events-none absolute left-[6%] top-1/2 -translate-y-1/2 w-40 opacity-[0.08] select-none" />
-      <img src="~/assets/images/clouds/5.png" alt="" aria-hidden="true"
+      <img src="~/assets/images/optimized/clouds/5.webp" alt="" aria-hidden="true"
         class="cloud-float-slow pointer-events-none absolute right-[6%] top-1/2 -translate-y-1/2 w-40 opacity-[0.08] select-none" />
 
       <p class="font-racing text-race-blue text-2xl md:text-3xl tracking-wide relative z-10">

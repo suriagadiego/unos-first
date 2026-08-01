@@ -137,7 +137,7 @@ async function submit() {
         radial-gradient(ellipse at top left, rgba(255,255,255,0.45), transparent 55%),
         radial-gradient(ellipse at top right, rgba(255,255,255,0.28), transparent 50%),
         linear-gradient(to bottom, #b9d4ea 0%, #d6e6f2 68%, rgba(214,230,242,0) 100%),
-        url('~/assets/images/paperbg.png');
+        url('~/assets/images/optimized/paperbg.webp');
         background-size: auto, auto, 100% 100%, cover;
         background-position: top left, top right, center, center;
         background-repeat: no-repeat, no-repeat, no-repeat, no-repeat;
@@ -145,15 +145,15 @@ async function submit() {
     />
 
     <!-- Watercolor backgrounds — leading the vibe -->
-    <img src="~/assets/images/upperright-watercolor.png" alt="" aria-hidden="true"
+    <img src="~/assets/images/optimized/upperright-watercolor.webp" alt="" aria-hidden="true"
       class="pointer-events-none absolute -top-8 -right-8 w-[78vw] md:w-[50vw] opacity-65 select-none" />
-    <img src="~/assets/images/lowerleft-watercolor.png" alt="" aria-hidden="true"
+    <img src="~/assets/images/optimized/lowerleft-watercolor.webp" alt="" aria-hidden="true"
       class="pointer-events-none absolute bottom-0 left-0 w-[65vw] md:w-[42vw] opacity-55 select-none" />
 
     <!-- Floating clouds -->
-    <img src="~/assets/images/clouds/4.png" alt="" aria-hidden="true"
+    <img src="~/assets/images/optimized/clouds/4.webp" alt="" aria-hidden="true"
       class="cloud-float-slow pointer-events-none absolute z-[1] top-6 right-[1rem] md:right-[2rem] w-[10rem] md:w-[28rem] opacity-70 select-none" />
-    <img src="~/assets/images/clouds/2.png" alt="" aria-hidden="true"
+    <img src="~/assets/images/optimized/clouds/2.webp" alt="" aria-hidden="true"
       class="cloud-float pointer-events-none absolute z-[1] top-[2rem] md:top-12 left-[2vw] w-[12rem] md:w-[28rem] opacity-50 select-none" />
 
     <!-- Main content: single centered column -->
@@ -161,11 +161,11 @@ async function submit() {
 
       <!-- Illustration: college building with tireflag flanking it like a scene -->
       <div class="flex items-end justify-center">
-        <img src="~/assets/images/tireflag.png" alt="" aria-hidden="true"
+        <img src="~/assets/images/optimized/tireflag.webp" alt="" aria-hidden="true"
           class="w-[5rem] md:w-[8rem] select-none opacity-70 mb-1 -scale-x-100" />
-        <img src="~/assets/images/college.png" alt="Uno heading to college"
+        <img src="~/assets/images/optimized/college.webp" alt="Uno heading to college"
           class="w-[12rem] md:w-[18rem] select-none drop-shadow-sm" />
-        <img src="~/assets/images/tireflag.png" alt="" aria-hidden="true"
+        <img src="~/assets/images/optimized/tireflag.webp" alt="" aria-hidden="true"
           class="w-[5rem] md:w-[8rem] select-none opacity-70 mb-1" />
       </div>
 
@@ -217,7 +217,7 @@ async function submit() {
     </div>
 
     <!-- Footer image -->
-    <img src="~/assets/images/footer.png" alt="" aria-hidden="true"
+    <img src="~/assets/images/optimized/footer.webp" alt="" aria-hidden="true"
       class="pointer-events-none fixed bottom-0 left-0 right-0 w-full select-none"
       style="transform: scale(1.10); opacity: 75%;" />
 
@@ -294,7 +294,7 @@ async function submit() {
                   <p class="font-racing text-[9px] uppercase tracking-[0.4em] text-race-blue/60">Uno's First · 2026</p>
                   <p class="font-racing text-race-black text-lg leading-tight tracking-wide mt-0.5">Pit Crew Pass</p>
                 </div>
-                <img src="~/assets/images/icons/trophy.svg" aria-hidden="true" class="w-10 h-10" />
+                <img src="~/assets/images/optimized/trophy.webp" aria-hidden="true" class="w-10 h-10 object-contain" />
               </div>
 
               <!-- Divider -->
@@ -303,7 +303,7 @@ async function submit() {
 
               <!-- Member name hero -->
               <div class="px-6 py-6 text-center">
-                <img src="~/assets/images/flag5.png" alt="" aria-hidden="true" class="w-18 h-12 mx-auto mb-2 select-none" />
+                <img src="~/assets/images/optimized/flag5.webp" alt="" aria-hidden="true" class="w-18 h-12 mx-auto mb-2 select-none" />
                 <p class="font-racing text-[9px] uppercase tracking-[0.35em] text-race-gray/40 mb-1">Certified Race Driver</p>
                 <p class="font-racing text-race-black leading-tight" style="font-size: clamp(1.6rem, 8vw, 2.4rem);">{{ form.name || 'Pit Crew Member' }}</p>
                 <p class="font-script text-race-blue/60 text-xl mt-1 leading-none">Uno's Pit Crew</p>
@@ -351,9 +351,9 @@ async function submit() {
         <div v-else class="flex-1 min-h-0 overflow-y-auto px-6 py-8 flex flex-col gap-6">
           <div class="text-center">
             <div class="flex items-center justify-center gap-2">
-              <img src="~/assets/images/left-flag.png" alt="" aria-hidden="true" class="w-7 h-7 select-none" />
+              <img src="~/assets/images/optimized/left-flag.webp" alt="" aria-hidden="true" class="w-7 h-7 select-none" />
               <p class="font-racing text-2xl tracking-wide w-fit">Fuel Uno's Journey</p>
-              <img src="~/assets/images/right-flag.png" alt="" aria-hidden="true" class="w-7 h-7 select-none" />
+              <img src="~/assets/images/optimized/right-flag.webp" alt="" aria-hidden="true" class="w-7 h-7 select-none" />
             </div>
             <p class="font-sans text-xs text-race-gray/60 text-center">Scan the QR with GCash, then tell us about your gift below.</p>
           </div>
@@ -365,7 +365,7 @@ async function submit() {
             <div class="relative w-full flex items-end justify-center pt-4 pb-0">
 
               <!-- Cone: overlaps QR left -->
-              <img src="~/assets/images/qr-elements/13.png" alt="" aria-hidden="true"
+              <img src="~/assets/images/optimized/qr-13.webp" alt="" aria-hidden="true"
                 class="relative z-20 w-16 -mr-5 select-none" />
 
               <!-- QR frame -->
@@ -388,13 +388,13 @@ async function submit() {
               </div>
 
               <!-- Tires: overlaps QR right -->
-              <img src="~/assets/images/qr-elements/14.png" alt="" aria-hidden="true"
+              <img src="~/assets/images/optimized/qr-14.webp" alt="" aria-hidden="true"
                 class="relative z-20 w-20 -ml-3 select-none" />
 
             </div>
 
             <!-- Road background -->
-            <img src="~/assets/images/qr-elements/12.png" alt="" aria-hidden="true"
+            <img src="~/assets/images/optimized/qr-12.webp" alt="" aria-hidden="true"
               class="w-full select-none -mt-[3rem] relative z-0" />
 
             <!-- Download button -->
@@ -410,7 +410,7 @@ async function submit() {
           <!-- Name -->
           <div class="flex flex-col gap-1.5">
             <label class="flex items-center gap-1.5 font-racing text-[10px] uppercase tracking-[0.3em] text-race-gray">
-              <img src="~/assets/images/icons/helmet-icon.png" aria-hidden="true" class="w-6 h-6" />
+              <img src="~/assets/images/optimized/helmet-icon.webp" aria-hidden="true" class="w-6 h-6" />
               Your Name
             </label>
             <input
@@ -424,7 +424,7 @@ async function submit() {
           <!-- Amount -->
           <div class="flex flex-col gap-1.5">
             <label class="flex items-center gap-1.5 font-racing text-[10px] uppercase tracking-[0.3em] text-race-gray">
-              <img src="~/assets/images/icons/fuel-icon.png" aria-hidden="true" class="w-6 h-6" />
+              <img src="~/assets/images/optimized/fuel-icon.webp" aria-hidden="true" class="w-6 h-6" />
               Race Fuel Amount (₱)
             </label>
             <div class="flex items-center border border-race-gray/25 focus-within:border-race-blue transition-colors">
@@ -433,7 +433,7 @@ async function submit() {
                 v-model="form.amount"
                 type="number"
                 min="1"
-                placeholder="500"
+                placeholder="2000"
                 class="flex-1 px-4 py-3 font-sans text-sm text-race-black placeholder:text-race-gray/35 focus:outline-none bg-transparent"
               />
             </div>
@@ -472,7 +472,7 @@ async function submit() {
           <!-- Message (optional) -->
           <div class="flex flex-col gap-1.5">
             <label class="flex items-center gap-1.5 font-racing text-[10px] uppercase tracking-[0.3em] text-race-gray">
-              <img src="~/assets/images/icons/message-icon.svg" aria-hidden="true" class="w-6 h-6" />
+              <img src="~/assets/images/optimized/message-icon.webp" aria-hidden="true" class="w-6 h-6 object-contain" />
               Message <span class="text-race-gray/40 normal-case font-sans tracking-normal ml-1">(optional)</span>
             </label>
             <textarea
@@ -492,7 +492,7 @@ async function submit() {
             :disabled="submitting"
             class="bg-race-blue text-white font-racing text-sm uppercase tracking-widest py-4 hover:bg-race-blue/80 transition-colors disabled:opacity-50 disabled:cursor-not-allowed mt-2"
           >
-            <img v-if="!submitting" src="~/assets/images/icons/trophy.svg" aria-hidden="true" class="w-6 h-8 inline-block mr-2 -mt-0.5" />
+            <img v-if="!submitting" src="~/assets/images/optimized/trophy.webp" aria-hidden="true" class="w-6 h-8 object-contain inline-block mr-2 -mt-0.5" />
             {{ submitting ? 'Sending Gift...' : `I've Sent My Gift` }}
           </button>
 
@@ -516,7 +516,7 @@ async function submit() {
 
 .receipt-bg {
   background-color: #f5f5f0;
-  background-image: url('~/assets/images/paperbg.png');
+  background-image: url('~/assets/images/optimized/paperbg.webp');
   background-size: cover;
   background-repeat: no-repeat;
   background-blend-mode: multiply;

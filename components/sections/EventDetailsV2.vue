@@ -57,23 +57,23 @@ const dressCodes = [
     <!-- Decorative clipping wrapper -->
     <div class="absolute inset-0 overflow-hidden pointer-events-none">
       <!-- Watercolor blotches -->
-      <img src="~/assets/images/upperright-watercolor.png" alt="" aria-hidden="true"
+      <img src="~/assets/images/optimized/upperright-watercolor.webp" alt="" aria-hidden="true" loading="lazy" decoding="async"
         class="absolute -bottom-10 -right-10 w-[150vw] md:w-[90vw] opacity-40 select-none" style="transform: scaleY(-1);" />
-      <img src="~/assets/images/upperright-watercolor.png" alt="" aria-hidden="true"
+      <img src="~/assets/images/optimized/upperright-watercolor.webp" alt="" aria-hidden="true" loading="lazy" decoding="async"
         class="absolute -top-10 -left-10 w-[150vw] md:w-[90vw] opacity-40 select-none" style="transform: scaleX(-1);" />
       <!-- Clouds -->
-      <img src="~/assets/images/clouds/3.png" alt="" aria-hidden="true"
+      <img src="~/assets/images/optimized/clouds/3.webp" alt="" aria-hidden="true" loading="lazy" decoding="async"
         class="cloud-float absolute -top-6 left-[20%] w-[260px] opacity-20 select-none" />
-      <img src="~/assets/images/clouds/5.png" alt="" aria-hidden="true"
+      <img src="~/assets/images/optimized/clouds/5.webp" alt="" aria-hidden="true" loading="lazy" decoding="async"
         class="cloud-float-slow absolute top-1/3 -right-16 w-[320px] opacity-15 select-none" />
-      <img src="~/assets/images/clouds/2.png" alt="" aria-hidden="true"
+      <img src="~/assets/images/optimized/clouds/2.webp" alt="" aria-hidden="true" loading="lazy" decoding="async"
         class="cloud-float absolute bottom-10 left-[10%] w-[220px] opacity-15 select-none" />
     </div>
 
-    <img src="~/assets/images/tireflag.png" alt="" aria-hidden="true"
+    <img src="~/assets/images/optimized/tireflag.webp" alt="" aria-hidden="true" loading="lazy" decoding="async"
       class="pointer-events-none select-none absolute -bottom-3 left-[13%] hidden md:block w-[20.5rem] z-20" />
 
-    <img src="~/assets/images/mickey.png" alt="" aria-hidden="true"
+    <img src="~/assets/images/optimized/mickey.webp" alt="" aria-hidden="true" loading="lazy" decoding="async"
       class="pointer-events-none select-none absolute -bottom-3 left-1/2 -translate-x-1/2 md:left-auto md:translate-x-0 md:right-[12%] w-[16rem] md:w-[23rem] z-20" />
 
     <div class="max-w-6xl mx-auto relative z-10">

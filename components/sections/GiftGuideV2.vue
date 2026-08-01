@@ -2,7 +2,7 @@
   <section id="gifts" class="relative overflow-hidden pb-0">
 
     <!-- Watercolor blotches -->
-    <img src="~/assets/images/upperright-watercolor.png" alt="" aria-hidden="true"
+    <img src="~/assets/images/optimized/upperright-watercolor.webp" alt="" aria-hidden="true" loading="lazy" decoding="async"
       class="pointer-events-none absolute -top-10 -right-10 w-[70vw] opacity-20 select-none" />
 
     <!-- Speed line texture -->
@@ -29,10 +29,10 @@
             <div class="h-px w-10 bg-race-gray/30" />
           </div>
           <div class="flex items-center justify-center">
-            <img src="~/assets/images/flag.png" alt="" aria-hidden="true"
+            <img src="~/assets/images/optimized/flag.webp" alt="" aria-hidden="true" loading="lazy" decoding="async"
               class="w-20 h-auto select-none opacity-90 -mr-3" style="transform: scaleX(-1) rotate(-6deg);" />
             <h2 class="font-racing text-5xl md:text-6xl text-race-black tracking-wide">Gifts</h2>
-            <img src="~/assets/images/flag.png" alt="" aria-hidden="true"
+            <img src="~/assets/images/optimized/flag.webp" alt="" aria-hidden="true" loading="lazy" decoding="async"
               class="w-20 h-auto select-none opacity-90 -ml-3" style="transform: rotate(-6deg);" />
           </div>
         </div>
@@ -49,7 +49,7 @@
               But if your heart still wants to give, a contribution to Uno's
               college fund would mean the world to us.
             </p>
-            <img src="~/assets/images/college.png" alt="" aria-hidden="true" class="mt-6 w-full max-w-sm mx-auto select-none" />
+            <img src="~/assets/images/optimized/college.webp" alt="" aria-hidden="true" class="mt-6 w-full max-w-sm mx-auto select-none" loading="lazy" decoding="async" />
             <p class="font-sans text-xs text-race-gray/45 leading-relaxed mt-3 text-center">
               No pressure at all. Just being there is more than enough.
             </p>
@@ -68,7 +68,7 @@
             <!-- Card body -->
             <div class="py-7 px-6 flex flex-col items-center gap-4">
 
-              <img src="~/assets/images/togahat.svg" alt="Diploma" class="w-full max-w-[200px]" />
+              <img src="~/assets/images/optimized/togahat.webp" alt="Diploma" class="w-full max-w-[200px]" loading="lazy" decoding="async" />
 
               <p class="font-racing text-xl text-race-black">Uno's College Fund</p>
 

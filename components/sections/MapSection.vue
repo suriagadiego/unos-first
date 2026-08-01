@@ -25,9 +25,9 @@ const locations = [
   <section id="map" class="py-20 px-4 relative overflow-hidden">
 
     <!-- Watercolor bleeds -->
-    <img src="~/assets/images/upperright-watercolor.png" alt="" aria-hidden="true"
+    <img src="~/assets/images/optimized/upperright-watercolor.webp" alt="" aria-hidden="true"
       class="pointer-events-none absolute -top-10 -right-10 w-[55vw] md:w-[30vw] opacity-[0.18] select-none" />
-    <img src="~/assets/images/lowerleft-watercolor.png" alt="" aria-hidden="true"
+    <img src="~/assets/images/optimized/lowerleft-watercolor.webp" alt="" aria-hidden="true"
       class="pointer-events-none absolute -bottom-10 -left-10 w-[55vw] md:w-[30vw] opacity-[0.18] select-none" />
 
     <div class="max-w-4xl mx-auto relative z-10">

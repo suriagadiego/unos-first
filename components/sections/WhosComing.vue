@@ -38,19 +38,19 @@ function selectCard(i: number) {
       style="background-image: repeating-linear-gradient(78deg, rgba(245,240,235,0.015) 0px, rgba(245,240,235,0.015) 1px, transparent 1px, transparent 64px);" />
 
     <!-- Watercolor bleeds -->
-    <img src="~/assets/images/upperright-watercolor.png" alt="" aria-hidden="true"
+    <img src="~/assets/images/optimized/upperright-watercolor.webp" alt="" aria-hidden="true" loading="lazy" decoding="async"
       class="pointer-events-none absolute -top-10 -right-10 w-[55vw] md:w-[30vw] opacity-[0.06] select-none" />
-    <img src="~/assets/images/lowerleft-watercolor.png" alt="" aria-hidden="true"
+    <img src="~/assets/images/optimized/lowerleft-watercolor.webp" alt="" aria-hidden="true" loading="lazy" decoding="async"
       class="pointer-events-none absolute -bottom-10 -left-10 w-[55vw] md:w-[30vw] opacity-[0.06] select-none" />
 
     <!-- Clouds -->
     <div class="pointer-events-none absolute -top-16 -left-16 select-none" style="transform: scaleX(-1);">
-      <img src="~/assets/images/clouds/1.png" alt="" aria-hidden="true" class="cloud-float w-[520px] opacity-[0.15]" />
+      <img src="~/assets/images/optimized/clouds/1.webp" alt="" aria-hidden="true" class="cloud-float w-[520px] opacity-[0.15]" loading="lazy" decoding="async" />
     </div>
-    <img src="~/assets/images/clouds/1.png" alt="" aria-hidden="true"
+    <img src="~/assets/images/optimized/clouds/1.webp" alt="" aria-hidden="true" loading="lazy" decoding="async"
       class="cloud-float-slow pointer-events-none absolute -top-10 -right-20 w-[360px] opacity-[0.18] select-none"
       style="transform: scaleX(-1);" />
-    <img src="~/assets/images/clouds/1.png" alt="" aria-hidden="true"
+    <img src="~/assets/images/optimized/clouds/1.webp" alt="" aria-hidden="true" loading="lazy" decoding="async"
       class="cloud-float pointer-events-none absolute -top-12 left-[38%] w-[280px] opacity-[0.12] select-none"
       style="transform: scaleX(-1);" />
 
