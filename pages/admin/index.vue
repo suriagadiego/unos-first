@@ -421,7 +421,17 @@
                 <tr v-for="c in fundPaged" :key="c.id" class="border-b border-gray-50 hover:bg-gray-50" :class="c.deletedAt ? 'opacity-60' : ''">
                   <td class="px-4 py-3 font-medium text-gray-900">{{ c.submitterName }}</td>
                   <td class="px-4 py-3 font-semibold">₱{{ Number(c.amount).toLocaleString() }}</td>
-                  <td class="px-4 py-3 text-gray-500 max-w-48 truncate">{{ c.message || '—' }}</td>
+                  <td class="px-4 py-3 text-gray-500">
+                    <button
+                      v-if="c.message"
+                      type="button"
+                      class="block max-w-48 truncate text-left text-blue-600 underline decoration-blue-200 underline-offset-2 transition-colors hover:text-blue-800 hover:decoration-blue-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
+                      :aria-label="`Read full message from ${c.submitterName}`"
+                      :title="c.message"
+                      @click="fundMessage = { name: c.submitterName, message: c.message }"
+                    >{{ c.message }}</button>
+                    <span v-else>—</span>
+                  </td>
                   <td class="px-4 py-2 whitespace-nowrap">
                     <button
                       v-if="c.proofUrl"
@@ -536,6 +546,14 @@
           </div>
           <ModalActions @cancel="act.modal=null" :saving="act.saving" />
         </form>
+      </Modal>
+
+      <!-- Full contribution message -->
+      <Modal v-if="fundMessage" @close="fundMessage=null" title="Contribution Message">
+        <div class="space-y-3">
+          <p class="text-xs font-semibold uppercase tracking-wide text-gray-400">From {{ fundMessage.name }}</p>
+          <p class="max-h-[60vh] overflow-y-auto whitespace-pre-wrap break-words text-base leading-relaxed text-gray-800">{{ fundMessage.message }}</p>
+        </div>
       </Modal>
 
 <!-- Fund edit/create -->
@@ -999,6 +1017,7 @@ watch(() => fundData.value, (v) => { if (v?.goal) fd.goal = v.goal }, { immediat
 const fundContribs = computed(() => (fundData.value?.contributions ?? []).filter((c:any) => fd.trashedOnly ? Boolean(c.deletedAt) : !c.deletedAt))
 const fundPaged = computed(() => fundContribs.value.slice((fd.page-1)*25, fd.page*25))
 const fundGoalPct = computed(() => fd.goal ? Math.round(((fundData.value?.grandTotal??0) / fd.goal)*100) : 0)
+const fundMessage = ref<{ name: string; message: string } | null>(null)
 const proofLbEl = ref<HTMLElement>()
 const proofLb = reactive({
   url: '',
