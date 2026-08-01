@@ -21,9 +21,9 @@ const tiles = Array.from({ length: 9 }, (_, index) => index)
       </div>
 
       <div class="fund-title">
-        <div class="fund-title__line"><span style="--word-delay: 40ms">Uno's</span></div>
-        <div class="fund-title__line fund-title__line--outline"><span style="--word-delay: 190ms">College</span></div>
-        <div class="fund-title__line fund-title__line--blue"><span style="--word-delay: 340ms">Fund</span></div>
+        <div class="fund-title__line"><span style="--word-delay: 40ms">Fuel</span></div>
+        <div class="fund-title__line fund-title__line--blue"><span style="--word-delay: 190ms">Uno's</span></div>
+        <div class="fund-title__line"><span style="--word-delay: 340ms">Future</span></div>
       </div>
 
       <div class="mt-8 flex justify-center">
@@ -84,11 +84,6 @@ const tiles = Array.from({ length: 9 }, (_, index) => index)
   display: block;
   animation: word-enter 760ms cubic-bezier(0.22, 1, 0.36, 1) both;
   animation-delay: var(--word-delay);
-}
-
-.fund-title__line--outline {
-  color: transparent;
-  -webkit-text-stroke: 2px #0d0d0d;
 }
 
 .fund-title__line--blue {
