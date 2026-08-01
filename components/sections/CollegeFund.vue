@@ -247,7 +247,7 @@ async function submit() {
         class="fixed top-0 right-0 h-full w-full md:w-1/2 bg-white z-50 flex flex-col overflow-hidden shadow-2xl"
       >
         <!-- Drawer header -->
-        <div class="bg-race-black px-6 py-5 flex items-center justify-between flex-shrink-0">
+        <div class="bg-race-black px-6 py-3 flex items-center justify-between flex-shrink-0">
           <div>
             <p class="font-racing text-[10px] text-race-blue tracking-[0.4em] uppercase mb-0.5">Pit Stop</p>
             <p class="font-racing text-white text-xl tracking-wide">Join the Pit Crew</p>
