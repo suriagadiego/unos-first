@@ -390,6 +390,7 @@
                   <th class="th">Name</th>
                   <th class="th">Amount</th>
                   <th class="th">Message</th>
+                  <th class="th">Proof</th>
                   <th class="th">Date</th>
                   <th class="th">Public</th>
                   <th class="th"></th>
@@ -400,6 +401,15 @@
                   <td class="px-4 py-3 font-medium text-gray-900">{{ c.submitterName }}</td>
                   <td class="px-4 py-3 font-semibold">₱{{ Number(c.amount).toLocaleString() }}</td>
                   <td class="px-4 py-3 text-gray-500 max-w-48 truncate">{{ c.message || '—' }}</td>
+                  <td class="px-4 py-2 whitespace-nowrap">
+                    <img
+                      v-if="c.proofUrl"
+                      :src="`/api/admin/fund/${c.id}/proof`"
+                      :alt="`Donation proof from ${c.submitterName}`"
+                      class="h-12 w-12 rounded-lg border border-gray-200 bg-gray-50 object-cover"
+                    />
+                    <span v-else class="text-gray-400">—</span>
+                  </td>
                   <td class="px-4 py-3 text-gray-500 whitespace-nowrap">{{ fmtDate(c.createdAt) }}</td>
                   <td class="px-4 py-3 text-center">
                     <button :class="c.showOnPublic?'toggle-on':'toggle-off'" @click="fundPatch(c.id,{showOnPublic:!c.showOnPublic})">

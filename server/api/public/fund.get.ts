@@ -21,6 +21,7 @@ export default defineEventHandler(async () => {
 
   return {
     contributions,
+    contributorCount: allAmountsRes.data?.length ?? 0,
     total,
     goal: settingsRes.data?.goal ?? 100000,
   }

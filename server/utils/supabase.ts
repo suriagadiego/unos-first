@@ -90,6 +90,7 @@ export function toContribution(r: any) {
     submitterName: r.submitter_name,
     amount: r.amount,
     message: r.message,
+    proofUrl: r.proof_url,
     showOnPublic: r.show_on_public,
     createdAt: r.created_at,
     updatedAt: r.updated_at,

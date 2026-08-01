@@ -1,6 +1,6 @@
-import { AwsClient } from 'aws4fetch'
 import { requireGuest } from '../../utils/camAuth'
 import { useSupabase } from '../../utils/supabase'
+import { uploadToStorage, useStorage } from '../../utils/storage'
 
 const SHOT_LIMIT = 24
 
@@ -21,27 +21,9 @@ export default defineEventHandler(async (event) => {
   const guestName = (form.get('guestName') as string | null)?.trim() || null
   if (!file) throw createError({ statusCode: 400, message: 'No photo provided' })
 
-  const endpoint = process.env.RUSTFS_ENDPOINT!
-  const bucket = process.env.RUSTFS_BUCKET!
   const key = `cam/${guestId.slice(0, 8)}-${Date.now()}.jpg`
-
-  const aws = new AwsClient({
-    accessKeyId: process.env.RUSTFS_ACCESS_KEY!,
-    secretAccessKey: process.env.RUSTFS_SECRET_KEY!,
-    region: process.env.RUSTFS_REGION ?? 'us-east-1',
-    service: 's3',
-  })
-
-  const storageUrl = `${endpoint}/${bucket}/${key}`
-  const uploadRes = await aws.fetch(storageUrl, {
-    method: 'PUT',
-    body: await file.arrayBuffer(),
-    headers: { 'Content-Type': 'image/jpeg' },
-  })
-
-  if (!uploadRes.ok) {
-    throw createError({ statusCode: 500, message: `Storage error: ${await uploadRes.text()}` })
-  }
+  const storage = useStorage()
+  const storageUrl = await uploadToStorage(storage, key, await file.arrayBuffer(), 'image/jpeg')
 
   const { error } = await sb.from('camera_uploads').insert({
     guest_id: guestId,

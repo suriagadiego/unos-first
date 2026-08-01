@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Pit Crew Pass — mobile review</title>
+    <style>
+      :root { --ink:#0d0d0d; --blue:#6b8cae; --cream:#f5f0eb; --card:#fffdf7; --muted:#6d6c6a; --line:#d7e1e9; }
+      * { box-sizing:border-box; } body { margin:0; background:var(--cream); color:var(--ink); font:15px/1.5 Arial,sans-serif; }
+      main { max-width:760px; margin:auto; padding:28px 18px 52px; }
+      .eyebrow { color:var(--blue); font-size:11px; font-weight:800; letter-spacing:.2em; text-transform:uppercase; }
+      h1 { font-size:30px; line-height:1.05; margin:6px 0 8px; } .lede { max-width:60ch; color:var(--muted); margin:0; }
+      .summary { margin:24px 0 18px; padding:18px; background:var(--ink); color:white; border-radius:16px; }
+      .summary strong { color:#bed1e4; }
+      .cards { display:grid; gap:12px; } .card { background:var(--card); border:1px solid var(--line); border-radius:16px; padding:17px; }
+      .top { display:flex; gap:12px; align-items:flex-start; } .num { flex:0 0 29px; height:29px; display:grid; place-items:center; border-radius:50%; background:var(--blue); color:white; font-weight:800; }
+      h2 { font-size:17px; margin:0 0 5px; } p { margin:0; color:#4e4e4d; } .fix { margin-top:10px; padding-top:10px; border-top:1px solid var(--line); color:#24435f; }
+      .tag { display:inline-block; margin:18px 0 8px; padding:4px 9px; border-radius:99px; background:#dce9f3; color:#355b7d; font-size:11px; font-weight:800; letter-spacing:.08em; text-transform:uppercase; }
+      .checks { display:grid; gap:9px; padding:0; list-style:none; } .checks li { padding-left:25px; position:relative; } .checks li::before { content:'✓'; position:absolute; left:0; color:var(--blue); font-weight:900; }
+      @media (min-width:650px) { .cards { grid-template-columns:1fr 1fr; } .wide { grid-column:span 2; } }
+    </style>
+  </head>
+  <body>
+    <main>
+      <div class="eyebrow">Uno's First · mobile-first review</div>
+      <h1>The pass feels warm, polished, and on-theme.</h1>
+      <p class="lede">The racing language, paper texture, and credential-like card make the contribution feel ceremonial. The main opportunity is to make the success moment faster to scan—and to give it one clear next move.</p>
+      <section class="summary"><strong>Recommendation:</strong> keep this direction. Tighten the top-of-screen success signal, increase a few small-text contrasts, and let the pass become the undisputed hero.</section>
+      <div class="cards">
+        <article class="card"><div class="top"><div class="num">1</div><div><h2>Strong hierarchy inside the pass</h2><p>The donor name is the largest element, and the Fuel / Pass No. / Season strip is quick to understand. It reads like a keepsake rather than a generic receipt.</p></div></div></article>
+        <article class="card"><div class="top"><div class="num">2</div><div><h2>Too much competing “thank you” copy</h2><p>The introduction above, the note below, and the CTA all have similar visual weight. On a short viewport, they make the card feel less immediate.</p><p class="fix"><strong>Change:</strong> shorten the top copy to one line and remove or reduce the lower thank-you note. Let the pass arrive closer to the header.</p></div></div></article>
+        <article class="card"><div class="top"><div class="num">3</div><div><h2>Accessibility needs one contrast pass</h2><p>The pale gray body text, pale blue certificate label, date, and signature are attractive but will be difficult for some people on a phone, especially outdoors.</p><p class="fix"><strong>Change:</strong> use a darker gray for all small text; reserve low-opacity blue only for decoration. Keep body text at 14–16 px where possible.</p></div></div></article>
+        <article class="card"><div class="top"><div class="num">4</div><div><h2>The action label is slightly ambiguous</h2><p>“Back to the race” is charming, but it does not tell a first-time donor whether it closes this pass, returns to the event site, or begins another contribution.</p><p class="fix"><strong>Change:</strong> label it “Back to Uno’s birthday” or “Return to the race,” and make the close icon at least a 44 × 44 px target.</p></div></div></article>
+        <article class="card wide"><div class="top"><div class="num">5</div><div><h2>Use the empty bottom space intentionally</h2><p>At this height, the footer has generous breathing room, which is lovely. If the screen can scroll, consider a secondary “Save your pass” or “Share with the crew” action after the primary return button—only if those actions work end-to-end. Otherwise, leave the calm space; it supports the premium keepsake feeling.</p></div></div></article>
+      </div>
+      <div class="tag">Quick mobile QA</div>
+      <ul class="checks"><li>Test with a 320 px-wide device and a long donor name (25+ characters).</li><li>Verify no text becomes smaller than the rest of the app’s readable body copy.</li><li>Confirm focus, Escape, and screen-reader behavior for the drawer and close control.</li><li>Make the pass downloadable/shareable only if it is a real post-payment confirmation.</li></ul>
+    </main>
+  </body>
+</html>

@@ -5,7 +5,12 @@ const QR_CODE_URL = '/images/college-fund-qr.png'
 const QR_CODE_FILENAME = 'uno-college-fund-qr.png'
 const { days } = useCountdown(FUND_DEADLINE)
 
-const { data, refresh } = useFetch<{ contributions: any[]; total: number; goal: number }>('/api/public/fund')
+const { data, refresh } = useFetch<{
+  contributions: any[]
+  contributorCount: number
+  total: number
+  goal: number
+}>('/api/public/fund')
 
 const realPct = computed(() => {
   if (!data.value?.goal) return 0
@@ -24,16 +29,7 @@ const targetAmount = computed(() => new Intl.NumberFormat('en-PH', {
 const ctaLabel = computed(() => (data.value?.total ?? 0) > 0
   ? 'Join the Pit Crew'
   : 'Be the First Pit Crew Member')
-const realContributors = computed(() => data.value?.contributions.length ?? 0)
-
-const displayContributors = ref(0)
-
 onMounted(() => {
-  const cTimer = setInterval(() => {
-    if (displayContributors.value < realContributors.value) displayContributors.value++
-    else clearInterval(cTimer)
-  }, 30)
-
   if (import.meta.client) {
     const qrImage = new Image()
     qrImage.onload = () => { qrCodeAvailable.value = true }
@@ -60,17 +56,6 @@ const submitted = ref(false)
 const error = ref('')
 const submittedDate = ref('')
 const contributionNumber = ref(0)
-
-// Dev flag: cycle through views without a real submission
-const devView = ref<'form' | 'receipt' | 'pass'>('form')
-const previewReceipt = computed(() => devView.value === 'receipt')
-const showReceipt = computed(() => submitted.value ? devView.value !== 'pass' : devView.value === 'receipt')
-const showPass = computed(() => devView.value === 'pass')
-
-const viewLabels: Record<string, string> = { form: 'Form', receipt: 'Receipt', pass: 'Pass' }
-function cycleView() {
-  devView.value = devView.value === 'form' ? 'receipt' : devView.value === 'receipt' ? 'pass' : 'form'
-}
 
 function resetForm() {
   form.name = ''
@@ -199,7 +184,7 @@ async function submit() {
       <!-- Stats row -->
       <div class="grid grid-cols-2 w-full max-w-[240px] md:max-w-xs divide-x divide-race-blue/20">
         <div class="text-center px-4 md:px-6">
-          <p class="font-racing text-[clamp(1.9rem,7vw,3rem)] text-race-black leading-none">{{ displayContributors }}</p>
+          <p class="font-racing text-[clamp(1.9rem,7vw,3rem)] text-race-black leading-none">{{ data?.contributorCount ?? 0 }}</p>
           <p class="font-sans text-[9px] uppercase tracking-wider text-race-gray/50 mt-0.5">Contributors</p>
         </div>
         <div class="text-center px-4 md:px-6">
@@ -237,10 +222,10 @@ async function submit() {
       style="transform: scale(1.10); opacity: 75%;" />
 
     <!-- Back link -->
-    <div class="text-center pb-5 relative z-10">
+    <div class="text-center pb-7 relative z-10">
       <NuxtLink
         to="/"
-        class="font-sans text-[10px] uppercase tracking-widest text-race-gray/40 hover:text-race-gray transition-colors"
+        class="inline-flex min-h-11 items-center justify-center px-4 font-racing text-[10px] uppercase tracking-[0.18em] text-race-blue transition-colors hover:text-race-black focus:outline-none focus-visible:ring-2 focus-visible:ring-race-blue focus-visible:ring-offset-2"
       >
         ← Back to the race
       </NuxtLink>
@@ -269,12 +254,6 @@ async function submit() {
           </div>
           <div class="flex items-center gap-3">
             <button
-              @click="cycleView"
-              class="font-sans text-[9px] uppercase tracking-widest border px-2 py-1 rounded transition-colors"
-              :class="devView !== 'form' ? 'border-race-blue text-race-blue bg-race-blue/10' : 'border-white/20 text-white/30 hover:border-white/40 hover:text-white/50'"
-              title="Cycle views"
-            >{{ viewLabels[devView] }}</button>
-            <button
               @click="closeDrawer"
               class="text-white/50 hover:text-white transition-colors text-2xl leading-none"
               aria-label="Close"
@@ -282,117 +261,8 @@ async function submit() {
           </div>
         </div>
 
-        <!-- Success state: Pit Stop Receipt -->
-        <div v-if="showReceipt" class="receipt-bg flex-1 min-h-0 overflow-y-auto">
-          <div class="min-h-full px-4 py-6 flex flex-col items-center justify-center gap-5">
-
-          <!-- Receipt card -->
-          <div ref="receiptCardEl" class="relative w-full flex-shrink-0 rounded-2xl border-2 border-dashed border-race-blue/25 bg-[#fffdf7] shadow-xl overflow-hidden">
-
-            <!-- Watercolor top wash -->
-            <div class="absolute inset-x-0 top-0 h-32 opacity-20 pointer-events-none"
-              style="background: radial-gradient(ellipse at 30% 0%, #b9d4ea 0%, transparent 65%), radial-gradient(ellipse at 80% 0%, #d6e6f2 0%, transparent 60%);"></div>
-
-            <!-- Confetti dots -->
-            <div aria-hidden="true" class="absolute inset-0 pointer-events-none overflow-hidden">
-              <span class="absolute top-4 left-6 w-1.5 h-1.5 rounded-full bg-race-blue/30"></span>
-              <span class="absolute top-8 left-16 w-1 h-1 rounded-full bg-yellow-300/60"></span>
-              <span class="absolute top-3 right-10 w-2 h-1 rounded-full bg-race-blue/20"></span>
-              <span class="absolute top-14 right-6 w-1 h-1 rounded-full bg-yellow-400/50"></span>
-              <span class="absolute top-6 right-24 w-1.5 h-1.5 rounded-full bg-race-blue/25"></span>
-            </div>
-
-            <!-- Hero: Trophy + Badge headline -->
-            <div class="relative px-6 pt-8 pb-4 text-center">
-              <img src="~/assets/images/icons/trophy.svg" aria-hidden="true" class="w-12 h-12 mx-auto mb-2" />
-              <p class="font-racing text-race-blue text-lg uppercase tracking-[0.2em] leading-tight">Officially Joined<br/>the Pit Crew</p>
-              <p class="font-sans text-[11px] text-race-gray/50 mt-1.5 leading-relaxed">
-                just dropped fuel for Uno's biggest race yet! 🏁
-              </p>
-            </div>
-
-            <!-- Tire tread divider -->
-            <div class="mx-4 border-t-2 border-dashed border-race-blue/20"></div>
-
-            <!-- 2-col receipt grid -->
-            <div class="px-6 pt-5 pb-4 grid grid-cols-2 gap-x-4 gap-y-4">
-
-              <div class="flex items-start gap-2">
-                <img src="~/assets/images/icons/helment-icon.svg" aria-hidden="true" class="w-7 h-7 flex-shrink-0 mt-0.5" />
-                <div>
-                  <p class="font-racing text-[8px] uppercase tracking-[0.2em] text-race-gray/50">Pit Crew Member</p>
-                  <p class="font-sans text-sm text-race-black font-medium leading-tight">{{ form.name || '—' }}</p>
-                </div>
-              </div>
-
-              <div class="flex items-start gap-2">
-                <img src="~/assets/images/icons/fuel-icon.svg" aria-hidden="true" class="w-7 h-7 flex-shrink-0 mt-0.5" />
-                <div>
-                  <p class="font-racing text-[8px] uppercase tracking-[0.2em] text-race-gray/50">Future Fuel Added</p>
-                  <p class="font-sans text-sm text-race-black font-medium leading-tight">₱{{ Number(form.amount || 0).toLocaleString('en-PH') }}</p>
-                </div>
-              </div>
-
-              <div class="flex items-start gap-2">
-                <img src="~/assets/images/icons/calendar.svg" aria-hidden="true" class="w-7 h-7 flex-shrink-0 mt-0.5" />
-                <div>
-                  <p class="font-racing text-[8px] uppercase tracking-[0.2em] text-race-gray/50">Date</p>
-                  <p class="font-sans text-sm text-race-black leading-tight">{{ submittedDate || 'July 31, 2026' }}</p>
-                </div>
-              </div>
-
-              <div class="flex items-start gap-2">
-                <img src="~/assets/images/icons/race-car-icon.svg" aria-hidden="true" class="w-7 h-7 flex-shrink-0 mt-0.5" />
-                <div>
-                  <p class="font-racing text-[8px] uppercase tracking-[0.2em] text-race-gray/50">Pit Stop No.</p>
-                  <p class="font-sans text-sm text-race-black leading-tight">#{{ String(contributionNumber || 1).padStart(3, '0') }}</p>
-                </div>
-              </div>
-
-            </div>
-
-            <!-- Message row: full-width, only if present -->
-            <div v-if="form.message" class="px-6 pb-4 flex items-start gap-2">
-              <img src="~/assets/images/icons/message-icon.svg" aria-hidden="true" class="w-7 h-7 flex-shrink-0 mt-0.5" />
-              <div>
-                <p class="font-racing text-[8px] uppercase tracking-[0.2em] text-race-gray/50">Birthday Wish</p>
-                <p class="font-sans text-sm text-race-black italic leading-snug line-clamp-3">"{{ form.message }}"</p>
-              </div>
-            </div>
-
-            <!-- Tear line -->
-            <div class="mx-4 border-t-2 border-dashed border-race-blue/20"></div>
-
-            <!-- Stamp + thank you -->
-            <div class="px-6 py-4 text-center flex flex-col items-center gap-2">
-              <div class="inline-flex items-center gap-1.5 border-2 border-race-blue/40 rounded-lg px-3 py-1.5 rotate-[-2deg]">
-                <span class="text-xs">✔️</span>
-                <p class="font-racing text-race-blue text-[9px] uppercase tracking-[0.2em]">Verified at the Pit Stop</p>
-              </div>
-              <p class="font-sans text-[10px] text-race-gray/50 leading-relaxed max-w-[240px]">
-                Every lap begins with a little fuel. Thank you for helping Uno race toward his biggest finish line.
-              </p>
-            </div>
-
-            <!-- Footer: brand signature -->
-            <div class="bg-race-black/5 py-4 flex flex-col items-center gap-0.5">
-              <p class="font-script text-race-blue/60 text-2xl leading-none">Uno's First</p>
-              <p class="font-racing text-[8px] uppercase tracking-[0.35em] text-race-gray/35">September 13, 2026 · Manila</p>
-            </div>
-
-          </div>
-
-          <!-- Back button -->
-          <button
-            @click="closeDrawer"
-            class="flex-shrink-0 font-racing text-xs uppercase tracking-widest text-race-blue border border-race-blue/40 px-8 py-2.5 rounded-full hover:bg-race-blue hover:text-white transition-colors"
-          >Back to the race</button>
-
-          </div><!-- end min-h-full -->
-        </div><!-- end showReceipt -->
-
         <!-- Pit Crew Pass -->
-        <div v-else-if="showPass" class="receipt-bg flex-1 min-h-0 overflow-y-auto">
+        <div v-if="submitted" class="receipt-bg flex-1 min-h-0 overflow-y-auto">
           <div class="min-h-full px-5 py-8 flex flex-col items-center justify-center gap-6">
 
             <!-- Thank you message -->

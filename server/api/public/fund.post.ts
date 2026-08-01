@@ -23,7 +23,9 @@ export default defineEventHandler(async (event) => {
       amount,
       message: body.message?.trim() || null,
       proof_url: body.proofUrl || null,
-      show_on_public: false,
+      // Public submissions are approved immediately so the fund wall and
+      // contributor count update as soon as the donor receives their pass.
+      show_on_public: true,
       created_at: now,
       updated_at: now,
     })
