@@ -155,47 +155,45 @@ async function submit() {
             </label>
             <div class="flex flex-col gap-3">
               <div v-for="(_, i) in form.attendees" :key="i" class="border-b border-white/10 pb-3 last:border-b-0">
-                <div class="flex gap-2 items-stretch">
+                <div class="flex items-center gap-2">
                   <input
                     v-model="form.attendees[i]"
                     type="text"
-                    :placeholder="`Guest ${i + 1} full name`"
+                    :placeholder="`Guest ${i + 1} name`"
                     class="min-w-0 flex-1 bg-white/5 border border-white/10 font-sans text-sm px-4 py-3 focus:outline-none focus:border-race-blue transition-colors placeholder:text-white/30"
                     style="color: #f5f0eb;"
                   />
+                  <div
+                    class="relative grid h-10 w-[7.25rem] shrink-0 grid-cols-2 rounded-full border border-white/15 bg-black/20 p-1"
+                    role="group"
+                    :aria-label="`Guest ${i + 1} type`"
+                  >
+                    <span
+                      aria-hidden="true"
+                      class="absolute inset-y-1 left-1 w-[calc(50%-0.25rem)] rounded-full bg-race-blue shadow-sm transition-transform duration-300 ease-out motion-reduce:transition-none"
+                      :class="form.isKid[i] ? 'translate-x-full' : 'translate-x-0'"
+                    />
+                    <button
+                      type="button"
+                      class="relative z-10 rounded-full font-sans text-[9px] font-semibold uppercase tracking-wider transition-colors duration-200"
+                      :class="!form.isKid[i] ? 'text-white' : 'text-white/45 hover:text-white/70'"
+                      :aria-pressed="!form.isKid[i]"
+                      @click="form.isKid[i] = false"
+                    >Adult</button>
+                    <button
+                      type="button"
+                      class="relative z-10 rounded-full font-sans text-[9px] font-semibold uppercase tracking-wider transition-colors duration-200"
+                      :class="form.isKid[i] ? 'text-white' : 'text-white/45 hover:text-white/70'"
+                      :aria-pressed="form.isKid[i]"
+                      @click="form.isKid[i] = true"
+                    >Kid</button>
+                  </div>
                   <button
                     type="button"
                     class="min-h-11 min-w-11 text-white/40 hover:text-white/70 transition-colors font-sans text-xl leading-none"
                     :aria-label="`Remove guest ${i + 1}`"
                     @click="removeAttendee(i)"
                   >×</button>
-                </div>
-                <div class="mt-3 flex items-center gap-3 px-1">
-                  <span class="font-sans text-[10px] uppercase tracking-widest text-white/40">Guest type</span>
-                  <div
-                    class="inline-flex rounded-full border border-white/15 bg-black/20 p-1"
-                    role="group"
-                    :aria-label="`Guest ${i + 1} type`"
-                  >
-                    <button
-                      type="button"
-                      class="min-h-9 rounded-full px-4 font-sans text-[10px] font-semibold uppercase tracking-widest transition-all"
-                      :class="!form.isKid[i]
-                        ? 'bg-race-blue text-white shadow-sm'
-                        : 'text-white/45 hover:text-white/70'"
-                      :aria-pressed="!form.isKid[i]"
-                      @click="form.isKid[i] = false"
-                    >Adult</button>
-                    <button
-                      type="button"
-                      class="min-h-9 rounded-full px-4 font-sans text-[10px] font-semibold uppercase tracking-widest transition-all"
-                      :class="form.isKid[i]
-                        ? 'bg-race-blue text-white shadow-sm'
-                        : 'text-white/45 hover:text-white/70'"
-                      :aria-pressed="form.isKid[i]"
-                      @click="form.isKid[i] = true"
-                    >Kid</button>
-                  </div>
                 </div>
               </div>
             </div>
