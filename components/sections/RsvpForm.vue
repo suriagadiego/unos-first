@@ -154,28 +154,30 @@ async function submit() {
               Who else is coming? <span class="normal-case">(optional)</span>
             </label>
             <div class="flex flex-col gap-2">
-              <div v-for="(_, i) in form.attendees" :key="i" class="flex gap-2 items-stretch">
-                <button
-                  type="button"
-                  class="font-sans text-[10px] font-bold uppercase tracking-widest px-3 transition-all border"
-                  :class="form.isKid[i]
-                    ? 'bg-amber-400 border-amber-400 text-black'
-                    : 'bg-transparent border-white/10 text-white/25 hover:border-white/30 hover:text-white/40'"
-                  :title="form.isKid[i] ? 'Mark as adult' : 'Mark as kid'"
-                  @click="form.isKid[i] = !form.isKid[i]"
-                >kid</button>
-                <input
-                  v-model="form.attendees[i]"
-                  type="text"
-                  :placeholder="`Guest ${i + 1}`"
-                  class="flex-1 bg-white/5 border border-white/10 font-sans text-sm px-4 py-3 focus:outline-none focus:border-race-blue transition-colors placeholder:text-white/30"
-                  style="color: #f5f0eb;"
-                />
-                <button
-                  type="button"
-                  class="text-white/30 hover:text-white/60 transition-colors px-2 font-sans text-lg leading-none"
-                  @click="removeAttendee(i)"
-                >×</button>
+              <div v-for="(_, i) in form.attendees" :key="i" class="border border-white/10 bg-white/[0.02] p-3">
+                <div class="flex gap-2 items-stretch">
+                  <input
+                    v-model="form.attendees[i]"
+                    type="text"
+                    :placeholder="`Guest ${i + 1} full name`"
+                    class="min-w-0 flex-1 bg-white/5 border border-white/10 font-sans text-sm px-4 py-3 focus:outline-none focus:border-race-blue transition-colors placeholder:text-white/30"
+                    style="color: #f5f0eb;"
+                  />
+                  <button
+                    type="button"
+                    class="min-h-11 min-w-11 text-white/40 hover:text-white/70 transition-colors font-sans text-xl leading-none"
+                    :aria-label="`Remove guest ${i + 1}`"
+                    @click="removeAttendee(i)"
+                  >×</button>
+                </div>
+                <label class="mt-2 inline-flex min-h-11 cursor-pointer items-center gap-3 px-1 font-sans text-sm text-white/70">
+                  <input
+                    v-model="form.isKid[i]"
+                    type="checkbox"
+                    class="h-5 w-5 cursor-pointer accent-race-blue"
+                  />
+                  <span>This guest is a child</span>
+                </label>
               </div>
             </div>
             <button
