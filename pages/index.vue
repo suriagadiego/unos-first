@@ -1,3 +1,30 @@
+<script setup lang="ts">
+const title = 'Uno is turning ONE! 🏁'
+const description = 'View the invitation and RSVP for Uno’s first birthday celebration.'
+const url = 'https://unosfirst.com'
+const image = 'https://unosfirst.com/uno-preview.jpg'
+
+useSeoMeta({
+  title,
+  description,
+  ogTitle: title,
+  ogDescription: description,
+  ogType: 'website',
+  ogUrl: url,
+  ogImage: image,
+  ogImageWidth: 1200,
+  ogImageHeight: 630,
+  twitterCard: 'summary_large_image',
+  twitterTitle: title,
+  twitterDescription: description,
+  twitterImage: image,
+})
+
+useHead({
+  link: [{ rel: 'canonical', href: url }],
+})
+</script>
+
 <template>
   <div class="overflow-x-hidden">
     <NavBar />

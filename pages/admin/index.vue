@@ -402,12 +402,20 @@
                   <td class="px-4 py-3 font-semibold">₱{{ Number(c.amount).toLocaleString() }}</td>
                   <td class="px-4 py-3 text-gray-500 max-w-48 truncate">{{ c.message || '—' }}</td>
                   <td class="px-4 py-2 whitespace-nowrap">
-                    <img
+                    <button
                       v-if="c.proofUrl"
-                      :src="`/api/admin/fund/${c.id}/proof`"
-                      :alt="`Donation proof from ${c.submitterName}`"
-                      class="h-12 w-12 rounded-lg border border-gray-200 bg-gray-50 object-cover"
-                    />
+                      type="button"
+                      class="group relative block rounded-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
+                      :aria-label="`Zoom donation proof from ${c.submitterName}`"
+                      @click="proofLb.open(c)"
+                    >
+                      <img
+                        :src="`/api/admin/fund/${c.id}/proof`"
+                        :alt="`Donation proof from ${c.submitterName}`"
+                        class="h-12 w-12 rounded-lg border border-gray-200 bg-gray-50 object-cover transition group-hover:brightness-75"
+                      />
+                      <span class="pointer-events-none absolute inset-0 flex items-center justify-center text-lg text-white opacity-0 transition-opacity group-hover:opacity-100" aria-hidden="true">⌕</span>
+                    </button>
                     <span v-else class="text-gray-400">—</span>
                   </td>
                   <td class="px-4 py-3 text-gray-500 whitespace-nowrap">{{ fmtDate(c.createdAt) }}</td>
@@ -564,6 +572,34 @@
               @click="lb.index = i">
               <img :src="p.url" class="w-full h-full object-cover" loading="lazy" />
             </div>
+          </div>
+        </div>
+      </Teleport>
+
+      <!-- Fund proof lightbox -->
+      <Teleport to="body">
+        <div
+          v-if="proofLb.url"
+          ref="proofLbEl"
+          tabindex="0"
+          class="fixed inset-0 z-[70] flex flex-col bg-black/95 outline-none"
+          role="dialog"
+          aria-modal="true"
+          :aria-label="`Donation proof from ${proofLb.name}`"
+          @click.self="proofLb.close()"
+          @keydown.esc="proofLb.close()"
+        >
+          <div class="flex flex-shrink-0 items-center justify-between px-5 py-3">
+            <span class="text-sm font-medium text-white/70">Proof from {{ proofLb.name }}</span>
+            <button
+              type="button"
+              class="text-3xl leading-none text-white/60 transition-colors hover:text-white"
+              aria-label="Close proof preview"
+              @click="proofLb.close()"
+            >×</button>
+          </div>
+          <div class="flex min-h-0 flex-1 items-center justify-center p-5" @click.self="proofLb.close()">
+            <img :src="proofLb.url" :alt="`Donation proof from ${proofLb.name}`" class="max-h-full max-w-full rounded-lg object-contain shadow-2xl" />
           </div>
         </div>
       </Teleport>
@@ -909,6 +945,20 @@ watch(() => fundData.value, (v) => { if (v?.goal) fd.goal = v.goal }, { immediat
 const fundContribs = computed(() => fundData.value?.contributions ?? [])
 const fundPaged = computed(() => fundContribs.value.slice((fd.page-1)*25, fd.page*25))
 const fundGoalPct = computed(() => fd.goal ? Math.round(((fundData.value?.grandTotal??0) / fd.goal)*100) : 0)
+const proofLbEl = ref<HTMLElement>()
+const proofLb = reactive({
+  url: '',
+  name: '',
+  open(contribution: any) {
+    this.url = `/api/admin/fund/${contribution.id}/proof`
+    this.name = contribution.submitterName || 'contributor'
+    nextTick(() => proofLbEl.value?.focus())
+  },
+  close() {
+    this.url = ''
+    this.name = ''
+  },
+})
 
 async function saveGoal() {
   try { await $fetch('/api/admin/fund/settings', { method:'PATCH', body:{ goal:fd.goal } }); await rFund(); await rStats(); toast.success('Goal updated') }

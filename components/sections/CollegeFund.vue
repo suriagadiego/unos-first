@@ -222,7 +222,7 @@ async function submit() {
       style="transform: scale(1.10); opacity: 75%;" />
 
     <!-- Back link -->
-    <div class="text-center pb-12 relative z-10">
+    <div class="text-center pb-16 relative z-10">
       <NuxtLink
         to="/"
         class="inline-flex min-h-11 items-center justify-center px-4 font-racing text-[10px] uppercase tracking-[0.18em] text-race-blue transition-colors hover:text-race-black focus:outline-none focus-visible:ring-2 focus-visible:ring-race-blue focus-visible:ring-offset-2"
