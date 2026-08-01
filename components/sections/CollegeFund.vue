@@ -374,14 +374,14 @@ async function submit() {
                 <div class="absolute -top-3 left-1/2 -translate-x-1/2 w-12 h-5 rounded-sm bg-race-blue/30 rotate-[-2deg] z-30 pointer-events-none"></div>
 
                 <!-- Outer rounded dashed border -->
-                <div class="border-2 border-dashed border-race-blue/50 rounded-2xl p-5 bg-white shadow-md">
+                <div class="border-2 border-dashed border-race-blue/50 rounded-2xl p-2.5 bg-white shadow-md">
                   <img
                     v-if="qrCodeAvailable"
                     :src="QR_CODE_URL"
                     alt="GCash QR code for Uno's college fund"
-                    class="w-36 h-36 object-contain"
+                    class="w-44 h-44 object-contain"
                   />
-                  <div v-else class="w-36 h-36 bg-race-gray/8 border border-race-gray/20 flex items-center justify-center">
+                  <div v-else class="w-44 h-44 bg-race-gray/8 border border-race-gray/20 flex items-center justify-center">
                     <p class="font-sans text-[10px] text-race-gray/50 text-center uppercase tracking-wider leading-relaxed">GCash QR<br/>coming soon</p>
                   </div>
                 </div>
