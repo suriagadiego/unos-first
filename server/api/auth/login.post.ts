@@ -1,4 +1,4 @@
-import { createAdminToken } from '../../utils/auth'
+import { createAdminToken, setAdminSessionCookie } from '../../utils/auth'
 
 export default defineEventHandler(async (event) => {
   const body = await readBody(event)
@@ -9,14 +9,7 @@ export default defineEventHandler(async (event) => {
   }
 
   const token = await createAdminToken()
-
-  setCookie(event, 'admin_token', token, {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
-    sameSite: 'lax',
-    maxAge: 60 * 60 * 24 * 7,
-    path: '/',
-  })
+  setAdminSessionCookie(event, token)
 
   return { ok: true }
 })
