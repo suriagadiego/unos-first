@@ -4,7 +4,7 @@ export default defineEventHandler(async () => {
   const sb = useSupabase()
   const { data, error } = await sb
     .from('rsvps')
-    .select('id, display_name, headcount, sort_order, guest_names')
+    .select('id, display_name, headcount, sort_order, guest_names, kids_names')
     .is('deleted_at', null)
     .eq('show_on_public', true)
     .eq('status', 'confirmed')
@@ -16,5 +16,6 @@ export default defineEventHandler(async () => {
     headcount: r.headcount,
     sortOrder: r.sort_order,
     guestNames: r.guest_names ?? [],
+    kidsNames: r.kids_names ?? [],
   }))
 })

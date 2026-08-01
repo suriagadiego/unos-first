@@ -6,6 +6,7 @@ const props = defineProps<{
   name: string
   headcount?: number | null
   guestNames?: string[]
+  kidsNames?: string[]
   salt?: number
   active?: boolean
 }>()
@@ -64,9 +65,18 @@ const teamName = computed(() => getTeamName(props.name, props.headcount, props.g
           <p
             v-for="n in guestNames"
             :key="n"
-            class="font-sans text-xs leading-tight truncate font-semibold"
+            class="flex min-w-0 items-center gap-1 font-sans text-xs font-semibold leading-tight"
             style="color: #f5f0eb;"
-          >{{ n.split(' ')[0] }}</p>
+          >
+            <span class="truncate">{{ n.split(' ')[0] }}</span>
+            <span
+              v-if="kidsNames?.includes(n)"
+              class="shrink-0 text-[10px] leading-none"
+              role="img"
+              aria-label="Kid racer"
+              title="Kid racer"
+            >🏎️</span>
+          </p>
         </div>
       </div>
 

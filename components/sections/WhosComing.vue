@@ -12,6 +12,7 @@ const guestCards = computed(() => {
       name: r.displayName,
       headcount: r.headcount ?? null,
       guestNames: r.guestNames ?? [],
+      kidsNames: r.kidsNames ?? [],
       salt,
     }
   })
@@ -73,6 +74,7 @@ function selectCard(i: number) {
           :name="card.name"
           :headcount="card.headcount"
           :guest-names="card.guestNames"
+          :kids-names="card.kidsNames"
           :salt="card.salt"
           :active="activeCard === i"
           @select="selectCard(i)"
