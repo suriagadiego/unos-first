@@ -154,7 +154,7 @@ async function submit() {
               Who else is coming? <span class="normal-case">(optional)</span>
             </label>
             <div class="flex flex-col gap-3">
-              <div v-for="(_, i) in form.attendees" :key="i" class="border-b border-white/10 pb-3 last:border-b-0">
+              <div v-for="(_, i) in form.attendees" :key="i">
                 <div class="flex items-center gap-2">
                   <input
                     v-model="form.attendees[i]"
