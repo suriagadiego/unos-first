@@ -4,6 +4,7 @@ import { getTeamName } from '~/utils/teamName'
 const props = defineProps<{
   position: number
   name: string
+  gridName?: string | null
   headcount?: number | null
   guestNames?: string[]
   kidsNames?: string[]
@@ -14,7 +15,12 @@ const props = defineProps<{
 const emit = defineEmits<{ select: [] }>()
 
 const pos = computed(() => String(props.position).padStart(2, '0'))
-const teamName = computed(() => getTeamName(props.name, props.headcount, props.guestNames, props.salt ?? props.position))
+const teamName = computed(() => getTeamName(
+  props.gridName?.trim() || props.name,
+  props.headcount,
+  props.guestNames,
+  props.salt ?? props.position,
+))
 </script>
 
 <template>

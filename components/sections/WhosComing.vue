@@ -1,5 +1,20 @@
 <script setup lang="ts">
-const { data: apiGuests } = await useFetch<any[]>('/api/public/rsvps', { key: 'public-rsvps' })
+const { data: apiGuests, refresh: refreshGuests } = await useFetch<any[]>('/api/public/rsvps', { key: 'public-rsvps' })
+
+function refreshGrid() {
+  if (!document.hidden) void refreshGuests()
+}
+
+onMounted(() => {
+  void refreshGuests()
+  window.addEventListener('focus', refreshGrid)
+  document.addEventListener('visibilitychange', refreshGrid)
+})
+
+onBeforeUnmount(() => {
+  window.removeEventListener('focus', refreshGrid)
+  document.removeEventListener('visibilitychange', refreshGrid)
+})
 
 const guestCards = computed(() => {
   const counters: Record<string, number> = {}
@@ -10,6 +25,7 @@ const guestCards = computed(() => {
     counters[key] = salt + 1
     return {
       name: r.displayName,
+      gridName: r.gridName ?? null,
       headcount: r.headcount ?? null,
       guestNames: r.guestNames ?? [],
       kidsNames: r.kidsNames ?? [],
@@ -72,6 +88,7 @@ function selectCard(i: number) {
           :key="card.name"
           :position="i + 1"
           :name="card.name"
+          :grid-name="card.gridName"
           :headcount="card.headcount"
           :guest-names="card.guestNames"
           :kids-names="card.kidsNames"

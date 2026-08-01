@@ -17,6 +17,7 @@ export default defineEventHandler(async (event) => {
     .from('rsvps')
     .insert({
       display_name: body.displayName,
+      grid_name: body.gridName?.trim() || null,
       submitter_name: body.submitterName,
       contact: body.contact || null,
       headcount: body.headcount || 1,

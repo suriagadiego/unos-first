@@ -489,6 +489,12 @@
           </div>
 
           <div>
+            <label class="label">Grid Name <span class="normal-case font-normal text-gray-400">(optional)</span></label>
+            <input v-model="rs.form.gridName" class="input" placeholder="e.g. Sherifa" />
+            <p class="mt-1.5 text-xs text-gray-400">Overrides the name used in the “On the Grid” team title only.</p>
+          </div>
+
+          <div>
             <label class="label">Status</label>
             <div class="flex gap-2">
               <button v-for="s in ['confirmed','pending','declined']" :key="s" type="button"
@@ -792,7 +798,7 @@ const rs = reactive({
   modal: null as null | true,
   editing: null as any,
   saving: false,
-  form: { displayName:'', submitterName:'', contact:'', headcount:1, dietaryNotes:'', status:'pending', guestNames:[] as string[], kidsNames:[] as string[] },
+  form: { displayName:'', gridName:'', submitterName:'', contact:'', headcount:1, dietaryNotes:'', status:'pending', guestNames:[] as string[], kidsNames:[] as string[] },
 })
 const rm = reactive({ rsvp: null as any, activity: null as any, bucketKey: null as string | null, contribution: null as any })
 const actLogOpen = ref(false)
@@ -832,8 +838,8 @@ function removeGuest(name: string) {
 function openRsvp(row?: any) {
   rs.editing = row ?? null
   Object.assign(rs.form, row
-    ? { displayName:row.displayName, submitterName:row.submitterName, contact:row.contact??'', headcount:row.headcount??1, dietaryNotes:row.dietaryNotes??'', status:row.status, guestNames:[...(row.guestNames??[])], kidsNames:[...(row.kidsNames??[])] }
-    : { displayName:'', submitterName:'', contact:'', headcount:1, dietaryNotes:'', status:'pending', guestNames:[], kidsNames:[] }
+    ? { displayName:row.displayName, gridName:row.gridName??'', submitterName:row.submitterName, contact:row.contact??'', headcount:row.headcount??1, dietaryNotes:row.dietaryNotes??'', status:row.status, guestNames:[...(row.guestNames??[])], kidsNames:[...(row.kidsNames??[])] }
+    : { displayName:'', gridName:'', submitterName:'', contact:'', headcount:1, dietaryNotes:'', status:'pending', guestNames:[], kidsNames:[] }
   )
   rs.modal = true
 }
@@ -850,7 +856,7 @@ async function saveRsvp() {
     }
     if (rs.editing) await $fetch(`/api/admin/rsvps/${rs.editing.id}`, { method:'PATCH', body })
     else await $fetch('/api/admin/rsvps', { method:'POST', body })
-    rs.modal = null; await rRsvps(); await rStats()
+    rs.modal = null; await rRsvps(); await rStats(); await refreshNuxtData('public-rsvps')
     toast.success(rs.editing ? 'RSVP updated' : 'RSVP created')
   } catch { toast.error('Failed to save') }
   finally { rs.saving = false }

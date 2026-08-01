@@ -28,6 +28,7 @@ export function toRsvp(r: any) {
   return {
     id: r.id,
     displayName: r.display_name,
+    gridName: r.grid_name ?? null,
     submitterName: r.submitter_name,
     contact: r.contact,
     headcount: r.headcount,
