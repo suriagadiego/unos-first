@@ -32,12 +32,12 @@ export function getTeamName(
 
   if (headcount === 1) {
     const arr = [
-      `Flying ${first}`,
       `${first} Unleashed`,
       `Maximum ${first}`,
       `${first} on Pole`,
       `Lone Wolf ${first}`,
       `${first} Redline`,
+      `Flying ${first}`,
       `${first} Apex`,
       `${first} Full Send`,
     ]
