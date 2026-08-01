@@ -80,7 +80,7 @@ onBeforeUnmount(() => cancelAnimationFrame(raf))
   --rp-label:  #8A8576;
   --rp-car-w:  64px;
   position: relative;
-  padding: 72px calc(var(--rp-car-w) / 2) 0;
+  padding: 65px calc(var(--rp-car-w) / 2) 0;
 }
 .race-progress__track {
   position: relative;
