@@ -2,13 +2,6 @@ export default defineNuxtConfig({
   compatibilityDate: '2024-11-01',
   devtools: { enabled: true },
   nitro: { preset: 'cloudflare-module' },
-  routeRules: {
-    '/uno-preview-v5.png': {
-      headers: {
-        'cache-control': 'public, max-age=31536000, immutable',
-      },
-    },
-  },
   modules: ['@nuxtjs/tailwindcss'],
   css: ['~/assets/css/main.css'],
   components: {
