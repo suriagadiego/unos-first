@@ -27,7 +27,8 @@ onMounted(async () => {
 })
 
 function saveName() {
-  localStorage.setItem('uno_cam_name', nameInput.value.trim() || '__skip__')
+  if (!nameInput.value.trim()) return
+  localStorage.setItem('uno_cam_name', nameInput.value.trim())
   showNamePrompt.value = false
 }
 
@@ -137,19 +138,13 @@ function retry() {
             <p class="font-racing text-white text-2xl tracking-widest mb-2">WHO ARE YOU?</p>
             <p class="font-sans text-white/40 text-sm">So Uno knows who took these shots</p>
           </div>
-          <input v-model="nameInput" type="text" placeholder="Your name (optional)" maxlength="40"
+          <input v-model="nameInput" type="text" placeholder="Your name" maxlength="40"
             class="w-full max-w-sm px-4 py-3 rounded-xl bg-white/5 border border-white/15 text-white placeholder-white/20 font-sans text-base focus:outline-none focus:border-[#6B8CAE]/60"
             @keyup.enter="saveName" />
-          <div class="flex gap-3 w-full max-w-sm">
-            <button @click="saveName"
-              class="flex-1 py-3 rounded-xl bg-[#6B8CAE] text-white font-sans text-sm font-semibold">
-              Let's go →
-            </button>
-            <button @click="saveName"
-              class="px-4 py-3 rounded-xl border border-white/10 text-white/40 font-sans text-sm">
-              Skip
-            </button>
-          </div>
+          <button @click="saveName" :disabled="!nameInput.trim()"
+            class="w-full max-w-sm py-3 rounded-xl bg-[#6B8CAE] text-white font-sans text-sm font-semibold disabled:opacity-30 transition-opacity">
+            Let's go →
+          </button>
         </div>
       </Transition>
 

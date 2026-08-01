@@ -247,6 +247,46 @@
 
       <hr class="border-gray-200" />
 
+      <!-- ═══ POVs ════════════════════════════════════════ -->
+      <section id="povs" class="scroll-mt-20">
+        <div class="flex items-center justify-between mb-4">
+          <h2 class="section-title mb-0">POVs <span v-if="povs?.length" class="text-sm font-normal text-gray-400">({{ povs.length }} guests)</span></h2>
+          <button class="btn-secondary text-sm" @click="rPovs()">Refresh</button>
+        </div>
+
+        <div v-if="!povs?.length" class="bg-white rounded-xl border border-gray-100 shadow-sm py-14 text-center text-sm text-gray-400">
+          No guest cameras yet
+        </div>
+
+        <div v-else class="space-y-3">
+          <div v-for="g in povs" :key="g.guestId" class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+            <button class="w-full px-5 py-3.5 flex items-center justify-between hover:bg-gray-50 transition-colors"
+              @click="pov.expanded.has(g.guestId) ? pov.expanded.delete(g.guestId) : pov.expanded.add(g.guestId)">
+              <div class="flex items-center gap-3">
+                <div class="w-9 h-9 rounded-xl bg-blue-50 flex items-center justify-center text-base">📷</div>
+                <div class="text-left">
+                  <p class="text-sm font-bold text-gray-800">{{ g.guestName || 'Anonymous' }}'s POV</p>
+                  <p class="text-[11px] text-gray-400">{{ g.photos.length }} {{ g.photos.length === 1 ? 'shot' : 'shots' }}</p>
+                </div>
+              </div>
+              <span class="text-gray-400 text-sm">{{ pov.expanded.has(g.guestId) ? '▲' : '▼' }}</span>
+            </button>
+
+            <div v-if="pov.expanded.has(g.guestId)" class="px-5 pb-5 pt-1">
+              <div class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-2">
+                <div v-for="p in g.photos" :key="p.id"
+                  class="relative rounded-lg overflow-hidden bg-gray-100 aspect-square cursor-pointer"
+                  @click="povLb.open(g, p.id)">
+                  <img :src="p.url" class="w-full h-full object-cover" loading="lazy" />
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <hr class="border-gray-200" />
+
       <!-- ═══ TIME CAPSULE ═══════════════════════════════ -->
       <section id="capsule" class="scroll-mt-20">
         <h2 class="section-title mb-3">Time Capsule</h2>
@@ -518,6 +558,31 @@
         </div>
       </Teleport>
 
+      <!-- POV Lightbox -->
+      <Teleport to="body">
+        <div v-if="povLb.index !== null"
+          class="fixed inset-0 z-[60] bg-black/95 flex flex-col"
+          @keydown.left="povLb.prev()" @keydown.right="povLb.next()" @keydown.esc="povLb.close()" tabindex="0" ref="povLbEl">
+          <div class="flex items-center justify-between px-5 py-3 flex-shrink-0">
+            <span class="text-white/60 text-sm font-medium">{{ povLb.guestName }}'s POV · {{ povLb.index + 1 }} / {{ povLb.photos.length }}</span>
+            <button class="text-white/50 hover:text-white text-2xl leading-none transition-colors" @click="povLb.close()">×</button>
+          </div>
+          <div class="flex-1 flex items-center justify-center relative min-h-0 px-14">
+            <button class="absolute left-3 text-white/40 hover:text-white text-4xl leading-none transition-colors select-none" @click="povLb.prev()">‹</button>
+            <img :src="povLb.photos[povLb.index].url" class="max-h-full max-w-full object-contain rounded-lg" />
+            <button class="absolute right-3 text-white/40 hover:text-white text-4xl leading-none transition-colors select-none" @click="povLb.next()">›</button>
+          </div>
+          <div class="flex-shrink-0 flex gap-2 overflow-x-auto px-5 py-3 scrollbar-hide">
+            <div v-for="(p, i) in povLb.photos" :key="p.id"
+              class="flex-shrink-0 w-14 h-14 rounded-lg overflow-hidden cursor-pointer transition-all"
+              :class="i === povLb.index ? 'ring-2 ring-white opacity-100' : 'opacity-40 hover:opacity-70'"
+              @click="povLb.index = i">
+              <img :src="p.url" class="w-full h-full object-cover" loading="lazy" />
+            </div>
+          </div>
+        </div>
+      </Teleport>
+
       <Confirm v-if="rm.rsvp" @cancel="rm.rsvp=null" @confirm="deleteRsvp"
         :message="`Delete RSVP for ${rm.rsvp.displayName}?`" />
       <Confirm v-if="rm.activity" @cancel="rm.activity=null" @confirm="deleteActivity"
@@ -561,6 +626,7 @@ const sections = [
   { id: 'overview',    label: 'Overview' },
   { id: 'rsvps',       label: 'RSVPs' },
   { id: 'photos',      label: 'Photos' },
+  { id: 'povs',        label: 'POVs' },
   { id: 'capsule',     label: 'Time Capsule' },
   { id: 'fund',        label: "Fund" },
 ]
@@ -612,6 +678,7 @@ const { data: stats, refresh: rStats } = useFetch<any>('/api/admin/stats')
 const { data: rsvpList, refresh: rRsvps } = useFetch<any[]>('/api/admin/rsvps')
 const { data: actList,  refresh: rActs  } = useFetch<any[]>('/api/admin/activities')
 const { data: bucketPhotos, error: bucketError, refresh: rBucket } = useFetch<any[]>('/api/admin/photos/bucket')
+const { data: povs, refresh: rPovs } = useFetch<any[]>('/api/admin/cam/povs')
 const { data: capsuleList, refresh: rCapsule } = useFetch<any[]>('/api/admin/capsule')
 const { data: fundData, refresh: rFund } = useFetch<any>('/api/admin/fund')
 
@@ -780,6 +847,24 @@ async function deleteBucketPhoto() {
     toast.success('Photo deleted')
   } catch { toast.error('Failed to delete') }
 }
+
+// ─── POVs ───────────────────────────────────────────────
+const pov = reactive({ expanded: new Set<string>() })
+const povLbEl = ref<HTMLElement>()
+const povLb = reactive({
+  photos: [] as any[],
+  index: null as number | null,
+  guestName: '' as string,
+  open(group: any, id: any) {
+    this.photos = group.photos
+    this.guestName = group.guestName || 'Anonymous'
+    this.index = group.photos.findIndex((p: any) => p.id === id)
+    nextTick(() => povLbEl.value?.focus())
+  },
+  close() { this.index = null },
+  prev() { if (this.index === null) return; this.index = (this.index - 1 + this.photos.length) % this.photos.length },
+  next() { if (this.index === null) return; this.index = (this.index + 1) % this.photos.length },
+})
 
 // ─── Time Capsule ───────────────────────────────────────
 const cap = reactive({
