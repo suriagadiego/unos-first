@@ -2,7 +2,7 @@
 const title = 'Uno is turning ONE! 🏁'
 const description = 'View the invitation and RSVP for Uno’s first birthday celebration.'
 const url = 'https://unosfirst.com/invite'
-const image = 'https://unosfirst.com/uno-preview-v6.png'
+const image = 'https://raw.githubusercontent.com/suriagadiego/unos-first/master/public/uno-preview-v6.png'
 const imageAlt = 'Uno is turning one — September 6, 2026, at Santo Domingo Church and Steelworld Tower.'
 
 useSeoMeta({
@@ -13,6 +13,7 @@ useSeoMeta({
   ogType: 'website',
   ogUrl: url,
   ogImage: image,
+  ogImageUrl: image,
   ogImageSecureUrl: image,
   ogImageType: 'image/png',
   ogImageWidth: 1200,
