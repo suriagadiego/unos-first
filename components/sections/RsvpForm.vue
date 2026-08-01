@@ -206,10 +206,11 @@ async function submit() {
             <button
               v-if="form.attendees.length < 9"
               type="button"
-              class="mt-2 font-sans text-[10px] uppercase tracking-widest text-race-blue hover:text-race-blue/70 transition-colors"
+              class="mt-3 flex min-h-12 w-full items-center justify-center gap-2 border border-race-blue/50 bg-race-blue/10 px-4 font-sans text-xs font-semibold uppercase tracking-[0.16em] text-race-blue transition-all hover:border-race-blue hover:bg-race-blue hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-race-blue"
               @click="addAttendee"
             >
-              + Add another guest
+              <span aria-hidden="true" class="text-lg font-normal leading-none">+</span>
+              <span>Add another guest</span>
             </button>
           </div>
 
