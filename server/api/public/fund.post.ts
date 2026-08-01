@@ -8,6 +8,10 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 400, message: 'Name and amount are required' })
   }
 
+  if (typeof body.proofUrl !== 'string' || !body.proofUrl.trim()) {
+    throw createError({ statusCode: 400, message: 'Proof of transfer is required' })
+  }
+
   const amount = Number(body.amount)
   if (isNaN(amount) || amount <= 0) {
     throw createError({ statusCode: 400, message: 'Amount must be a positive number' })
@@ -22,7 +26,7 @@ export default defineEventHandler(async (event) => {
       submitter_name: body.submitterName.trim(),
       amount,
       message: body.message?.trim() || null,
-      proof_url: body.proofUrl || null,
+      proof_url: body.proofUrl.trim(),
       // Public submissions are approved immediately so the fund wall and
       // contributor count update as soon as the donor receives their pass.
       show_on_public: true,

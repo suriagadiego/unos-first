@@ -76,6 +76,13 @@ function onFileChange(e: Event) {
   screenshotPreview.value = URL.createObjectURL(file)
 }
 
+function onAmountInput(e: Event) {
+  const input = e.target as HTMLInputElement
+  const digitsOnly = input.value.replace(/\D/g, '')
+  input.value = digitsOnly
+  form.amount = digitsOnly
+}
+
 function downloadQrCode() {
   if (!qrCodeAvailable.value || !import.meta.client) return
 
@@ -91,6 +98,10 @@ async function submit() {
   error.value = ''
   if (!form.name.trim() || !form.amount) {
     error.value = 'Name and amount are required.'
+    return
+  }
+  if (!screenshotFile.value) {
+    error.value = 'Please attach proof of transfer before sending your gift.'
     return
   }
 
@@ -325,6 +336,12 @@ async function submit() {
                 </div>
               </div>
 
+              <!-- Message for Uno -->
+              <div v-if="form.message.trim()" class="mx-6 mb-5 rounded-xl border border-race-blue/15 bg-white/70 px-4 py-3">
+                <p class="mb-1 font-racing text-[8px] uppercase tracking-[0.25em] text-race-blue/55">Message for Uno</p>
+                <p class="whitespace-pre-wrap break-words font-sans text-xs italic leading-relaxed text-race-gray/75">“{{ form.message.trim() }}”</p>
+              </div>
+
               <!-- Bottom bar -->
               <div class="bg-race-black/5 px-6 py-3 flex items-center justify-between">
                 <p class="font-sans text-[9px] text-race-gray/40 leading-tight">{{ submittedDate || 'July 31, 2026' }}</p>
@@ -430,11 +447,13 @@ async function submit() {
             <div class="flex items-center border border-race-gray/25 focus-within:border-race-blue transition-colors">
               <span class="px-3 font-racing text-sm text-race-gray/50 border-r border-race-gray/25">₱</span>
               <input
-                v-model="form.amount"
-                type="number"
-                min="1"
+                :value="form.amount"
+                type="text"
+                inputmode="numeric"
+                pattern="[0-9]*"
                 placeholder="2000"
                 class="flex-1 px-4 py-3 font-sans text-sm text-race-black placeholder:text-race-gray/35 focus:outline-none bg-transparent"
+                @input="onAmountInput"
               />
             </div>
             <p class="font-sans text-xs text-race-gray/50">Any amount helps fuel Uno reach his finish line!</p>
@@ -444,7 +463,7 @@ async function submit() {
           <div class="flex flex-col gap-1.5">
             <label class="flex items-center gap-1.5 font-racing text-[10px] uppercase tracking-[0.3em] text-race-gray">
               <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" /></svg>
-              Proof of Transfer
+              Proof of Transfer <span class="text-red-500" aria-hidden="true">*</span>
             </label>
             <label
               class="border border-dashed border-race-gray/30 hover:border-race-blue transition-colors cursor-pointer flex flex-col items-center justify-center gap-2 py-5 px-4"
@@ -460,7 +479,7 @@ async function submit() {
                 <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 opacity-30" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" /></svg>
                 <p class="font-sans text-xs text-race-gray/50 text-center">Attach your GCash screenshot<br/>as proof of your transfer</p>
               </template>
-              <input type="file" accept="image/*" class="hidden" @change="onFileChange" />
+              <input type="file" accept="image/*" class="hidden" required aria-required="true" @change="onFileChange" />
             </label>
             <button
               v-if="screenshotPreview"
