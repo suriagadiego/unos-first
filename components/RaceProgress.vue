@@ -6,11 +6,17 @@ const props = defineProps({
   carSrc:    { type: String, required: true },
   finishSrc: { type: String, default: '' },
   animate:   { type: Boolean, default: true },
+  readoutValue: { type: String, default: '' },
+  readoutTarget: { type: String, default: '' },
+  readoutCaption: { type: String, default: 'funded' },
+  ariaLabel: { type: String, default: '' },
 })
 
 const clamp = (n) => Math.max(0, Math.min(100, n))
 const progress = ref(0)
 const displayPercent = computed(() => Math.round(progress.value))
+const resolvedReadoutValue = computed(() => props.readoutValue || `${displayPercent.value}%`)
+const resolvedAriaLabel = computed(() => props.ariaLabel || `Uno's college fund — ${displayPercent.value}% funded`)
 
 let raf
 function animateTo (target) {
@@ -43,7 +49,7 @@ onBeforeUnmount(() => cancelAnimationFrame(raf))
       :aria-valuenow="displayPercent"
       aria-valuemin="0"
       aria-valuemax="100"
-      :aria-label="`Uno's college fund — ${displayPercent}% funded`"
+      :aria-label="resolvedAriaLabel"
     >
       <div class="race-progress__readout" :style="{ left: progress + '%' }" aria-hidden="true">
         <span class="race-progress__pct">{{ displayPercent }}%</span><span class="race-progress__cap">funded</span>
@@ -106,16 +112,20 @@ onBeforeUnmount(() => cancelAnimationFrame(raf))
 }
 .race-progress__readout {
   position: absolute;
-  left: 0;
-  bottom: calc(100% + 40px);
+  left: 50%;
+  bottom: calc(100% + 10px);
   transform: translateX(-50%);
   white-space: nowrap;
   text-align: center;
   z-index: 5;
   pointer-events: none;
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
 }
 .race-progress__pct { font-size: 1.3rem; font-weight: 700; color: var(--rp-accent); }
-.race-progress__cap { font-size: 0.8rem; color: var(--rp-muted); margin-left: 5px; }
+.race-progress__cap { font-size: 0.8rem; color: var(--rp-muted); }
+.race-progress__target { font-size: 0.8rem; color: var(--rp-muted); }
 .race-progress__finish {
   position: absolute;
   right: -4px;
