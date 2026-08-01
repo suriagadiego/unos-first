@@ -1,9 +1,9 @@
 <script setup lang="ts">
+import { PARTY_DATE } from '~/utils/event'
 
-const FUND_DEADLINE = new Date('2026-09-13T00:00:00')
 const QR_CODE_URL = '/images/uno-college-fund-qr.jpg'
 const QR_CODE_FILENAME = 'uno-college-fund-qr.jpg'
-const { days } = useCountdown(FUND_DEADLINE)
+const { days } = useCountdown(PARTY_DATE)
 
 const { data, refresh } = useFetch<{
   contributions: any[]

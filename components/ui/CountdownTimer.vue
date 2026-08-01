@@ -1,5 +1,6 @@
 <script setup lang="ts">
-const PARTY_DATE = new Date('2026-09-06T10:30:00')
+import { PARTY_DATE } from '~/utils/event'
+
 const { days, hours, minutes, seconds, expired } = useCountdown(PARTY_DATE)
 
 const pad = (n: number) => String(n).padStart(2, '0')
