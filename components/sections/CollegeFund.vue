@@ -175,9 +175,9 @@ async function submit() {
         <h1 class="font-racing text-[clamp(2.4rem,8vw,5rem)] text-race-black leading-none my-2">
           Uno's College Fund
         </h1>
-        <p class="font-sans text-[11px] text-race-gray/60 max-w-[260px] mx-auto leading-relaxed">
-          Every peso goes directly into Uno's PSSLAI fund —
-          locked and invested until he reaches college.
+        <p class="font-sans text-sm md:text-base font-medium text-race-gray/80 max-w-[320px] mx-auto leading-relaxed">
+          Every peso goes into Uno's PSSLAI college fund,
+          safely invested until he reaches his own finish line.
         </p>
       </div>
 
@@ -212,7 +212,7 @@ async function submit() {
       >
         {{ ctaLabel }}
       </button>
-      <p class="font-sans text-[10px] text-race-gray/35 -mt-1">Help fuel Uno's journey.</p>
+      <p class="font-sans text-xs text-race-gray/65 -mt-1">Help fuel Uno's journey to college.</p>
 
     </div>
 
