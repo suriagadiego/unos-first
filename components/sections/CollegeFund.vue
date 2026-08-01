@@ -351,9 +351,9 @@ async function submit() {
         <div v-else class="flex-1 min-h-0 overflow-y-auto px-6 py-8 flex flex-col gap-6">
           <div class="text-center">
             <div class="flex items-center justify-center gap-2">
-              <img src="~/assets/images/left-flag.svg" alt="" aria-hidden="true" class="w-7 h-7 select-none" />
+              <img src="~/assets/images/left-flag.png" alt="" aria-hidden="true" class="w-7 h-7 select-none" />
               <p class="font-racing text-2xl tracking-wide w-fit">Fuel Uno's Journey</p>
-              <img src="~/assets/images/right-flag.svg" alt="" aria-hidden="true" class="w-7 h-7 select-none" />
+              <img src="~/assets/images/right-flag.png" alt="" aria-hidden="true" class="w-7 h-7 select-none" />
             </div>
             <p class="font-sans text-xs text-race-gray/60 text-center">Scan the QR with GCash, then tell us about your gift below.</p>
           </div>
@@ -410,7 +410,7 @@ async function submit() {
           <!-- Name -->
           <div class="flex flex-col gap-1.5">
             <label class="flex items-center gap-1.5 font-racing text-[10px] uppercase tracking-[0.3em] text-race-gray">
-              <img src="~/assets/images/icons/helment-icon.svg" aria-hidden="true" class="w-6 h-6" />
+              <img src="~/assets/images/icons/helmet-icon.png" aria-hidden="true" class="w-6 h-6" />
               Your Name
             </label>
             <input
@@ -424,7 +424,7 @@ async function submit() {
           <!-- Amount -->
           <div class="flex flex-col gap-1.5">
             <label class="flex items-center gap-1.5 font-racing text-[10px] uppercase tracking-[0.3em] text-race-gray">
-              <img src="~/assets/images/icons/fuel-icon.svg" aria-hidden="true" class="w-6 h-6" />
+              <img src="~/assets/images/icons/fuel-icon.png" aria-hidden="true" class="w-6 h-6" />
               Race Fuel Amount (₱)
             </label>
             <div class="flex items-center border border-race-gray/25 focus-within:border-race-blue transition-colors">
