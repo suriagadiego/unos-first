@@ -78,10 +78,10 @@ onBeforeUnmount(() => {
 <style scoped>
 .fund-loader-leave-active {
   will-change: transform;
-  transition: transform 520ms cubic-bezier(0.76, 0, 0.24, 1);
+  transition: transform 650ms cubic-bezier(0.76, 0, 0.24, 1);
 }
 
 .fund-loader-leave-to {
-  transform: translateX(100%);
+  transform: translateY(-100%);
 }
 </style>
