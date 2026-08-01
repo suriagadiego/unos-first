@@ -1,16 +1,26 @@
 <script setup lang="ts">
 import { PARTY_DATE } from '~/utils/event'
 
+const emit = defineEmits<{ ready: [] }>()
+
 const QR_CODE_URL = '/images/uno-college-fund-qr.jpg'
 const QR_CODE_FILENAME = 'uno-college-fund-qr.jpg'
 const { days } = useCountdown(PARTY_DATE)
 
-const { data, refresh } = useFetch<{
+const { data, refresh, status } = useFetch<{
   contributions: any[]
   contributorCount: number
   total: number
   goal: number
 }>('/api/public/fund')
+
+let hasAnnouncedReady = false
+watch(status, (currentStatus) => {
+  if (import.meta.client && !hasAnnouncedReady && (currentStatus === 'success' || currentStatus === 'error')) {
+    hasAnnouncedReady = true
+    emit('ready')
+  }
+}, { immediate: true })
 
 const realPct = computed(() => {
   if (!data.value?.goal) return 0
