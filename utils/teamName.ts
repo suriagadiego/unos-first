@@ -14,10 +14,6 @@ function lastName(fullName: string) {
   return parts.length > 1 ? parts[parts.length - 1] : parts[0]
 }
 
-function pluralize(name: string): string {
-  return /[sxz]$/i.test(name) ? `${name}es` : `${name}s`
-}
-
 export function getTeamName(
   displayName: string,
   headcount: number | null | undefined,
@@ -67,7 +63,7 @@ export function getTeamName(
 
   // 3+
   const arr = [
-    `The Flying ${pluralize(last)}`,
+    `Flying Team ${last}`,
     `${last} Racing Stable`,
     `The ${last} Pit Crew`,
     `${last} Racing Dynasty`,
@@ -77,4 +73,46 @@ export function getTeamName(
     `The ${last} Wolfpack`,
   ]
   return arr[idx(arr.length)]
+}
+
+export function reserveUniqueTeamName(
+  displayName: string,
+  headcount: number | null | undefined,
+  guestNames: string[] | undefined,
+  salt: number,
+  usedNames: Set<string>,
+): string {
+  const reserve = (candidate: string) => {
+    const key = candidate.trim().toLocaleLowerCase('en')
+    if (usedNames.has(key)) return false
+    usedNames.add(key)
+    return true
+  }
+
+  // Each headcount category currently has eight generated racing patterns.
+  for (let offset = 0; offset < 8; offset++) {
+    const candidate = getTeamName(displayName, headcount, guestNames, salt + offset)
+    if (reserve(candidate)) return candidate
+  }
+
+  // If every surname-based pattern is already occupied, switch to a more
+  // personal first-name title before ever exposing a duplicate.
+  const first = firstName(displayName)
+  const fallbacks = [
+    `Team ${first}`,
+    `${first}'s Pit Crew`,
+    `${first} Racing`,
+    `${first} Motorsport`,
+    `${first} on the Grid`,
+    `${first} Full Throttle`,
+  ]
+  for (const candidate of fallbacks) {
+    if (reserve(candidate)) return candidate
+  }
+
+  // Extremely rare final guard: keep the suffix thematic and deterministic.
+  const gridPosition = String(usedNames.size + 1).padStart(2, '0')
+  const candidate = `Team ${first} · P${gridPosition}`
+  usedNames.add(candidate.toLocaleLowerCase('en'))
+  return candidate
 }

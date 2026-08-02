@@ -1,5 +1,6 @@
 import { useSupabase, toRsvp } from '../../../utils/supabase'
 import { logAction } from '../../../utils/log'
+import { titleCaseNames, toNameTitleCase } from '../../../../utils/nameFormat'
 
 export default defineEventHandler(async (event) => {
   const body = await readBody(event)
@@ -16,11 +17,13 @@ export default defineEventHandler(async (event) => {
   const { data, error } = await sb
     .from('rsvps')
     .insert({
-      display_name: body.displayName,
-      grid_name: body.gridName?.trim() || null,
-      submitter_name: body.submitterName,
+      display_name: toNameTitleCase(body.displayName),
+      grid_name: body.gridName ? toNameTitleCase(body.gridName) : null,
+      submitter_name: toNameTitleCase(body.submitterName),
       contact: body.contact || null,
       headcount: body.headcount || 1,
+      guest_names: titleCaseNames(body.guestNames),
+      kids_names: titleCaseNames(body.kidsNames),
       dietary_notes: body.dietaryNotes || null,
       status: 'pending',
       show_on_public: false,

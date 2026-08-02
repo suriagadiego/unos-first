@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { reserveUniqueTeamName } from '~/utils/teamName'
+
 const { data: apiGuests, refresh: refreshGuests } = await useFetch<any[]>('/api/public/rsvps', { key: 'public-rsvps' })
 
 function refreshGrid() {
@@ -18,14 +20,18 @@ onBeforeUnmount(() => {
 
 const guestCards = computed(() => {
   const counters: Record<string, number> = {}
+  const usedTeamNames = new Set<string>()
   return (apiGuests.value ?? []).map((r: any) => {
     const hc = r.headcount ?? 1
     const key = hc <= 2 ? String(hc) : 'group'
     const salt = counters[key] ?? 0
     counters[key] = salt + 1
+    const displayName = r.gridName?.trim() || r.displayName
     return {
+      id: r.id,
       name: r.displayName,
       gridName: r.gridName ?? null,
+      teamName: reserveUniqueTeamName(displayName, r.headcount, r.guestNames, salt, usedTeamNames),
       headcount: r.headcount ?? null,
       guestNames: r.guestNames ?? [],
       kidsNames: r.kidsNames ?? [],
@@ -85,10 +91,11 @@ function selectCard(i: number) {
       <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
         <RacerCard
           v-for="(card, i) in guestCards"
-          :key="card.name"
+          :key="card.id"
           :position="i + 1"
           :name="card.name"
           :grid-name="card.gridName"
+          :team-name="card.teamName"
           :headcount="card.headcount"
           :guest-names="card.guestNames"
           :kids-names="card.kidsNames"

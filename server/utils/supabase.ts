@@ -3,6 +3,7 @@
 
 import { createClient } from '@supabase/supabase-js'
 import ws from 'ws'
+import { titleCaseNames, toNameTitleCase } from '../../utils/nameFormat'
 
 // typed as any so table names resolve without a generated schema file
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -27,13 +28,13 @@ export function useSupabase(): any {
 export function toRsvp(r: any) {
   return {
     id: r.id,
-    displayName: r.display_name,
-    gridName: r.grid_name ?? null,
-    submitterName: r.submitter_name,
+    displayName: toNameTitleCase(r.display_name),
+    gridName: r.grid_name ? toNameTitleCase(r.grid_name) : null,
+    submitterName: toNameTitleCase(r.submitter_name),
     contact: r.contact,
     headcount: r.headcount,
-    guestNames: r.guest_names ?? [],
-    kidsNames: r.kids_names ?? [],
+    guestNames: titleCaseNames(r.guest_names),
+    kidsNames: titleCaseNames(r.kids_names),
     dietaryNotes: r.dietary_notes,
     status: r.status,
     showOnPublic: r.show_on_public,

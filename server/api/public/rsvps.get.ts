@@ -1,4 +1,5 @@
 import { useSupabase } from '../../utils/supabase'
+import { titleCaseNames, toNameTitleCase } from '../../../utils/nameFormat'
 
 export default defineEventHandler(async () => {
   const sb = useSupabase()
@@ -12,11 +13,11 @@ export default defineEventHandler(async () => {
   if (error) throw createError({ statusCode: 500, message: error.message })
   return ((data ?? []) as any[]).map(r => ({
     id: r.id,
-    displayName: r.display_name,
-    gridName: r.grid_name ?? null,
+    displayName: toNameTitleCase(r.display_name),
+    gridName: r.grid_name ? toNameTitleCase(r.grid_name) : null,
     headcount: r.headcount,
     sortOrder: r.sort_order,
-    guestNames: r.guest_names ?? [],
-    kidsNames: r.kids_names ?? [],
+    guestNames: titleCaseNames(r.guest_names),
+    kidsNames: titleCaseNames(r.kids_names),
   }))
 })

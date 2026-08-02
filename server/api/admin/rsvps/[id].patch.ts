@@ -1,5 +1,6 @@
 import { useSupabase, toRsvp } from '../../../utils/supabase'
 import { logAction } from '../../../utils/log'
+import { titleCaseNames, toNameTitleCase } from '../../../../utils/nameFormat'
 
 export default defineEventHandler(async (event) => {
   const id = Number(getRouterParam(event, 'id'))
@@ -23,7 +24,11 @@ export default defineEventHandler(async (event) => {
   for (const [camel, snake] of Object.entries(map)) {
     if (camel in body) updates[snake] = body[camel]
   }
-  if ('gridName' in body) updates.grid_name = body.gridName?.trim() || null
+  if ('displayName' in body) updates.display_name = toNameTitleCase(body.displayName)
+  if ('submitterName' in body) updates.submitter_name = toNameTitleCase(body.submitterName)
+  if ('gridName' in body) updates.grid_name = body.gridName ? toNameTitleCase(body.gridName) : null
+  if ('guestNames' in body) updates.guest_names = titleCaseNames(body.guestNames)
+  if ('kidsNames' in body) updates.kids_names = titleCaseNames(body.kidsNames)
 
   const { data, error } = await sb
     .from('rsvps')

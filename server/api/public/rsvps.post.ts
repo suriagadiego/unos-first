@@ -1,5 +1,6 @@
 import { useSupabase } from '../../utils/supabase'
 import { logAction } from '../../utils/log'
+import { titleCaseNames, toNameTitleCase } from '../../../utils/nameFormat'
 
 export default defineEventHandler(async (event) => {
   const body = await readBody(event)
@@ -9,6 +10,13 @@ export default defineEventHandler(async (event) => {
 
   const sb = useSupabase()
   const now = new Date().toISOString()
+  const displayName = toNameTitleCase(body.displayName)
+  const submitterName = toNameTitleCase(body.submitterName)
+  const guestNames = titleCaseNames(body.guestNames)
+  const kidsNames = titleCaseNames(body.kidsNames)
+  if (!displayName || !submitterName) {
+    throw createError({ statusCode: 400, message: 'displayName and submitterName are required' })
+  }
 
   const { data: maxData } = await sb
     .from('rsvps')
@@ -20,12 +28,12 @@ export default defineEventHandler(async (event) => {
   const { data, error } = await sb
     .from('rsvps')
     .insert({
-      display_name: body.displayName,
-      submitter_name: body.submitterName,
+      display_name: displayName,
+      submitter_name: submitterName,
       contact: body.contact || null,
       headcount: body.headcount ?? 1,
-      guest_names: Array.isArray(body.guestNames) && body.guestNames.length ? body.guestNames : null,
-      kids_names: Array.isArray(body.kidsNames) && body.kidsNames.length ? body.kidsNames : null,
+      guest_names: guestNames.length ? guestNames : null,
+      kids_names: kidsNames.length ? kidsNames : null,
       dietary_notes: body.dietaryNotes || null,
       status: body.attending === 'no' ? 'declined' : 'confirmed',
       show_on_public: body.attending === 'yes',
