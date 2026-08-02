@@ -1,6 +1,7 @@
 import { useSupabase } from '../../utils/supabase'
 import { logAction } from '../../utils/log'
 import { titleCaseNames, toNameTitleCase } from '../../../utils/nameFormat'
+import { reserveUniqueTeamName } from '../../../utils/teamName'
 
 export default defineEventHandler(async (event) => {
   const body = await readBody(event)
@@ -47,5 +48,52 @@ export default defineEventHandler(async (event) => {
   if (error) throw createError({ statusCode: 500, message: error.message })
 
   void logAction('created', 'rsvp', `Public RSVP: ${data.display_name}`, data.id)
-  return { ok: true, id: data.id }
+
+  if (body.attending === 'no') {
+    return { ok: true, id: data.id, attending: false, displayName: data.display_name }
+  }
+
+  const { data: gridRows, error: gridError } = await sb
+    .from('rsvps')
+    .select('id, display_name, grid_name, headcount, guest_names')
+    .is('deleted_at', null)
+    .eq('show_on_public', true)
+    .eq('status', 'confirmed')
+    .order('sort_order', { ascending: true })
+
+  if (gridError) throw createError({ statusCode: 500, message: gridError.message })
+
+  const counters: Record<string, number> = {}
+  const usedTeamNames = new Set<string>()
+  let gridPosition: number | undefined
+  let teamName: string | undefined
+
+  for (const [index, row] of (gridRows ?? []).entries()) {
+    const headcount = row.headcount ?? 1
+    const key = headcount <= 2 ? String(headcount) : 'group'
+    const salt = counters[key] ?? 0
+    counters[key] = salt + 1
+    const rowDisplayName = toNameTitleCase(row.grid_name || row.display_name)
+    const rowTeamName = reserveUniqueTeamName(
+      rowDisplayName,
+      headcount,
+      titleCaseNames(row.guest_names),
+      salt,
+      usedTeamNames,
+    )
+
+    if (String(row.id) === String(data.id)) {
+      gridPosition = index + 1
+      teamName = rowTeamName
+    }
+  }
+
+  return {
+    ok: true,
+    id: data.id,
+    attending: true,
+    displayName: data.display_name,
+    gridPosition,
+    teamName,
+  }
 })

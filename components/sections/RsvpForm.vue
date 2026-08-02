@@ -11,6 +11,13 @@ const submitted = ref(false)
 const loading = ref(false)
 const error = ref('')
 const soloConfirmOpen = ref(false)
+const submissionResult = ref<{
+  id: string | number
+  attending: boolean
+  displayName: string
+  gridPosition?: number
+  teamName?: string
+} | null>(null)
 const nameTouched = ref(false)
 const nameInvalid = computed(() => nameTouched.value && form.name.trim().split(/\s+/).filter(Boolean).length < 2)
 
@@ -29,6 +36,13 @@ function removeAttendee(i: number) {
 function addGuestFromConfirmation() {
   soloConfirmOpen.value = false
   if (form.attendees.length === 0) addAttendee()
+}
+
+function viewTeamOnGrid() {
+  if (!submissionResult.value?.id) return
+  window.dispatchEvent(new CustomEvent('rsvp:reveal-team', {
+    detail: { id: submissionResult.value.id },
+  }))
 }
 
 async function submit(soloConfirmed = false) {
@@ -54,7 +68,13 @@ async function submit(soloConfirmed = false) {
   loading.value = true
 
   try {
-    await $fetch('/api/public/rsvps', {
+    const result = await $fetch<{
+      id: string | number
+      attending: boolean
+      displayName: string
+      gridPosition?: number
+      teamName?: string
+    }>('/api/public/rsvps', {
       method: 'POST',
       body: {
         displayName: form.name,
@@ -66,8 +86,9 @@ async function submit(soloConfirmed = false) {
         attending: form.attending,
       },
     })
+    submissionResult.value = result
     submitted.value = true
-    refreshNuxtData('public-rsvps')
+    await refreshNuxtData('public-rsvps')
   } catch {
     error.value = 'Something went wrong. Please try again.'
   } finally {
@@ -116,9 +137,50 @@ async function submit(soloConfirmed = false) {
       </p>
 
       <Transition name="fade">
-        <div v-if="submitted" class="text-center py-12">
-          <p class="font-racing text-3xl text-race-blue mb-2">You're on the grid!</p>
-          <p class="font-sans text-sm text-race-gray">See you at the starting line, {{ form.name }}.</p>
+        <div v-if="submitted" class="rsvp-success relative overflow-hidden border border-white/10 bg-white/[0.035] px-5 py-9 text-center sm:px-8">
+          <div class="checkered-sweep absolute inset-x-0 top-0 h-2" aria-hidden="true" />
+
+          <template v-if="submissionResult?.attending">
+            <p class="success-eyebrow font-sans text-[9px] font-semibold uppercase tracking-[0.42em] text-race-blue">
+              Entry confirmed
+            </p>
+            <p class="success-title mt-3 font-racing text-4xl leading-none text-[#f5f0eb] sm:text-5xl">
+              You're on the grid!
+            </p>
+
+            <div class="success-details mx-auto mt-7 flex max-w-xs items-center justify-center gap-5">
+              <div v-if="submissionResult.gridPosition" class="shrink-0 text-left">
+                <p class="font-racing text-4xl leading-none text-race-blue">
+                  P{{ String(submissionResult.gridPosition).padStart(2, '0') }}
+                </p>
+                <p class="mt-1 font-sans text-[8px] uppercase tracking-[0.28em] text-white/35">Starting position</p>
+              </div>
+              <div v-if="submissionResult.gridPosition && submissionResult.teamName" class="h-12 w-px bg-white/10" />
+              <div v-if="submissionResult.teamName" class="min-w-0 text-left">
+                <p class="font-racing text-xl leading-tight text-[#f5f0eb]">{{ submissionResult.teamName }}</p>
+                <p class="mt-1 font-sans text-[8px] uppercase tracking-[0.28em] text-white/35">Official team</p>
+              </div>
+            </div>
+
+            <p class="success-copy mt-6 font-sans text-sm text-race-gray">
+              See you at the starting line, {{ submissionResult.displayName }}.
+            </p>
+            <button
+              type="button"
+              class="success-action mt-7 min-h-12 w-full bg-race-blue px-5 font-sans text-[11px] font-semibold uppercase tracking-[0.18em] text-white transition-colors hover:bg-race-blue/80"
+              @click="viewTeamOnGrid"
+            >
+              See my team on the grid ↓
+            </button>
+          </template>
+
+          <template v-else>
+            <p class="font-sans text-[9px] font-semibold uppercase tracking-[0.42em] text-race-blue">Response received</p>
+            <p class="mt-3 font-racing text-4xl leading-none text-[#f5f0eb]">We'll miss you!</p>
+            <p class="mt-5 font-sans text-sm leading-relaxed text-race-gray">
+              Thanks for letting us know, {{ submissionResult?.displayName || form.name }}.
+            </p>
+          </template>
         </div>
 
         <form v-else class="flex flex-col gap-5" @submit.prevent="submit()">
@@ -299,5 +361,59 @@ async function submit(soloConfirmed = false) {
 }
 .fade-enter-from, .fade-leave-to {
   opacity: 0;
+}
+
+.checkered-sweep {
+  background-color: #f5f0eb;
+  background-image:
+    linear-gradient(45deg, #171717 25%, transparent 25%, transparent 75%, #171717 75%),
+    linear-gradient(45deg, #171717 25%, transparent 25%, transparent 75%, #171717 75%);
+  background-position: 0 0, 8px 8px;
+  background-size: 16px 16px;
+  transform-origin: left;
+  animation: flag-sweep 850ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.success-eyebrow,
+.success-title,
+.success-details,
+.success-copy,
+.success-action {
+  opacity: 0;
+  animation: success-rise 480ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+.success-eyebrow { animation-delay: 180ms; }
+.success-title { animation-delay: 260ms; }
+.success-details { animation-delay: 390ms; }
+.success-copy { animation-delay: 500ms; }
+.success-action { animation-delay: 610ms; }
+
+@keyframes flag-sweep {
+  from { transform: scaleX(0); }
+  to { transform: scaleX(1); }
+}
+
+@keyframes success-rise {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .checkered-sweep,
+  .success-eyebrow,
+  .success-title,
+  .success-details,
+  .success-copy,
+  .success-action {
+    animation: none;
+    opacity: 1;
+  }
 }
 </style>
