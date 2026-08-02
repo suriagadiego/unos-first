@@ -10,6 +10,7 @@ const form = reactive({
 const submitted = ref(false)
 const loading = ref(false)
 const error = ref('')
+const soloConfirmOpen = ref(false)
 const nameTouched = ref(false)
 const nameInvalid = computed(() => nameTouched.value && form.name.trim().split(/\s+/).filter(Boolean).length < 2)
 
@@ -25,7 +26,12 @@ function removeAttendee(i: number) {
   form.isKid.splice(i, 1)
 }
 
-async function submit() {
+function addGuestFromConfirmation() {
+  soloConfirmOpen.value = false
+  if (form.attendees.length === 0) addAttendee()
+}
+
+async function submit(soloConfirmed = false) {
   nameTouched.value = true
   if (!form.name || !form.attending) {
     error.value = 'Please fill in your name and RSVP status.'
@@ -39,6 +45,10 @@ async function submit() {
   const filledKids = form.attendees
     .map((n, i) => (form.isKid[i] ? n.trim() : ''))
     .filter(Boolean)
+  if (form.attending === 'yes' && extraGuests.length === 0 && !soloConfirmed) {
+    soloConfirmOpen.value = true
+    return
+  }
   const allGuests = form.attending === 'yes' ? [form.name.trim(), ...extraGuests] : []
   error.value = ''
   loading.value = true
@@ -111,7 +121,7 @@ async function submit() {
           <p class="font-sans text-sm text-race-gray">See you at the starting line, {{ form.name }}.</p>
         </div>
 
-        <form v-else class="flex flex-col gap-5" @submit.prevent="submit">
+        <form v-else class="flex flex-col gap-5" @submit.prevent="submit()">
           <!-- Name -->
           <div>
             <label class="block font-sans text-xs uppercase tracking-widest text-white/70 mb-2">Your Full Name</label>
@@ -241,6 +251,45 @@ async function submit() {
         </form>
       </Transition>
     </div>
+
+    <Teleport to="body">
+      <Transition name="fade">
+        <div
+          v-if="soloConfirmOpen"
+          class="fixed inset-0 z-[100] flex items-end justify-center bg-black/70 p-4 sm:items-center"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="solo-confirm-title"
+          @click.self="soloConfirmOpen = false"
+          @keydown.esc="soloConfirmOpen = false"
+        >
+          <div class="w-full max-w-sm border border-white/15 bg-[#171717] p-6 shadow-2xl">
+            <p class="mb-2 font-sans text-[9px] font-semibold uppercase tracking-[0.4em] text-race-blue">Solo Entry</p>
+            <h3 id="solo-confirm-title" class="font-racing text-3xl leading-none text-[#f5f0eb]">Racing solo?</h3>
+            <p class="mt-3 font-sans text-sm leading-relaxed text-white/55">
+              You haven't added another guest. Are you sure you're coming to Uno's birthday party on your own?
+            </p>
+
+            <div class="mt-6 flex flex-col gap-2">
+              <button
+                type="button"
+                class="min-h-12 bg-race-blue px-4 font-sans text-xs font-semibold uppercase tracking-[0.16em] text-white transition-colors hover:bg-race-blue/80"
+                @click="soloConfirmOpen = false; submit(true)"
+              >
+                Yes, just me
+              </button>
+              <button
+                type="button"
+                class="min-h-12 border border-white/15 bg-white/5 px-4 font-sans text-xs font-semibold uppercase tracking-[0.16em] text-white/70 transition-colors hover:border-race-blue/60 hover:text-white"
+                @click="addGuestFromConfirmation"
+              >
+                Go back & add a guest
+              </button>
+            </div>
+          </div>
+        </div>
+      </Transition>
+    </Teleport>
   </section>
 </template>
 
