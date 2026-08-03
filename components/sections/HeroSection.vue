@@ -55,7 +55,7 @@
         </p>
       </div>
 
-      <!-- Event chips -->
+      <!-- Event location chips -->
       <div class="flex gap-1 md:gap-2 flex-wrap justify-center mb-2">
         <span class="bg-white/50 backdrop-blur-sm border border-race-blue/20 text-race-blue font-sans text-[9px] md:text-[10px] uppercase tracking-wider md:tracking-widest px-2 py-1 md:px-4 md:py-2">
           Santo Domingo Church
@@ -63,7 +63,11 @@
         <span class="bg-white/50 backdrop-blur-sm border border-race-blue/20 text-race-blue font-sans text-[9px] md:text-[10px] uppercase tracking-wider md:tracking-widest px-2 py-1 md:px-4 md:py-2">
           Steelworld Tower
         </span>
-        <span class="bg-white/50 backdrop-blur-sm border border-race-blue/20 text-race-blue font-sans text-[9px] md:text-[10px] uppercase tracking-wider md:tracking-widest px-2 py-1 md:px-4 md:py-2">
+      </div>
+
+      <!-- Event date badge -->
+      <div class="mb-2">
+        <span class="inline-flex items-center bg-white/80 backdrop-blur-sm border border-race-blue/30 text-race-blue font-sans font-extrabold text-[13px] md:text-[16px] uppercase tracking-[0.14em] md:tracking-[0.24em] px-4 py-1.5 md:px-6 md:py-2 shadow-sm">
           September 6, 2026
         </span>
       </div>
