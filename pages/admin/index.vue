@@ -108,6 +108,24 @@
             <button class="btn-primary text-sm" @click="openRsvp()">+ Add</button>
           </div>
         </div>
+        <div class="mb-4 grid grid-cols-2 gap-2 sm:grid-cols-4">
+          <div class="rounded-xl border border-blue-100 bg-blue-50 px-4 py-3">
+            <p class="text-[10px] font-semibold uppercase tracking-wide text-blue-500">Confirmed teams</p>
+            <p class="mt-1 text-2xl font-bold leading-none text-blue-950">{{ stats?.rsvps.confirmed ?? 0 }}</p>
+          </div>
+          <div class="rounded-xl border border-gray-200 bg-white px-4 py-3">
+            <p class="text-[10px] font-semibold uppercase tracking-wide text-gray-400">Total guests</p>
+            <p class="mt-1 text-2xl font-bold leading-none text-gray-900">{{ stats?.rsvps.confirmedHeadcount ?? 0 }}</p>
+          </div>
+          <div class="rounded-xl border border-emerald-100 bg-emerald-50 px-4 py-3">
+            <p class="text-[10px] font-semibold uppercase tracking-wide text-emerald-600">Adults</p>
+            <p class="mt-1 text-2xl font-bold leading-none text-emerald-950">{{ stats?.rsvps.confirmedAdults ?? 0 }}</p>
+          </div>
+          <div class="rounded-xl border border-amber-100 bg-amber-50 px-4 py-3">
+            <p class="text-[10px] font-semibold uppercase tracking-wide text-amber-600">Kids</p>
+            <p class="mt-1 text-2xl font-bold leading-none text-amber-950">{{ stats?.rsvps.confirmedKids ?? 0 }}</p>
+          </div>
+        </div>
         <div class="flex gap-2 mb-4">
           <input v-model="rs.search" placeholder="Search name…" class="input flex-1" />
           <select v-model="rs.status" class="input w-28 flex-shrink-0">

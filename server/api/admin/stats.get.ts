@@ -41,7 +41,7 @@ export default defineEventHandler(async () => {
     recentRes,
   ] = await Promise.all([
     sb.from('rsvps').select('*', { count: 'exact', head: true }).is('deleted_at', null),
-    sb.from('rsvps').select('headcount').is('deleted_at', null).eq('status', 'confirmed'),
+    sb.from('rsvps').select('headcount, kids_names').is('deleted_at', null).eq('status', 'confirmed'),
     sb.from('photos').select('*', { count: 'exact', head: true }).is('deleted_at', null),
     sb.from('time_capsule_entries').select('*', { count: 'exact', head: true }),
     sb.from('contributions').select('amount').is('deleted_at', null),
@@ -51,6 +51,12 @@ export default defineEventHandler(async () => {
 
   const confirmedRows = (rsvpConfirmedRes.data ?? []) as any[]
   const confirmedHeadcount = confirmedRows.reduce((sum, r) => sum + (r.headcount ?? 0), 0)
+  const confirmedKids = confirmedRows.reduce((sum, r) => {
+    const headcount = Math.max(Number(r.headcount) || 0, 0)
+    const kids = Array.isArray(r.kids_names) ? r.kids_names.length : 0
+    return sum + Math.min(kids, headcount)
+  }, 0)
+  const confirmedAdults = Math.max(confirmedHeadcount - confirmedKids, 0)
   const fundTotal = ((fundDataRes.data ?? []) as any[]).reduce((sum, r) => sum + (r.amount ?? 0), 0)
 
   const rawLog = ((recentRes.data ?? []) as any[]).map(toActivityLog)
@@ -61,6 +67,8 @@ export default defineEventHandler(async () => {
       total: rsvpTotalRes.count ?? 0,
       confirmed: confirmedRows.length,
       confirmedHeadcount,
+      confirmedAdults,
+      confirmedKids,
     },
     photos: { total: photoTotalRes.count ?? 0 },
     capsule: { total: capsuleTotalRes.count ?? 0 },
