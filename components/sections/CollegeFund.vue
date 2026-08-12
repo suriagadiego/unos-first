@@ -3,8 +3,8 @@ import { PARTY_DATE } from '~/utils/event'
 
 const emit = defineEmits<{ ready: [] }>()
 
-const QR_CODE_URL = '/images/uno-college-fund-qr.jpg'
-const QR_CODE_FILENAME = 'uno-college-fund-qr.jpg'
+const QR_CODE_URL = '/images/uno-college-fund-qr.png'
+const QR_CODE_FILENAME = 'uno-college-fund-qr.png'
 const { days } = useCountdown(PARTY_DATE)
 
 const { data, refresh, status } = useFetch<{
@@ -382,7 +382,7 @@ async function submit() {
               <p class="font-racing text-2xl tracking-wide w-fit">Fuel Uno's Journey</p>
               <img src="~/assets/images/optimized/right-flag.webp" alt="" aria-hidden="true" class="w-7 h-7 select-none" />
             </div>
-            <p class="font-sans text-xs text-race-gray/60 text-center">Scan the QR with GCash, then tell us about your gift below.</p>
+            <p class="font-sans text-xs text-race-gray/60 text-center">Scan the QR with your banking or e-wallet app, then tell us about your gift below.</p>
           </div>
 
           <!-- QR code -->
@@ -405,11 +405,11 @@ async function submit() {
                   <img
                     v-if="qrCodeAvailable"
                     :src="QR_CODE_URL"
-                    alt="GCash QR code for Uno's college fund"
+                    alt="InstaPay QR code for Uno's college fund"
                     class="w-44 h-44 object-contain"
                   />
                   <div v-else class="w-44 h-44 bg-race-gray/8 border border-race-gray/20 flex items-center justify-center">
-                    <p class="font-sans text-[10px] text-race-gray/50 text-center uppercase tracking-wider leading-relaxed">GCash QR<br/>coming soon</p>
+                    <p class="font-sans text-[10px] text-race-gray/50 text-center uppercase tracking-wider leading-relaxed">Payment QR<br/>coming soon</p>
                   </div>
                 </div>
               </div>
