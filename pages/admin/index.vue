@@ -94,11 +94,13 @@
         <div class="flex items-center justify-between mb-3">
           <h2 class="section-title mb-0">RSVPs</h2>
           <div class="flex items-center gap-2">
-            <a
+            <button
               v-if="!rs.trashedOnly"
-              href="/api/admin/rsvps/export"
+              type="button"
+              :disabled="rs.exporting"
+              @click="exportRsvps"
               class="inline-flex items-center justify-center px-4 py-2 text-sm font-medium rounded-lg border border-green-200 bg-green-50 text-green-700 hover:bg-green-100 transition-colors"
-            >Export XLSX</a>
+            >{{ rs.exporting ? 'Exporting…' : 'Export XLSX' }}</button>
             <button
               class="inline-flex items-center justify-center px-4 py-2 text-sm font-medium rounded-lg border transition-colors"
               :style="rs.trashedOnly ? 'background:#fee2e2;color:#991b1b;border-color:#fecaca' : 'background:white;color:#374151;border-color:#d1d5db'"
@@ -821,6 +823,7 @@ const rs = reactive({
   modal: null as null | true,
   editing: null as any,
   saving: false,
+  exporting: false,
   form: { displayName:'', gridName:'', submitterName:'', contact:'', headcount:1, dietaryNotes:'', status:'pending', guestNames:[] as string[], kidsNames:[] as string[] },
 })
 const rm = reactive({ rsvp: null as any, activity: null as any, bucketKey: null as string | null, contribution: null as any })
@@ -847,6 +850,109 @@ function toggleRsvpTrash() {
   rs.trashedOnly = !rs.trashedOnly
   rs.page = 1
   rs.selected.clear()
+}
+
+async function exportRsvps() {
+  rs.exporting = true
+  try {
+    // Vite uses ExcelJS's browser build here. Keeping this client-side avoids
+    // unsupported Node stream APIs in the Cloudflare Workers runtime.
+    const excelModule = await import('exceljs')
+    const ExcelJS = excelModule.default
+    const compareText = (a: string, b: string) => a.localeCompare(b, 'en', { sensitivity: 'base' })
+    const rows = (rsvpList.value ?? [])
+      .filter((row: any) => !row.deletedAt)
+      .sort((a: any, b: any) =>
+        Number(a.status === 'declined') - Number(b.status === 'declined') ||
+        compareText(a.displayName || '', b.displayName || ''),
+      )
+
+    const workbook = new ExcelJS.Workbook()
+    workbook.creator = 'Uno Admin'
+    workbook.created = new Date()
+
+    const styleHeader = (row: any, color = 'FF2563EB') => {
+      row.height = 24
+      row.font = { bold: true, color: { argb: 'FFFFFFFF' } }
+      row.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: color } }
+      row.alignment = { vertical: 'middle' }
+    }
+    const markDeclined = (row: any) => {
+      row.font = { color: { argb: 'FF991B1B' } }
+      row.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFEE2E2' } }
+    }
+    const setWidths = (sheet: any, widths: number[]) => {
+      sheet.columns.forEach((column: any, index: number) => {
+        column.width = widths[index]
+        column.alignment = { vertical: 'top', wrapText: true }
+      })
+    }
+
+    const parties = workbook.addWorksheet('Per Party')
+    styleHeader(parties.addRow(['Party', 'Guests', 'Adults', 'Kids', 'Dietary Notes', 'Status']))
+    parties.views = [{ state: 'frozen', ySplit: 1 }]
+    parties.autoFilter = 'A1:F1'
+    setWidths(parties, [24, 42, 10, 10, 30, 14])
+
+    for (const party of rows) {
+      const guests = Array.isArray(party.guestNames) ? party.guestNames.filter(Boolean) : []
+      const kids = Array.isArray(party.kidsNames) ? party.kidsNames.filter(Boolean) : []
+      const headcount = Number(party.headcount) || guests.length || 1
+      const row = parties.addRow([
+        party.displayName || '', guests.join(', '), Math.max(headcount - kids.length, 0),
+        kids.length, party.dietaryNotes || '', party.status || '',
+      ])
+      if (party.status === 'declined') markDeclined(row)
+    }
+
+    const guestsSheet = workbook.addWorksheet('Kids and Non-kids')
+    styleHeader(guestsSheet.addRow(['NON-KIDS', 'PARTY', 'STATUS']))
+    guestsSheet.views = [{ state: 'frozen', ySplit: 1 }]
+    setWidths(guestsSheet, [28, 28, 14])
+
+    const guests = rows.flatMap((party: any) => {
+      const names = Array.isArray(party.guestNames) && party.guestNames.filter(Boolean).length
+        ? party.guestNames.filter(Boolean)
+        : [party.displayName || 'Unnamed guest']
+      const kids = new Set(
+        (Array.isArray(party.kidsNames) ? party.kidsNames : [])
+          .map((name: string) => name.toLocaleLowerCase('en')),
+      )
+      return names.map((name: string) => ({
+        type: kids.has(name.toLocaleLowerCase('en')) ? 'Kid' : 'Non-kid',
+        party: party.displayName || '', name, status: party.status || '',
+      }))
+    })
+    const sortGuests = (a: any, b: any) =>
+      Number(a.status === 'declined') - Number(b.status === 'declined') ||
+      compareText(a.party, b.party) || compareText(a.name, b.name)
+
+    for (const guest of guests.filter((guest: any) => guest.type === 'Non-kid').sort(sortGuests)) {
+      const row = guestsSheet.addRow([guest.name, guest.party, guest.status])
+      if (guest.status === 'declined') markDeclined(row)
+    }
+    guestsSheet.addRow([])
+    styleHeader(guestsSheet.addRow(['KIDS', 'PARTY', 'STATUS']), 'FFF59E0B')
+    for (const guest of guests.filter((guest: any) => guest.type === 'Kid').sort(sortGuests)) {
+      const row = guestsSheet.addRow([guest.name, guest.party, guest.status])
+      if (guest.status === 'declined') markDeclined(row)
+    }
+
+    const buffer = await workbook.xlsx.writeBuffer()
+    const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' })
+    const url = URL.createObjectURL(blob)
+    const link = document.createElement('a')
+    link.href = url
+    link.download = `rsvps-${new Date().toISOString().slice(0, 10)}.xlsx`
+    link.click()
+    URL.revokeObjectURL(url)
+    toast.success('RSVP workbook exported')
+  } catch (error) {
+    console.error('RSVP export failed', error)
+    toast.error('Failed to export RSVPs')
+  } finally {
+    rs.exporting = false
+  }
 }
 
 function addGuest() {
