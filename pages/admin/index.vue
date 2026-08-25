@@ -94,6 +94,11 @@
         <div class="flex items-center justify-between mb-3">
           <h2 class="section-title mb-0">RSVPs</h2>
           <div class="flex items-center gap-2">
+            <a
+              v-if="!rs.trashedOnly"
+              href="/api/admin/rsvps/export"
+              class="inline-flex items-center justify-center px-4 py-2 text-sm font-medium rounded-lg border border-green-200 bg-green-50 text-green-700 hover:bg-green-100 transition-colors"
+            >Export XLSX</a>
             <button
               class="inline-flex items-center justify-center px-4 py-2 text-sm font-medium rounded-lg border transition-colors"
               :style="rs.trashedOnly ? 'background:#fee2e2;color:#991b1b;border-color:#fecaca' : 'background:white;color:#374151;border-color:#d1d5db'"

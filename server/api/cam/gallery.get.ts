@@ -1,6 +1,10 @@
 import { AwsClient } from 'aws4fetch'
 import { useSupabase } from '../../utils/supabase'
 
+// September 6, 2026 at 12:00 AM in Asia/Manila (UTC+8).
+// Keep this filter on the public API so pre-event test uploads are never exposed.
+const PUBLIC_GALLERY_START = '2026-09-05T16:00:00.000Z'
+
 export default defineEventHandler(async () => {
   const sb = useSupabase()
   const endpoint = process.env.RUSTFS_ENDPOINT!
@@ -10,6 +14,7 @@ export default defineEventHandler(async () => {
     .from('camera_uploads')
     .select('id, storage_key, guest_id, created_at')
     .is('deleted_at', null)
+    .gte('created_at', PUBLIC_GALLERY_START)
     .order('created_at', { ascending: false })
     .limit(200)
 
