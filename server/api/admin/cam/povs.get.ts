@@ -1,31 +1,24 @@
-import { AwsClient } from 'aws4fetch'
 import { useSupabase } from '../../../utils/supabase'
+import { getObjectStorage } from '../../../utils/storage'
 
 export default defineEventHandler(async () => {
   const sb = useSupabase()
-  const endpoint = process.env.RUSTFS_ENDPOINT!
-  const bucket = process.env.RUSTFS_BUCKET!
+  const storage = getObjectStorage()
 
   const { data, error } = await sb
     .from('camera_uploads')
-    .select('id, guest_id, guest_name, storage_key, created_at')
+    .select('id, guest_id, guest_name, storage_key, status, upload_state, created_at')
     .is('deleted_at', null)
+    .eq('upload_state', 'ready')
     .order('created_at', { ascending: false })
 
   if (error) throw createError({ statusCode: 500, message: error.message })
 
-  const aws = new AwsClient({
-    accessKeyId: process.env.RUSTFS_ACCESS_KEY!,
-    secretAccessKey: process.env.RUSTFS_SECRET_KEY!,
-    region: process.env.RUSTFS_REGION ?? 'us-east-1',
-    service: 's3',
-  })
-
   // Sign every photo URL
   const signed = await Promise.all(
     (data ?? []).map(async (row) => {
-      const objectUrl = `${endpoint}/${bucket}/${row.storage_key}`
-      const s = await aws.sign(new Request(objectUrl, { method: 'GET' }), {
+      const objectUrl = `${storage.endpoint}/${storage.bucket}/${row.storage_key}`
+      const s = await storage.aws.sign(new Request(objectUrl, { method: 'GET' }), {
         aws: { signQuery: true, expiresIn: 3600 },
       })
       return {
@@ -33,6 +26,7 @@ export default defineEventHandler(async () => {
         guestId: row.guest_id,
         guestName: row.guest_name,
         storageKey: row.storage_key,
+        status: row.status,
         url: s.url,
         createdAt: row.created_at,
       }

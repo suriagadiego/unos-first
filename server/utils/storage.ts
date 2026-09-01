@@ -6,7 +6,7 @@ type StorageConfig = {
   endpoint: string
 }
 
-export function useStorage(): StorageConfig {
+export function getObjectStorage(): StorageConfig {
   const endpoint = process.env.RUSTFS_ENDPOINT?.replace(/\/$/, '')
   const bucket = process.env.RUSTFS_BUCKET
   const accessKeyId = process.env.RUSTFS_ACCESS_KEY
@@ -77,4 +77,64 @@ export async function uploadToStorage(
   }
 
   return url
+}
+
+export async function deleteFromStorage(storage: StorageConfig, key: string) {
+  const response = await storage.aws.fetch(`${storage.endpoint}/${storage.bucket}/${key}`, { method: 'DELETE' })
+  if (!response.ok && response.status !== 404) {
+    throw createError({ statusCode: 502, message: `Storage cleanup returned ${response.status}` })
+  }
+}
+
+export type StorageObject = { key: string; lastModified: string; size: number }
+type ListStorageOptions = { maxObjects?: number; delimiter?: string }
+
+export async function listStorageObjects(
+  storage: StorageConfig,
+  options: ListStorageOptions = {},
+): Promise<StorageObject[]> {
+  const objects: StorageObject[] = []
+  const maxObjects = options.maxObjects ?? Number.POSITIVE_INFINITY
+  let continuationToken = ''
+
+  do {
+    const remaining = Math.max(1, maxObjects - objects.length)
+    const query = new URLSearchParams({
+      'list-type': '2',
+      'max-keys': String(Math.min(1000, remaining)),
+    })
+    if (options.delimiter) query.set('delimiter', options.delimiter)
+    if (continuationToken) query.set('continuation-token', continuationToken)
+    const response = await storage.aws.fetch(`${storage.endpoint}/${storage.bucket}?${query}`)
+    if (!response.ok) {
+      throw createError({ statusCode: 502, message: `Bucket list failed with status ${response.status}` })
+    }
+    const xml = await response.text()
+    for (const match of xml.matchAll(/<Contents>([\s\S]*?)<\/Contents>/g)) {
+      const block = match[1]
+      objects.push({
+        key: decodeXml(block.match(/<Key>([\s\S]*?)<\/Key>/)?.[1] || ''),
+        lastModified: block.match(/<LastModified>([^<]+)<\/LastModified>/)?.[1] || '',
+        size: Number(block.match(/<Size>([^<]+)<\/Size>/)?.[1] || 0),
+      })
+    }
+    const truncated = xml.match(/<IsTruncated>([^<]+)<\/IsTruncated>/)?.[1] === 'true'
+    continuationToken = truncated
+      ? decodeXml(xml.match(/<NextContinuationToken>([\s\S]*?)<\/NextContinuationToken>/)?.[1] || '')
+      : ''
+    if (truncated && !continuationToken) {
+      throw createError({ statusCode: 502, message: 'Bucket listing was truncated without a continuation token' })
+    }
+  } while (continuationToken && objects.length < maxObjects)
+
+  return objects.slice(0, maxObjects)
+}
+
+function decodeXml(value: string): string {
+  return value
+    .replaceAll('&amp;', '&')
+    .replaceAll('&lt;', '<')
+    .replaceAll('&gt;', '>')
+    .replaceAll('&quot;', '"')
+    .replaceAll('&apos;', "'")
 }

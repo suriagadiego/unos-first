@@ -1,5 +1,5 @@
 import { useSupabase } from '../../../../utils/supabase'
-import { useStorage } from '../../../../utils/storage'
+import { getObjectStorage } from '../../../../utils/storage'
 
 export default defineEventHandler(async (event) => {
   const id = Number(getRouterParam(event, 'id'))
@@ -18,7 +18,7 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 404, message: 'No proof was attached to this contribution' })
   }
 
-  const storage = useStorage()
+  const storage = getObjectStorage()
   let savedUrl: URL
   let storageUrl: URL
   try {

@@ -320,7 +320,16 @@
                 <div v-for="p in g.photos" :key="p.id"
                   class="relative rounded-lg overflow-hidden bg-gray-100 aspect-square cursor-pointer"
                   @click="povLb.open(g, p.id)">
-                  <img :src="p.url" class="w-full h-full object-cover" loading="lazy" />
+                  <img :src="p.url" class="w-full h-full object-cover" loading="lazy" alt="Guest camera submission" />
+                  <span class="absolute left-1.5 top-1.5 badge text-[9px]"
+                    :class="p.status === 'approved' ? 'badge-green' : p.status === 'rejected' ? 'badge-red' : 'bg-amber-100 text-amber-700'">
+                    {{ p.status }}
+                  </span>
+                  <div class="absolute inset-x-1.5 bottom-1.5 flex gap-1" @click.stop>
+                    <button v-if="p.status === 'rejected'" class="flex-1 rounded bg-blue-600 px-1 py-1 text-[10px] font-semibold text-white" @click="povPatch(p.id, 'approved')">Restore</button>
+                    <button v-if="CAMERA_MODERATION_ENABLED && p.status !== 'approved' && p.status !== 'rejected'" class="flex-1 rounded bg-green-600 px-1 py-1 text-[10px] font-semibold text-white" @click="povPatch(p.id, 'approved')">Approve</button>
+                    <button v-if="p.status !== 'rejected'" class="flex-1 rounded bg-red-700 px-1 py-1 text-[10px] font-semibold text-white" @click="povPatch(p.id, 'rejected')">Reject</button>
+                  </div>
                 </div>
               </div>
             </div>
@@ -732,6 +741,7 @@
 </template>
 
 <script setup lang="ts">
+import { CAMERA_MODERATION_ENABLED } from '~/utils/cameraConfig'
 import Sortable from 'sortablejs'
 
 definePageMeta({ layout: false, middleware: 'admin' })
@@ -1118,6 +1128,16 @@ const povLb = reactive({
   prev() { if (this.index === null) return; this.index = (this.index - 1 + this.photos.length) % this.photos.length },
   next() { if (this.index === null) return; this.index = (this.index + 1) % this.photos.length },
 })
+
+async function povPatch(id: string, status: 'pending' | 'approved' | 'rejected') {
+  try {
+    await $fetch(`/api/admin/cam/${id}`, { method: 'PATCH', body: { status } })
+    await rPovs()
+    toast.success(`Photo ${status}`)
+  } catch {
+    toast.error('Failed to update photo')
+  }
+}
 
 // ─── Time Capsule ───────────────────────────────────────
 const cap = reactive({

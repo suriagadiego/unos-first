@@ -1,19 +1,18 @@
 import { requireGuest } from '../../utils/camAuth'
 import { useSupabase } from '../../utils/supabase'
 
-const SHOT_LIMIT = 24
-
 export default defineEventHandler(async (event) => {
   const guestId = requireGuest(event)
 
-  const { count, error } = await useSupabase()
-    .from('camera_uploads')
-    .select('*', { count: 'exact', head: true })
-    .eq('guest_id', guestId)
-    .is('deleted_at', null)
+  const { data, error } = await useSupabase()
+    .rpc('reserve_camera_upload', { p_guest_id: guestId })
+    .single()
 
   if (error) throw createError({ statusCode: 500, message: error.message })
 
-  const taken = count ?? 0
-  return { taken, remaining: Math.max(0, SHOT_LIMIT - taken), limit: SHOT_LIMIT }
+  return {
+    taken: Number(data.taken),
+    remaining: Number(data.remaining),
+    limit: Number(data.shot_limit),
+  }
 })

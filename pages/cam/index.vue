@@ -4,7 +4,9 @@ definePageMeta({ layout: false })
 const viewfinderRef = ref<{ capture: () => void; start: () => void; status: Ref<string>; flipCamera: () => void }>()
 const { ensureAuth, authHeaders, fetchShots, shots, authReady, guestId } = useGuestCamera()
 
-interface Shot { src: string; status: 'uploading' | 'done' | 'error'; blob: Blob; name: string | null }
+interface Shot { src: string; status: 'uploading' | 'done' | 'error'; blob: Blob; name: string | null; uploadId: string }
+
+const UPLOAD_TIMEOUT_MS = 90_000
 
 const flash = ref(false)
 const snapSrc = ref<string | null>(null)  // snapshot pop preview
@@ -12,12 +14,15 @@ const firing = ref(false)        // shutter bounce on capture
 const counterPop = ref(false)    // counter tick-down pop
 const checkPulse = ref(false)    // checkmark pop when upload lands
 const lastShot = ref<Shot | null>(null)   // corner thumbnail + upload state
+const errorMessage = ref('')
+const uploading = computed(() => lastShot.value?.status === 'uploading')
+let uploadController: AbortController | null = null
 
 const showNamePrompt = ref(false)
 const nameInput = ref('')
 
 const rollFull = computed(() => (shots.value?.remaining ?? 1) <= 0)
-const shutterDisabled = computed(() => rollFull.value)
+const shutterDisabled = computed(() => rollFull.value || uploading.value)
 
 onMounted(async () => {
   ensureAuth()
@@ -32,12 +37,17 @@ function saveName() {
   showNamePrompt.value = false
 }
 
+function skipName() {
+  localStorage.setItem('uno_cam_name', '__skip__')
+  showNamePrompt.value = false
+}
+
 function onShutter() {
   if (rollFull.value) return
   const camStatus = viewfinderRef.value?.status?.value ?? viewfinderRef.value?.status
-  if (camStatus === 'idle' || camStatus === 'starting') {
+  if (camStatus === 'idle') {
     viewfinderRef.value?.start()
-  } else {
+  } else if (camStatus === 'live') {
     viewfinderRef.value?.capture()
   }
 }
@@ -54,35 +64,53 @@ async function onCaptured(blob: Blob) {
   setTimeout(() => (firing.value = false), 160)
 
   // 3. Snapshot pop
+  if (lastShot.value?.src) URL.revokeObjectURL(lastShot.value.src)
   const src = URL.createObjectURL(blob)
   snapSrc.value = src
-  setTimeout(() => { snapSrc.value = null }, 900)
+  setTimeout(() => {
+    if (snapSrc.value === src) snapSrc.value = null
+  }, 900)
 
   // 5. Thumbnail takes over with upload state
   const name = localStorage.getItem('uno_cam_name')
-  const shot: Shot = { src, status: 'uploading', blob, name: name && name !== '__skip__' ? name : null }
-  lastShot.value = shot
+  lastShot.value = {
+    src,
+    status: 'uploading',
+    blob,
+    name: name && name !== '__skip__' ? name : null,
+    uploadId: crypto.randomUUID(),
+  }
 
-  await doUpload(shot)
+  await doUpload()
 }
 
-async function doUpload(shot: Shot) {
+// Always works through lastShot.value — the reactive proxy. Mutating the raw
+// object instead leaves `uploading` (and so the shutter) stuck on its last value.
+async function doUpload() {
+  const shot = lastShot.value
+  if (!shot) return
   shot.status = 'uploading'
+  errorMessage.value = ''
+  uploadController = new AbortController()
+  const timeout = setTimeout(() => uploadController?.abort(), UPLOAD_TIMEOUT_MS)
   try {
     const form = new FormData()
     form.append('photo', shot.blob, 'shot.jpg')
+    form.append('uploadId', shot.uploadId)
     if (shot.name) form.append('guestName', shot.name)
-    const result = await $fetch<{ key: string; url: string; remaining: number }>('/api/cam/upload', {
+    const result = await $fetch<{ key: string; url: string; remaining: number; limit: number }>('/api/cam/upload', {
       method: 'POST',
       headers: authHeaders(),
       body: form,
+      signal: uploadController.signal,
     })
     shot.status = 'done'
 
     // 4. Counter ticks down with a pop
     if (shots.value) {
+      shots.value.limit = result.limit
       shots.value.remaining = result.remaining
-      shots.value.taken = shots.value.limit - result.remaining
+      shots.value.taken = result.limit - result.remaining
     }
     counterPop.value = true
     setTimeout(() => (counterPop.value = false), 320)
@@ -90,14 +118,29 @@ async function doUpload(shot: Shot) {
     // Checkmark pulse
     checkPulse.value = true
     setTimeout(() => (checkPulse.value = false), 900)
-  } catch {
+  } catch (error: any) {
     shot.status = 'error'
+    errorMessage.value = uploadController?.signal.aborted
+      ? 'Upload timed out. Tap the photo to retry.'
+      : error?.data?.message || error?.message || 'Upload failed. Check your connection and try again.'
+  } finally {
+    clearTimeout(timeout)
+    uploadController = null
   }
 }
 
 function retry() {
-  if (lastShot.value?.status === 'error') doUpload(lastShot.value)
+  if (lastShot.value?.status === 'error') doUpload()
 }
+
+function onCaptureFailed(message: string) {
+  errorMessage.value = message
+}
+
+onUnmounted(() => {
+  uploadController?.abort()
+  if (lastShot.value?.src) URL.revokeObjectURL(lastShot.value.src)
+})
 </script>
 
 <template>
@@ -111,7 +154,17 @@ function retry() {
         ref="viewfinderRef"
         :disabled="shutterDisabled"
         @captured="onCaptured"
+        @failed="onCaptureFailed"
       />
+
+      <div class="sr-only" aria-live="polite">{{ errorMessage }}</div>
+      <div v-if="errorMessage" role="alert"
+        class="absolute top-24 left-4 right-4 z-40 rounded-xl border border-red-400/40 bg-red-950/90 px-4 py-3 text-sm text-white shadow-xl">
+        <div class="flex items-start justify-between gap-3">
+          <span>{{ errorMessage }}</span>
+          <button type="button" class="text-white/60" aria-label="Dismiss error" @click="errorMessage = ''">×</button>
+        </div>
+      </div>
 
       <!-- White flash -->
       <Transition name="flash">
@@ -144,6 +197,9 @@ function retry() {
           <button @click="saveName" :disabled="!nameInput.trim()"
             class="w-full max-w-sm py-3 rounded-xl bg-[#6B8CAE] text-white font-sans text-sm font-semibold disabled:opacity-30 transition-opacity">
             Let's go →
+          </button>
+          <button type="button" class="text-white/35 text-sm underline underline-offset-4" @click="skipName">
+            Continue anonymously
           </button>
         </div>
       </Transition>
@@ -218,6 +274,7 @@ function retry() {
 
           <!-- Shutter — dead center -->
           <button
+            type="button" aria-label="Take photo"
             @click="onShutter"
             :disabled="shutterDisabled"
             class="relative w-[78px] h-[78px] rounded-full flex items-center justify-center transition-transform active:scale-[0.88] disabled:opacity-25"

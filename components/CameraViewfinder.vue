@@ -7,7 +7,7 @@
  * iOS tap-to-start, camera flip, and file-input fallback.
  */
 const props = defineProps<{ disabled: boolean }>()
-const emit = defineEmits<{ captured: [blob: Blob] }>()
+const emit = defineEmits<{ captured: [blob: Blob]; failed: [message: string] }>()
 
 type CamStatus = 'idle' | 'starting' | 'live' | 'denied' | 'nocam' | 'unsupported'
 
@@ -16,6 +16,7 @@ const videoEl = ref<HTMLVideoElement>()
 const fileRef = ref<HTMLInputElement>()
 const facingMode = ref<'environment' | 'user'>('environment')
 const flashing = ref(false)
+const processingFile = ref(false)
 
 let stream: MediaStream | null = null
 
@@ -65,23 +66,24 @@ function capture() {
   if (!vw || !vh) return
 
   const canvas = document.createElement('canvas')
-  canvas.width = vw
-  canvas.height = vh
+  const { width, height } = boundedDimensions(vw, vh)
+  canvas.width = width
+  canvas.height = height
   const ctx = canvas.getContext('2d')!
 
   if (facingMode.value === 'user') {
-    ctx.translate(vw, 0)
+    ctx.translate(width, 0)
     ctx.scale(-1, 1)
   }
-  ctx.drawImage(v, 0, 0, vw, vh)
+  ctx.drawImage(v, 0, 0, width, height)
   ctx.setTransform(1, 0, 0, 1, 0, 0)
 
-  applyDisposableLook(ctx, vw, vh)
+  applyDisposableLook(ctx, width, height)
 
   flashing.value = true
   setTimeout(() => (flashing.value = false), 120)
 
-  canvas.toBlob(blob => { if (blob) emit('captured', blob) }, 'image/jpeg', 0.9)
+  canvas.toBlob(blob => { if (blob) emit('captured', blob) }, 'image/jpeg', 0.92)
 }
 
 // Bake warm tones + grain + vignette + orange timestamp into the JPEG
@@ -125,11 +127,60 @@ function applyDisposableLook(ctx: CanvasRenderingContext2D, w: number, h: number
 
 const clamp = (n: number) => (n < 0 ? 0 : n > 255 ? 255 : n)
 
-function onFileFallback(e: Event) {
+async function onFileFallback(e: Event) {
   const file = (e.target as HTMLInputElement).files?.[0]
   if (!file) return
   ;(e.target as HTMLInputElement).value = ''
-  emit('captured', file)
+  processingFile.value = true
+  try {
+    emit('captured', await normalizeImage(file))
+  } catch {
+    emit('failed', 'That photo format could not be opened. Try a JPEG or take a new photo.')
+  } finally {
+    processingFile.value = false
+  }
+}
+
+async function normalizeImage(file: File): Promise<Blob> {
+  const source = await decodeImage(file)
+  try {
+    const sourceWidth = source instanceof HTMLImageElement ? source.naturalWidth : source.width
+    const sourceHeight = source instanceof HTMLImageElement ? source.naturalHeight : source.height
+    const { width, height } = boundedDimensions(sourceWidth, sourceHeight)
+    const canvas = document.createElement('canvas')
+    canvas.width = width
+    canvas.height = height
+    const ctx = canvas.getContext('2d')!
+    ctx.drawImage(source, 0, 0, width, height)
+    applyDisposableLook(ctx, width, height)
+    return await new Promise<Blob>((resolve, reject) => {
+      canvas.toBlob(blob => blob ? resolve(blob) : reject(new Error('Image conversion failed')), 'image/jpeg', 0.92)
+    })
+  } finally {
+    if ('close' in source && typeof source.close === 'function') source.close()
+  }
+}
+
+async function decodeImage(file: File): Promise<ImageBitmap | HTMLImageElement> {
+  if ('createImageBitmap' in window) {
+    try { return await createImageBitmap(file, { imageOrientation: 'from-image' }) } catch { /* Safari may decode via img instead */ }
+  }
+  const url = URL.createObjectURL(file)
+  try {
+    const image = new Image()
+    image.decoding = 'async'
+    image.src = url
+    await image.decode()
+    return image
+  } finally {
+    URL.revokeObjectURL(url)
+  }
+}
+
+function boundedDimensions(width: number, height: number) {
+  const max = 2560
+  const scale = Math.min(1, max / Math.max(width, height))
+  return { width: Math.max(1, Math.round(width * scale)), height: Math.max(1, Math.round(height * scale)) }
 }
 
 function stopTracks() {
@@ -157,6 +208,13 @@ defineExpose({ capture, start, status, flipCamera })
     <!-- Shutter flash -->
     <div v-if="flashing" class="absolute inset-0 bg-white pointer-events-none z-20"
       style="animation:camFlash 0.12s ease-out forwards" />
+
+    <div v-if="processingFile"
+      class="absolute inset-0 z-30 flex flex-col items-center justify-center gap-3 bg-black/75 text-white"
+      role="status" aria-live="polite">
+      <div class="h-8 w-8 animate-spin rounded-full border-2 border-white/30 border-t-[#6B8CAE]" />
+      <p class="font-racing text-sm tracking-[0.2em]">PROCESSING PHOTO…</p>
+    </div>
 
     <!-- ── IN-APP BROWSER ── -->
     <div v-if="isInAppBrowser"
@@ -232,8 +290,9 @@ defineExpose({ capture, start, status, flipCamera })
       <div class="absolute bottom-4 left-4 w-7 h-7 border-b-2 border-l-2 border-white/25 pointer-events-none" />
       <div class="absolute bottom-4 right-4 w-7 h-7 border-b-2 border-r-2 border-white/25 pointer-events-none" />
       <button @click="flipCamera"
+        type="button" aria-label="Switch between front and rear camera"
         class="absolute top-8 right-4 w-10 h-10 rounded-full bg-black/40 backdrop-blur-sm border border-white/10 flex items-center justify-center z-10 transition-opacity hover:opacity-100 opacity-60">
-        <img src="~/assets/images/reverse-camera.svg" class="w-[30px] h-[30px]" alt="flip camera" />
+        <img src="~/assets/images/reverse-camera.svg" class="w-[30px] h-[30px]" alt="" />
       </button>
     </template>
 

@@ -5,6 +5,8 @@ const emit = defineEmits<{ ready: [] }>()
 
 const QR_CODE_URL = '/images/uno-college-fund-qr.png'
 const QR_CODE_FILENAME = 'uno-college-fund-qr.png'
+const MAX_PROOF_BYTES = 8 * 1024 * 1024
+const PROOF_TYPES = new Set(['image/jpeg', 'image/png', 'image/webp'])
 const { days } = useCountdown(PARTY_DATE)
 
 const { data, refresh, status } = useFetch<{
@@ -58,6 +60,7 @@ const closeDrawer = () => {
 
 // Form state
 const form = reactive({ name: '', amount: '', message: '' })
+const proofInput = ref<HTMLInputElement>()
 const screenshotFile = ref<File | null>(null)
 const screenshotPreview = ref<string | null>(null)
 const qrCodeAvailable = ref(false)
@@ -72,19 +75,79 @@ function resetForm() {
   form.amount = ''
   form.message = ''
   screenshotFile.value = null
+  if (proofInput.value) proofInput.value.value = ''
+  if (screenshotPreview.value) URL.revokeObjectURL(screenshotPreview.value)
   screenshotPreview.value = null
   submitting.value = false
   submitted.value = false
   error.value = ''
 }
 
-function onFileChange(e: Event) {
+async function onFileChange(e: Event) {
   const input = e.target as HTMLInputElement
   const file = input.files?.[0]
   if (!file) return
-  screenshotFile.value = file
-  screenshotPreview.value = URL.createObjectURL(file)
+  error.value = ''
+  try {
+    if (!PROOF_TYPES.has(file.type)) throw new Error('Unsupported proof format')
+    let uploadFile = file
+    if (file.size > MAX_PROOF_BYTES) {
+      const normalized = await normalizeProof(file)
+      if (normalized.size > MAX_PROOF_BYTES) throw new Error('Normalized proof is still too large')
+      uploadFile = new File([normalized], 'proof.jpg', { type: 'image/jpeg' })
+    }
+    if (screenshotPreview.value) URL.revokeObjectURL(screenshotPreview.value)
+    screenshotFile.value = uploadFile
+    screenshotPreview.value = URL.createObjectURL(uploadFile)
+  } catch {
+    input.value = ''
+    error.value = 'That image could not be opened. Please choose a JPEG, PNG, or WebP screenshot.'
+  }
 }
+
+async function normalizeProof(file: File): Promise<Blob> {
+  const source = await decodeProof(file)
+  try {
+    const width = source instanceof HTMLImageElement ? source.naturalWidth : source.width
+    const height = source instanceof HTMLImageElement ? source.naturalHeight : source.height
+    const scale = Math.min(1, 2000 / Math.max(width, height))
+    const canvas = document.createElement('canvas')
+    canvas.width = Math.max(1, Math.round(width * scale))
+    canvas.height = Math.max(1, Math.round(height * scale))
+    canvas.getContext('2d')!.drawImage(source, 0, 0, canvas.width, canvas.height)
+    return await new Promise<Blob>((resolve, reject) => {
+      canvas.toBlob(blob => blob ? resolve(blob) : reject(new Error('Conversion failed')), 'image/jpeg', 0.94)
+    })
+  } finally {
+    if ('close' in source && typeof source.close === 'function') source.close()
+  }
+}
+
+async function decodeProof(file: File): Promise<ImageBitmap | HTMLImageElement> {
+  if ('createImageBitmap' in window) {
+    try { return await createImageBitmap(file, { imageOrientation: 'from-image' }) } catch { /* try img decoding */ }
+  }
+  const url = URL.createObjectURL(file)
+  try {
+    const image = new Image()
+    image.src = url
+    await image.decode()
+    return image
+  } finally {
+    URL.revokeObjectURL(url)
+  }
+}
+
+function removeProof() {
+  screenshotFile.value = null
+  if (proofInput.value) proofInput.value.value = ''
+  if (screenshotPreview.value) URL.revokeObjectURL(screenshotPreview.value)
+  screenshotPreview.value = null
+}
+
+onUnmounted(() => {
+  if (screenshotPreview.value) URL.revokeObjectURL(screenshotPreview.value)
+})
 
 function onAmountInput(e: Event) {
   const input = e.target as HTMLInputElement
@@ -117,24 +180,14 @@ async function submit() {
 
   submitting.value = true
   try {
-    let proofUrl: string | null = null
-
-    if (screenshotFile.value) {
-      const fd = new FormData()
-      fd.append('file', screenshotFile.value)
-      fd.append('uploaderName', form.name)
-      const uploadRes = await $fetch<{ url: string }>('/api/upload', { method: 'POST', body: fd })
-      proofUrl = uploadRes.url
-    }
-
+    const fd = new FormData()
+    fd.append('submitterName', form.name)
+    fd.append('amount', form.amount)
+    fd.append('message', form.message)
+    fd.append('proof', screenshotFile.value, screenshotFile.value.name)
     await $fetch('/api/public/fund', {
       method: 'POST',
-      body: {
-        submitterName: form.name,
-        amount: Number(form.amount),
-        message: form.message || undefined,
-        proofUrl,
-      },
+      body: fd,
     })
 
     submitted.value = true
@@ -489,11 +542,11 @@ async function submit() {
                 <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 opacity-30" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" /></svg>
                 <p class="font-sans text-xs text-race-gray/50 text-center">Attach your GCash screenshot<br/>as proof of your transfer</p>
               </template>
-              <input type="file" accept="image/*" class="hidden" required aria-required="true" @change="onFileChange" />
+              <input ref="proofInput" type="file" accept="image/jpeg,image/png,image/webp" class="hidden" required aria-required="true" @change="onFileChange" />
             </label>
             <button
               v-if="screenshotPreview"
-              @click="screenshotFile = null; screenshotPreview = null"
+              type="button" @click="removeProof"
               class="font-sans text-[10px] text-race-gray/50 hover:text-race-gray self-start transition-colors"
             >Remove</button>
           </div>

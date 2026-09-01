@@ -1,7 +1,17 @@
 export default defineNuxtConfig({
-  compatibilityDate: '2024-11-01',
+  compatibilityDate: '2026-09-01',
   devtools: { enabled: true },
   nitro: { preset: 'cloudflare-module' },
+  routeRules: {
+    '/camera': { redirect: { to: '/cam', statusCode: 301 } },
+    '/**': {
+      headers: {
+        'Permissions-Policy': 'camera=(self), microphone=()',
+        'Referrer-Policy': 'strict-origin-when-cross-origin',
+        'X-Content-Type-Options': 'nosniff',
+      },
+    },
+  },
   modules: ['@nuxtjs/tailwindcss'],
   css: ['~/assets/css/main.css'],
   components: {

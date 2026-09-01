@@ -4,30 +4,51 @@ definePageMeta({ layout: false })
 interface GalleryPhoto {
   id: string
   url: string
-  guestId: string
   createdAt: string
 }
 
 const photos = ref<GalleryPhoto[]>([])
 const loading = ref(true)
 const lightboxIdx = ref<number | null>(null)
+let loadingRequest: Promise<void> | null = null
 
 async function load() {
+  if (loadingRequest) return loadingRequest
+  loadingRequest = (async () => {
   try {
+    const openPhotoId = lightboxIdx.value === null ? null : photos.value[lightboxIdx.value]?.id
+    const previousIndex = lightboxIdx.value
     const data = await $fetch<GalleryPhoto[]>('/api/cam/gallery')
     photos.value = data
+    if (previousIndex !== null) {
+      const samePhotoIndex = openPhotoId ? data.findIndex(photo => photo.id === openPhotoId) : -1
+      lightboxIdx.value = samePhotoIndex >= 0
+        ? samePhotoIndex
+        : data.length ? Math.min(previousIndex, data.length - 1) : null
+    }
   } catch {
     // silently keep showing whatever we have
   } finally {
     loading.value = false
+    loadingRequest = null
   }
+  })()
+  return loadingRequest
 }
 
 onMounted(() => {
   load()
-  // Poll every 8 seconds for live updates
-  const timer = setInterval(load, 8000)
-  onUnmounted(() => clearInterval(timer))
+  const refreshWhenVisible = () => {
+    if (document.visibilityState === 'visible' && navigator.onLine) load()
+  }
+  const timer = setInterval(refreshWhenVisible, 15000)
+  document.addEventListener('visibilitychange', refreshWhenVisible)
+  window.addEventListener('online', refreshWhenVisible)
+  onUnmounted(() => {
+    clearInterval(timer)
+    document.removeEventListener('visibilitychange', refreshWhenVisible)
+    window.removeEventListener('online', refreshWhenVisible)
+  })
 })
 
 function relTime(iso: string) {
@@ -105,6 +126,7 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
         >
           <img
             :src="photo.url"
+            :alt="`Guest photo ${i + 1}`"
             class="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
             style="filter:contrast(1.05) saturate(0.85)"
             loading="lazy"
@@ -132,20 +154,21 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
           <span class="font-racing text-white/40 text-sm tracking-widest">
             LAP {{ String(lightboxIdx + 1).padStart(2,'0') }} / {{ String(photos.length).padStart(2,'0') }}
           </span>
-          <button class="text-white/40 hover:text-white text-2xl leading-none transition-colors"
+          <button type="button" aria-label="Close photo viewer" class="text-white/40 hover:text-white text-2xl leading-none transition-colors"
             @click="lightboxIdx = null">×</button>
         </div>
 
         <!-- Image -->
         <div class="flex-1 flex items-center justify-center relative min-h-0 px-12">
-          <button class="absolute left-2 text-white/30 hover:text-white text-4xl leading-none transition-colors select-none"
+          <button type="button" aria-label="Previous photo" class="absolute left-2 text-white/30 hover:text-white text-4xl leading-none transition-colors select-none"
             @click="prevPhoto">‹</button>
           <img
             :src="photos[lightboxIdx].url"
+            :alt="`Guest photo ${lightboxIdx + 1}`"
             class="max-h-full max-w-full object-contain rounded-xl"
             style="filter:contrast(1.05) saturate(0.85)"
           />
-          <button class="absolute right-2 text-white/30 hover:text-white text-4xl leading-none transition-colors select-none"
+          <button type="button" aria-label="Next photo" class="absolute right-2 text-white/30 hover:text-white text-4xl leading-none transition-colors select-none"
             @click="nextPhoto">›</button>
         </div>
 
@@ -158,7 +181,7 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
             :class="i === lightboxIdx ? 'ring-2 ring-[#6B8CAE] opacity-100' : 'opacity-35 hover:opacity-60'"
             @click="lightboxIdx = i"
           >
-            <img :src="p.url" class="w-full h-full object-cover" loading="lazy" />
+            <img :src="p.url" :alt="`Open guest photo ${i + 1}`" class="w-full h-full object-cover" loading="lazy" />
           </div>
         </div>
       </div>
