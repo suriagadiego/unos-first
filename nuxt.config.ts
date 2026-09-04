@@ -20,6 +20,11 @@ export default defineNuxtConfig({
   runtimeConfig: {
     adminPassword: process.env.ADMIN_PASSWORD || 'admin123',
     adminJwtSecret: process.env.ADMIN_JWT_SECRET || 'change-this-secret-before-deploying',
+    public: {
+      // Destination encoded by the /race QR code. Empty falls back to
+      // RACE_QR_DEFAULT_TARGET in utils/raceQr.ts.
+      raceQrUrl: process.env.NUXT_PUBLIC_RACE_QR_URL || '',
+    },
   },
   app: {
     head: {

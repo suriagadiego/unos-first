@@ -84,6 +84,7 @@ Then edit the generated file in `supabase/migrations/` and run `db push`.
 | `/` | Main site — hero, event details, who's coming, RSVP, gifts |
 | `/activities` | Disposable camera + time capsule |
 | `/fund` | Uno's college fund |
+| `/race` | Interactive race-car QR experience ([docs](RACE_QR.md)) |
 | `/admin` | Admin dashboard (password protected) |
 | `/admin/login` | Admin login |
 
