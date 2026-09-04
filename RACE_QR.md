@@ -64,8 +64,7 @@ The QR matrix is the scene graph, not a picture laid on top of one.
 4. **On tap**: start lights run, then the car accelerates away up the launch column.
 5. **The camera rises to exactly 90°** while a flatten wave follows the car north
    and outward — blocks drop to zero height in the car's wake, kerbs and markings
-   fade, barriers retract, the spur slides away, and the palette resolves from
-   paddock concrete / dark asphalt to pure white / pure black.
+   fade, barriers retract and the pit spur slides away. **Nothing is recoloured.**
 6. **At pitch 90 with zero extrusion the perspective projection degenerates to a
    uniform scale**, so the flattened modules land exactly on the QR grid. Over the
    last ~450 ms the geometry is blended into an integer pixel grid so the final
@@ -84,14 +83,23 @@ clock value, the rewind is the forward animation with time running the other way
 no separate reverse animation to keep in sync. Start lights, tyre smoke and camera
 shake are suppressed while rewinding, since those only make sense going forwards.
 
-### Decoration on the settled code
+### Why the settled code is not black and white
 
-The finished plate carries a checkered flag border, kerb-red corner brackets and a
-UNO 01 pit board. **All of it sits outside the quiet zone** — the symbol keeps its
-full 5 clear modules on every side — so none of it can affect a scan. The border
-thickness is rounded to whole pixels so the white plate, and therefore every
-module, still lands on the pixel grid. The plate also keeps a soft drop shadow so
-it reads as the diorama base seen from above rather than a flat image.
+This is the point of the whole thing, and it is easy to get wrong. The materials
+never change: dark modules are asphalt and light modules are paving slabs, from the
+opening frame to the last one. The transformation is purely geometric — flatten the
+blocks, lift the camera, clear the decoration. So the finished code is not a picture
+of the diorama, it **is** the diorama, seen from directly overhead.
+
+Resolving to pure #000 on #FFF would break that. It turns the last frame into a
+generic QR graphic that merely happens to follow a race animation, and no amount of
+decoration bolted around the outside puts the illusion back.
+
+Both materials are cast in five tones with slight hue drift as well as value drift,
+so the code keeps the texture of separately laid track sections rather than reading
+as flat fill. The tones are banded — asphalt 34–59 luma, paving 197–223 — which
+holds the worst-case contrast anywhere on the code at **6.5:1**, comfortably above
+what scanners need. The quiet zone is the surrounding paddock ground at 205 luma.
 
 ---
 
@@ -150,9 +158,11 @@ downscaled to 20%, on six viewports from 320×568 to 1920×1080, plus after thre
 rewind-and-rerun cycles, after resize (settled and mid-animation), after
 backgrounding, and via Skip.
 
-Light modules render at luminance 255, dark at 0. The quiet zone is probed at
-every module of the full 4-module band on all four sides, corners included, and
-comes back pure white — which is what proves the decorative frame clears it.
+Because the code is rendered in the scene's materials rather than pure black and
+white, the harness measures the actual worst-case contrast ratio between any light
+and any dark module — 6.5:1 — instead of assuming #000/#FFF. The quiet zone is
+probed at every module of the full 4-module band on all four sides, corners
+included, and comes back uniformly light.
 
 ## Known limitations
 
@@ -162,8 +172,9 @@ comes back pure white — which is what proves the decorative frame clears it.
 - The car briefly overlaps the code area mid-flight. It is gone well before the
   code settles, so it never affects scanning, but a screenshot taken mid-animation
   will not decode — that is expected.
-- On a 320px-wide phone (iPhone SE 1st gen) the decorative border costs one module
-  of size, leaving 7px modules. Still verified to decode, including downscaled, but
-  it is the tightest case.
+- Rendering in the scene's materials trades some extreme-downscale headroom for
+  the illusion: at roughly 3px per module a couple of viewports stop decoding,
+  where pure black-on-white would still read. That is far below any real scanning
+  distance — every viewport decodes at 20% scale — but it is the honest trade.
 - Audio uses `AudioContext` directly; on iOS it only produces sound with the ringer
   switch on.

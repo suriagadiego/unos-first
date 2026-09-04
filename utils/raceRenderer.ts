@@ -17,8 +17,6 @@ import {
 } from './raceWorld'
 import { RACE_QR_QUIET_ZONE } from './raceQr'
 
-/** Thickness of the decorative checkered border, in modules. Outside the quiet zone. */
-const RACE_QR_FRAME = 1.5
 
 /**
  * Canvas 2D renderer for the race-to-QR transformation.
@@ -48,16 +46,18 @@ type Rgb = readonly [number, number, number]
 const PALETTE = {
   backdrop: [13, 13, 13] as Rgb,
   backdropLift: [26, 33, 40] as Rgb,
-  /** Paddock concrete during the race; washes out to pure white for the code. */
-  ground: [198, 188, 174] as Rgb,
-  groundFinal: [255, 255, 255] as Rgb,
-  plinthSide: [160, 150, 138] as Rgb,
-  /** Asphalt. Deliberately not black yet — contrast climbs as the scene resolves. */
+  /**
+   * Materials, not "before" colours. These are what the modules are made of from
+   * the first frame to the last — the transformation never recolours anything, it
+   * only flattens the geometry and lifts the camera. That is the whole illusion:
+   * the settled code is the diorama seen from directly above, in its own paint.
+   */
+  ground: [213, 205, 192] as Rgb,
+  plinthSide: [174, 165, 152] as Rgb,
   asphalt: [38, 45, 52] as Rgb,
-  asphaltFinal: [0, 0, 0] as Rgb,
-  asphaltSide: [19, 24, 29] as Rgb,
-  structure: [42, 51, 60] as Rgb,
-  structureSide: [23, 29, 35] as Rgb,
+  asphaltSide: [21, 26, 31] as Rgb,
+  structure: [48, 58, 68] as Rgb,
+  structureSide: [26, 33, 40] as Rgb,
   cream: [245, 240, 235] as Rgb,
   kerbRed: [196, 69, 58] as Rgb,
   blue: [107, 140, 174] as Rgb,
@@ -83,6 +83,36 @@ function css(c: Rgb, alpha = 1) {
     ? `rgb(${r},${g},${b})`
     : `rgba(${r},${g},${b},${Math.round(alpha * 100) / 100})`
 }
+
+/**
+ * The materials, cast in a handful of tones each. Slight hue drift as well as
+ * value drift — patched tarmac is not uniformly grey, and neither is paving —
+ * which is what gives the settled code its texture without ever putting a light
+ * tone near a dark one.
+ */
+const ASPHALT_TONES = [
+  [33, 40, 47],
+  [45, 52, 58],
+  [38, 43, 40],
+  [29, 35, 42],
+  [50, 56, 60],
+].map(c => css(c as unknown as Rgb))
+
+const STRUCTURE_TONES = [
+  [44, 54, 64],
+  [50, 60, 70],
+  [46, 54, 56],
+  [40, 49, 59],
+  [52, 61, 68],
+].map(c => css(c as unknown as Rgb))
+
+const PAVING_TONES = [
+  [216, 208, 195],
+  [208, 200, 188],
+  [223, 216, 204],
+  [212, 203, 190],
+  [204, 197, 186],
+].map(c => css(c as unknown as Rgb))
 
 function mix(a: Rgb, b: Rgb, t: number): Rgb {
   return [lerp(a[0], b[0], t), lerp(a[1], b[1], t), lerp(a[2], b[2], t)]
@@ -325,8 +355,6 @@ export function createRaceRenderer(options: RaceRendererOptions) {
   let cardX = 0
   let cardY = 0
   let cardSize = 0
-  /** Checkered flag border, outside the quiet zone. Purely decorative. */
-  let framePx = 0
   let qrX = 0
   let qrY = 0
   let startDist = 100
@@ -358,11 +386,9 @@ export function createRaceRenderer(options: RaceRendererOptions) {
     canvas.height = Math.round(vh * dpr)
     ctx!.setTransform(dpr, 0, 0, dpr, 0, 0)
 
-    // The card is the plate (symbol + quiet zone) plus a decorative flag border.
-    // The border is rounded to whole pixels so the plate — and therefore every
-    // module — still lands on the pixel grid.
+    // The plate is the symbol plus its quiet zone, and nothing else: it is simply
+    // the diorama's ground, seen from above.
     const plateCells = size + RACE_QR_QUIET_ZONE * 2
-    const fitCells = plateCells + Math.ceil(RACE_QR_FRAME * 2)
     layoutMode = vw / vh > 1.35 && vh < 560 ? 'landscape' : 'portrait'
 
     let box: number
@@ -377,15 +403,8 @@ export function createRaceRenderer(options: RaceRendererOptions) {
       box = Math.min(vw * 0.9, Math.max(120, vh - safeTop - safeBottom), 460)
     }
 
-    modulePx = Math.max(2, Math.floor(box / fitCells))
-    framePx = Math.round(modulePx * RACE_QR_FRAME)
-    cardSize = framePx * 2 + modulePx * plateCells
-    // Rounding the border up can overshoot the box by a pixel or two; step down.
-    while (cardSize > box && modulePx > 2) {
-      modulePx--
-      framePx = Math.round(modulePx * RACE_QR_FRAME)
-      cardSize = framePx * 2 + modulePx * plateCells
-    }
+    modulePx = Math.max(2, Math.floor(box / plateCells))
+    cardSize = modulePx * plateCells
 
     if (layoutMode === 'landscape') {
       cardX = Math.round(vw * 0.72 - cardSize / 2)
@@ -397,8 +416,8 @@ export function createRaceRenderer(options: RaceRendererOptions) {
     }
 
     marginPx = modulePx * RACE_QR_QUIET_ZONE
-    qrX = cardX + framePx + marginPx
-    qrY = cardY + framePx + marginPx
+    qrX = cardX + marginPx
+    qrY = cardY + marginPx
 
     focal = Math.max(vw, vh) * 1.15
     finalDist = focal / modulePx
@@ -637,10 +656,10 @@ export function createRaceRenderer(options: RaceRendererOptions) {
   function drawPlinth() {
     const e = boardEdge + RACE_QR_QUIET_ZONE
     const depth = 0.55 * (1 - params.snapT)
-    const topColor = css(mix(PALETTE.ground, PALETTE.groundFinal, params.cleanT))
+    const topColor = css(PALETTE.ground)
 
     if (depth > 0.002) {
-      const sideColor = css(mix(PALETTE.plinthSide, PALETTE.groundFinal, params.cleanT))
+      const sideColor = css(PALETTE.plinthSide)
       const sides: number[][] = [
         [-e, -e, -depth, e, -e, -depth, e, -e, 0, -e, -e, 0],
         [e, -e, -depth, e, e, -depth, e, e, 0, e, -e, 0],
@@ -654,11 +673,8 @@ export function createRaceRenderer(options: RaceRendererOptions) {
     }
 
     if (params.snapT > 0.995) {
-      // The plate is the quiet zone; the flag border sits outside it.
-      const plate = modulePx * (size + RACE_QR_QUIET_ZONE * 2)
       ctx!.fillStyle = topColor
-      ctx!.fillRect(cardX + framePx, cardY + framePx, plate, plate)
-      drawRaceFrame(params.snapT)
+      ctx!.fillRect(cardX, cardY, cardSize, cardSize)
     } else {
       const p = quadOf(-e, e, 0, e, e, 0, e, -e, 0, -e, -e, 0)
       ctx!.fillStyle = topColor
@@ -670,6 +686,28 @@ export function createRaceRenderer(options: RaceRendererOptions) {
       ctx!.closePath()
       ctx!.fill()
     }
+  }
+
+  /**
+   * Light modules, as paving slabs. Drawn in one pass across the whole board
+   * rather than per row: they are all on the ground plane, so they cannot occlude
+   * each other, and doing them up front keeps the raised blocks painting cleanly
+   * over them. This is the other half of the illusion — from overhead these tiles
+   * are the code's light modules, and they are the same slabs you see in the
+   * opening shot.
+   */
+  function drawPaving() {
+    for (let row = 0; row < size; row++) {
+      const y = rowToY(row, size)
+      for (let col = 0; col < size; col++) {
+        const i = row * size + col
+        if (world.dark[i]) continue
+        const x = colToX(col, size)
+        const p = quadOf(x - 0.5, y + 0.5, 0, x + 0.5, y + 0.5, 0, x + 0.5, y - 0.5, 0, x - 0.5, y - 0.5, 0)
+        batch.add(groundColor(i), p)
+      }
+    }
+    batch.flush(ctx!)
   }
 
   /**
@@ -799,10 +837,11 @@ export function createRaceRenderer(options: RaceRendererOptions) {
         const x = colToX(col, size)
         const x0 = x - 0.5
         const x1 = x + 0.5
-        const base = world.kind[i] === CELL_TRACK || world.kind[i] === CELL_TIMING
-          ? PALETTE.asphaltSide
-          : PALETTE.structureSide
-        const color = css(mix(base, PALETTE.asphaltFinal, params.cleanT))
+        const color = css(
+          world.kind[i] === CELL_TRACK || world.kind[i] === CELL_TIMING
+            ? PALETTE.asphaltSide
+            : PALETTE.structureSide,
+        )
 
         let p = quadOf(x0, y0, 0, x1, y0, 0, x1, y0, h, x0, y0, h)
         if (signedArea(p) < 0) batch.add(color, p)
@@ -823,7 +862,7 @@ export function createRaceRenderer(options: RaceRendererOptions) {
         const h = blockHeight(i, flat)
         const x = colToX(col, size)
         const p = quadOf(x - 0.5, y + 0.5, h, x + 0.5, y + 0.5, h, x + 0.5, y - 0.5, h, x - 0.5, y - 0.5, h)
-        batch.add(topColor(i, flat), p)
+        batch.add(topColor(i), p)
       }
       batch.flush(ctx!)
 
@@ -847,22 +886,22 @@ export function createRaceRenderer(options: RaceRendererOptions) {
           const p = vertical
             ? quadOf(x - 0.18, y + 0.5, h, x + 0.18, y + 0.5, h, x + 0.18, y - 0.5, h, x - 0.18, y - 0.5, h)
             : quadOf(x - 0.5, y + 0.18, h, x + 0.5, y + 0.18, h, x + 0.5, y - 0.18, h, x - 0.5, y - 0.18, h)
-          batch.add(css(mix(PALETTE.cream, PALETTE.asphaltFinal, params.cleanT), a), p)
+          batch.add(css(PALETTE.cream, a), p)
         } else if (kind === CELL_FINDER_RING || kind === CELL_ALIGN) {
           // Cream capping line reads as barrier topping around the corner complexes.
           const inset = 0.34
           const p = quadOf(x - inset, y + inset, h, x + inset, y + inset, h, x + inset, y - inset, h, x - inset, y - inset, h)
-          batch.add(css(mix(PALETTE.blueLight, PALETTE.asphaltFinal, params.cleanT), 0.24 * detail), p)
+          batch.add(css(PALETTE.blueLight, 0.24 * detail), p)
         } else if (kind === CELL_FINDER_CORE) {
           const p = quadOf(x - 0.3, y + 0.3, h, x + 0.3, y + 0.3, h, x + 0.3, y - 0.3, h, x - 0.3, y - 0.3, h)
-          batch.add(css(mix(PALETTE.blue, PALETTE.asphaltFinal, params.cleanT), 0.32 * detail), p)
+          batch.add(css(PALETTE.blue, 0.32 * detail), p)
         } else if (world.lane[i] !== LANE_NONE && laneAlpha > 0.02 && quality === 'high') {
           const w = 0.08
           const l = 0.3
           const p = world.lane[i] === LANE_VERTICAL
             ? quadOf(x - w, y + l, h, x + w, y + l, h, x + w, y - l, h, x - w, y - l, h)
             : quadOf(x - l, y + w, h, x + l, y + w, h, x + l, y - w, h, x - l, y - w, h)
-          batch.add(css(mix(PALETTE.cream, PALETTE.asphaltFinal, params.cleanT), laneAlpha), p)
+          batch.add(css(PALETTE.cream, laneAlpha), p)
         }
       }
       batch.flush(ctx!)
@@ -876,11 +915,22 @@ export function createRaceRenderer(options: RaceRendererOptions) {
     return world.height[i] * ((1 - s) + lift)
   }
 
-  function topColor(i: number, flat: number) {
+  /**
+   * Asphalt tone for a dark module. Real tonal spread is what stops the settled
+   * code reading as a flat graphic — it keeps looking like separately cast
+   * sections of track, exactly as it does in the opening shot. Every tone stays
+   * inside its band (dark 34–56, light 189–216 luma) so contrast never drops
+   * below about 6:1 anywhere on the code.
+   */
+  function topColor(i: number) {
     const kind = world.kind[i]
-    const base = kind === CELL_TRACK || kind === CELL_TIMING ? PALETTE.asphalt : PALETTE.structure
-    const varied = shadeBy(base, (world.shade[i] - 1) * 3)
-    return css(mix(varied, PALETTE.asphaltFinal, params.cleanT))
+    const tones = kind === CELL_TRACK || kind === CELL_TIMING ? ASPHALT_TONES : STRUCTURE_TONES
+    return tones[world.shade[i] % tones.length]
+  }
+
+  /** Paving tone for a light module. Same idea, at the other end of the range. */
+  function groundColor(i: number) {
+    return PAVING_TONES[world.shade[i] % PAVING_TONES.length]
   }
 
   /**
@@ -892,8 +942,8 @@ export function createRaceRenderer(options: RaceRendererOptions) {
     const k = world.kerb[i]
     const lip = 0.24
     const step = 0.5
-    const red = css(mix(PALETTE.kerbRed, PALETTE.asphaltFinal, params.cleanT), alpha)
-    const pale = css(mix(PALETTE.cream, PALETTE.asphaltFinal, params.cleanT), alpha)
+    const red = css(PALETTE.kerbRed, alpha)
+    const pale = css(PALETTE.cream, alpha)
 
     const horizontal = (edgeY: number, inward: number) => {
       for (let s = 0; s < 2; s++) {
@@ -927,7 +977,7 @@ export function createRaceRenderer(options: RaceRendererOptions) {
     const e = boardEdge + 2.2
     const top = 0.42 * (1 - easeInOutCubic(params.cleanT))
     if (top < 0.01) return
-    const railColor = css(mix(PALETTE.cream, PALETTE.groundFinal, params.cleanT), 0.5 * alpha)
+    const railColor = css(PALETTE.cream, 0.5 * alpha)
     const postColor = css(PALETTE.barrier, 0.75 * alpha)
 
     const runs: Array<[number, number, number, number]> = [
@@ -966,7 +1016,7 @@ export function createRaceRenderer(options: RaceRendererOptions) {
           const z1 = z0 + s * 0.5
           const rim = level % 2 === 0 ? PALETTE.barrier : PALETTE.cream
           const p = quadOf(item.x - s, item.y + s, z1, item.x + s, item.y + s, z1, item.x + s, item.y - s, z1, item.x - s, item.y - s, z1)
-          batch.add(css(mix(rim, PALETTE.groundFinal, params.cleanT), 0.85), p)
+          batch.add(css(rim, 0.85), p)
           const side = quadOf(item.x - s, item.y - s, z0, item.x + s, item.y - s, z0, item.x + s, item.y - s, z1, item.x - s, item.y - s, z1)
           if (signedArea(side) < 0) batch.add(css(PALETTE.backdrop, 0.55), side)
         }
@@ -1297,90 +1347,37 @@ export function createRaceRenderer(options: RaceRendererOptions) {
   // ------------------------------------------------------------ settled QR
 
   /**
-   * Checkered flag border around the plate: kerb accents at every corner and a
-   * UNO 01 number board along the bottom edge. It sits entirely outside the quiet
-   * zone — the code keeps its full 5 clear modules — so it cannot affect a scan.
-   */
-  function drawRaceFrame(alpha: number) {
-    if (alpha <= 0.01 || framePx <= 0) return
-    // Fit a whole number of flag squares across the card so the ring tiles cleanly.
-    const count = Math.max(8, Math.round(cardSize / framePx))
-    const cell = cardSize / count
-    const dark = css(PALETTE.backdrop)
-    const light = css(PALETTE.cream)
-
-    ctx!.save()
-    ctx!.globalAlpha = alpha
-    for (let gy = 0; gy < count; gy++) {
-      for (let gx = 0; gx < count; gx++) {
-        if (gx > 0 && gy > 0 && gx < count - 1 && gy < count - 1) continue
-        ctx!.fillStyle = (gx + gy) % 2 === 0 ? light : dark
-        ctx!.fillRect(cardX + gx * cell, cardY + gy * cell, cell + 0.5, cell + 0.5)
-      }
-    }
-
-    // Kerb corners, in the same red the track kerbs use.
-    ctx!.fillStyle = css(PALETTE.kerbRed)
-    const run = cell * 2
-    for (const [edgeX, edgeY] of [
-      [0, 0],
-      [cardSize, 0],
-      [0, cardSize],
-      [cardSize, cardSize],
-    ]) {
-      const left = cardX + (edgeX > 0 ? edgeX - run : 0)
-      const top = cardY + (edgeY > 0 ? edgeY - cell : 0)
-      ctx!.fillRect(left, top, run, cell)
-      ctx!.fillRect(
-        cardX + (edgeX > 0 ? edgeX - cell : 0),
-        cardY + (edgeY > 0 ? edgeY - run : 0),
-        cell,
-        run,
-      )
-    }
-
-    // Number board on the bottom edge, the way a pit board carries the car number.
-    const boardW = Math.min(cardSize * 0.44, cell * 10)
-    const bx = cardX + (cardSize - boardW) / 2
-    const by = cardY + cardSize - cell
-    ctx!.fillStyle = css(PALETTE.blue)
-    ctx!.fillRect(bx, by, boardW, cell)
-    ctx!.fillStyle = css(PALETTE.cream)
-    ctx!.textAlign = 'center'
-    ctx!.textBaseline = 'middle'
-    ctx!.font = `700 ${(cell * 0.54).toFixed(1)}px Formula1, 'Plus Jakarta Sans', sans-serif`
-    ctx!.fillText('UNO 01', bx + boardW / 2, by + cell * 0.56)
-    ctx!.restore()
-  }
-
-
-  /**
-   * The finished code: whole pixels, no perspective, nothing overlapping the
-   * symbol or its quiet zone. Geometrically identical to the last animated frame,
-   * so there is no visible handover — the decoration only ever sits outside.
+   * The finished code: the diorama's own ground, seen from directly overhead with
+   * every block flattened. Same materials as the isometric view — asphalt modules
+   * sitting on paving modules — drawn on whole pixels so no module edge is
+   * anti-aliased. Nothing is recoloured; the code is the scene, not a picture of one.
    */
   function drawSettledQr() {
-    // The plate keeps a little physical depth, so it still reads as the diorama
-    // base seen from above rather than a flat image pasted on.
+    // The plate keeps a soft shadow so it still reads as a physical model base
+    // rather than an image. It falls outside the code, never across it.
     ctx!.save()
-    ctx!.shadowColor = 'rgba(0,0,0,0.55)'
-    ctx!.shadowBlur = Math.max(12, modulePx * 2.4)
-    ctx!.shadowOffsetY = Math.max(4, modulePx * 0.8)
-    ctx!.fillStyle = css(PALETTE.backdrop)
+    ctx!.shadowColor = 'rgba(0,0,0,0.5)'
+    ctx!.shadowBlur = Math.max(12, modulePx * 2.6)
+    ctx!.shadowOffsetY = Math.max(4, modulePx * 0.9)
+    ctx!.fillStyle = css(PALETTE.ground)
     ctx!.fillRect(cardX, cardY, cardSize, cardSize)
     ctx!.restore()
 
-    drawRaceFrame(1)
-
-    const plate = modulePx * (size + RACE_QR_QUIET_ZONE * 2)
-    ctx!.fillStyle = css(PALETTE.groundFinal)
-    ctx!.fillRect(cardX + framePx, cardY + framePx, plate, plate)
-
-    ctx!.fillStyle = '#000000'
+    // Batch by tone so the whole plate costs a handful of fills.
+    const byTone = new Map<string, number[]>()
     for (let row = 0; row < size; row++) {
       for (let col = 0; col < size; col++) {
-        if (!world.dark[row * size + col]) continue
-        ctx!.fillRect(qrX + col * modulePx, qrY + row * modulePx, modulePx, modulePx)
+        const i = row * size + col
+        const tone = world.dark[i] ? topColor(i) : groundColor(i)
+        let cells = byTone.get(tone)
+        if (!cells) byTone.set(tone, (cells = []))
+        cells.push(qrX + col * modulePx, qrY + row * modulePx)
+      }
+    }
+    for (const [tone, cells] of byTone) {
+      ctx!.fillStyle = tone
+      for (let k = 0; k < cells.length; k += 2) {
+        ctx!.fillRect(cells[k], cells[k + 1], modulePx, modulePx)
       }
     }
   }
@@ -1397,6 +1394,7 @@ export function createRaceRenderer(options: RaceRendererOptions) {
       drawSettledQr()
     } else {
       drawPlinth()
+      drawPaving()
       drawApron()
       drawShadows(t)
       drawTrack(t)

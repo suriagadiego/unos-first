@@ -37,6 +37,9 @@ export const CELL_HEIGHT: Record<number, number> = {
   [CELL_ALIGN]: 0.52,
 }
 
+/** Number of distinct tones the materials are cast in. */
+export const TONE_COUNT = 5
+
 export const LANE_NONE = 0
 export const LANE_VERTICAL = 1
 export const LANE_HORIZONTAL = 2
@@ -56,7 +59,7 @@ export interface RaceWorld {
   dark: Uint8Array
   kind: Uint8Array
   height: Float32Array
-  /** 0..2 — a barely-there asphalt tone variation so the track reads as cast sections. */
+  /** 0..4 — tone index, so track and paving read as separately cast sections. */
   shade: Uint8Array
   /** Bitmask of sides whose neighbour is light or off-board. */
   open: Uint8Array
@@ -149,6 +152,9 @@ export function buildRaceWorld(matrix: QrMatrix): RaceWorld {
   for (let row = 0; row < size; row++) {
     for (let col = 0; col < size; col++) {
       const i = row * size + col
+      // Every module gets a tone, light ones included: from overhead the paving
+      // slabs are the code's light modules, so they need the same variation.
+      shade[i] = Math.floor(hash2(col, row) * TONE_COUNT)
       if (!isDark(col, row)) continue
       dark[i] = 1
 
@@ -163,7 +169,6 @@ export function buildRaceWorld(matrix: QrMatrix): RaceWorld {
               : CELL_TRACK
 
       height[i] = CELL_HEIGHT[kind[i]]
-      shade[i] = Math.floor(hash2(col, row) * 3)
     }
   }
 
