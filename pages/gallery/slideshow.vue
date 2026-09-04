@@ -4,6 +4,7 @@ definePageMeta({ layout: false })
 interface GalleryPhoto {
   id: string
   url: string
+  thumbnailUrl: string
   guestId: string
   guestName: string | null
   createdAt: string
@@ -99,8 +100,8 @@ function measureViewport() {
 }
 
 function preloadPhoto(photo: GalleryPhoto) {
-  if (loadedPhotoUrls.has(photo.url)) return Promise.resolve()
-  const existingTask = preloadTasks.get(photo.url)
+  if (loadedPhotoUrls.has(photo.thumbnailUrl)) return Promise.resolve()
+  const existingTask = preloadTasks.get(photo.thumbnailUrl)
   if (existingTask) return existingTask
 
   const task = new Promise<void>((resolve) => {
@@ -114,19 +115,19 @@ function preloadPhoto(photo: GalleryPhoto) {
       } catch {
         // onload already guarantees the bytes are available when decode is unsupported.
       }
-      loadedPhotoUrls.add(photo.url)
-      preloadTasks.delete(photo.url)
+      loadedPhotoUrls.add(photo.thumbnailUrl)
+      preloadTasks.delete(photo.thumbnailUrl)
       resolve()
     }
     image.onerror = () => {
       // Do not permanently stall the projector if an individual upload is unavailable.
-      preloadTasks.delete(photo.url)
+      preloadTasks.delete(photo.thumbnailUrl)
       resolve()
     }
-    image.src = photo.url
+    image.src = photo.thumbnailUrl
   })
 
-  preloadTasks.set(photo.url, task)
+  preloadTasks.set(photo.thumbnailUrl, task)
   return task
 }
 
@@ -150,7 +151,9 @@ async function loadPhotos() {
     const existingPhotos = new Map(photos.value.map(photo => [photo.id, photo]))
     const mergedPhotos = data.map((photo) => {
       const existing = existingPhotos.get(photo.id)
-      return existing ? { ...photo, url: existing.url } : photo
+      return existing
+        ? { ...photo, url: existing.url, thumbnailUrl: existing.thumbnailUrl }
+        : photo
     })
 
     // New live uploads are decoded before they are allowed into the active deck.
@@ -295,9 +298,10 @@ onUnmounted(() => {
             :style="{ width: `${item.width}px` }"
           >
             <img
-              :src="item.photo.url"
+              :src="item.photo.thumbnailUrl"
               :alt="`Photo by ${item.photo.guestName || 'a guest'}`"
               class="block h-full w-full object-contain"
+              decoding="async"
               @load="recordAspectRatio(item.photo.id, $event)"
             />
             <div class="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-black/80 via-black/25 to-transparent" />

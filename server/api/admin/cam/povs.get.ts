@@ -7,7 +7,7 @@ export default defineEventHandler(async () => {
 
   const { data, error } = await sb
     .from('camera_uploads')
-    .select('id, guest_id, guest_name, storage_key, status, upload_state, created_at')
+    .select('id, guest_id, guest_name, storage_key, thumbnail_storage_key, status, upload_state, created_at')
     .is('deleted_at', null)
     .eq('upload_state', 'ready')
     .order('created_at', { ascending: false })
@@ -18,9 +18,17 @@ export default defineEventHandler(async () => {
   const signed = await Promise.all(
     (data ?? []).map(async (row) => {
       const objectUrl = `${storage.endpoint}/${storage.bucket}/${row.storage_key}`
-      const s = await storage.aws.sign(new Request(objectUrl, { method: 'GET' }), {
-        aws: { signQuery: true, expiresIn: 3600 },
-      })
+      const thumbnailUrl = row.thumbnail_storage_key
+        ? `${storage.endpoint}/${storage.bucket}/${row.thumbnail_storage_key}`
+        : objectUrl
+      const [s, thumbnail] = await Promise.all([
+        storage.aws.sign(new Request(objectUrl, { method: 'GET' }), {
+          aws: { signQuery: true, expiresIn: 3600 },
+        }),
+        storage.aws.sign(new Request(thumbnailUrl, { method: 'GET' }), {
+          aws: { signQuery: true, expiresIn: 3600 },
+        }),
+      ])
       return {
         id: row.id,
         guestId: row.guest_id,
@@ -28,6 +36,7 @@ export default defineEventHandler(async () => {
         storageKey: row.storage_key,
         status: row.status,
         url: s.url,
+        thumbnailUrl: thumbnail.url,
         createdAt: row.created_at,
       }
     })

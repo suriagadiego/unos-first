@@ -320,7 +320,7 @@
                 <div v-for="p in g.photos" :key="p.id"
                   class="relative rounded-lg overflow-hidden bg-gray-100 aspect-square cursor-pointer"
                   @click="povLb.open(g, p.id)">
-                  <img :src="p.url" class="w-full h-full object-cover" loading="lazy" alt="Guest camera submission" />
+                  <img :src="p.thumbnailUrl" class="w-full h-full object-cover" loading="lazy" decoding="async" alt="Guest camera submission" />
                   <span class="absolute left-1.5 top-1.5 badge text-[9px]"
                     :class="p.status === 'approved' ? 'badge-green' : p.status === 'rejected' ? 'badge-red' : 'bg-amber-100 text-amber-700'">
                     {{ p.status }}
@@ -653,7 +653,7 @@
               class="flex-shrink-0 w-14 h-14 rounded-lg overflow-hidden cursor-pointer transition-all"
               :class="i === lb.index ? 'ring-2 ring-white opacity-100' : 'opacity-40 hover:opacity-70'"
               @click="lb.index = i">
-              <img :src="p.url" class="w-full h-full object-cover" loading="lazy" />
+              <img :src="p.thumbnailUrl" class="w-full h-full object-cover" loading="lazy" decoding="async" />
             </div>
           </div>
         </div>

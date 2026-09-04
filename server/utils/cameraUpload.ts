@@ -1,5 +1,7 @@
 export const MAX_CAMERA_FILE_BYTES = 25 * 1024 * 1024
 export const MAX_CAMERA_DIMENSION = 4096
+export const MAX_CAMERA_THUMBNAIL_BYTES = 1024 * 1024
+export const MAX_CAMERA_THUMBNAIL_DIMENSION = 1280
 
 type JpegValidationOptions = {
   maxBytes?: number

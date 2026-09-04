@@ -4,6 +4,7 @@ definePageMeta({ layout: false })
 interface GalleryPhoto {
   id: string
   url: string
+  thumbnailUrl: string
   guestId: string
   guestName: string | null
   createdAt: string
@@ -201,11 +202,12 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
               @click="openPhoto(photo.id)"
             >
               <img
-                :src="photo.url"
+                :src="photo.thumbnailUrl"
                 :alt="`Photo ${i + 1} by ${group.name}`"
                 class="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
                 style="filter:contrast(1.05) saturate(0.85)"
                 loading="lazy"
+                decoding="async"
               />
               <div class="absolute inset-x-0 bottom-0 h-10 bg-gradient-to-t from-black/70 to-transparent" />
               <span class="absolute bottom-1.5 right-1.5 font-racing text-[7px] leading-none text-[#F59E0B] drop-shadow">
@@ -228,7 +230,7 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
 
         <!-- Heavily blurred photo backdrop -->
         <img
-          :src="photos[lightboxIdx].url"
+          :src="photos[lightboxIdx].thumbnailUrl"
           alt=""
           aria-hidden="true"
           class="pointer-events-none absolute -inset-[12%] -z-10 h-[124%] w-[124%] scale-110 object-cover opacity-65 blur-[72px] saturate-150"
@@ -298,7 +300,7 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
             :class="i === lightboxIdx ? 'ring-2 ring-white opacity-100 scale-105' : 'opacity-50 hover:opacity-80'"
             @click="lightboxIdx = i"
           >
-            <img :src="p.url" alt="" class="w-full h-full object-cover" loading="lazy" />
+            <img :src="p.thumbnailUrl" alt="" class="w-full h-full object-cover" loading="lazy" decoding="async" />
           </button>
         </div>
       </div>

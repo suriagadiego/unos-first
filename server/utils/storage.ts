@@ -48,6 +48,7 @@ export async function uploadToStorage(
   key: string,
   body: ArrayBuffer,
   contentType: string,
+  options: { cacheControl?: string } = {},
 ) {
   const url = `${storage.endpoint}/${storage.bucket}/${key}`
 
@@ -55,7 +56,10 @@ export async function uploadToStorage(
     const response = await storage.aws.fetch(url, {
       method: 'PUT',
       body,
-      headers: { 'Content-Type': contentType || 'application/octet-stream' },
+      headers: {
+        'Content-Type': contentType || 'application/octet-stream',
+        ...(options.cacheControl ? { 'Cache-Control': options.cacheControl } : {}),
+      },
     })
 
     if (!response.ok) {

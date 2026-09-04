@@ -1,10 +1,19 @@
 <script setup lang="ts">
+import { createGalleryThumbnail } from '../../utils/cameraThumbnail.client'
+
 definePageMeta({ layout: false })
 
 const viewfinderRef = ref<{ capture: () => void; start: () => void; status: Ref<string>; flipCamera: () => void }>()
 const { ensureAuth, authHeaders, fetchShots, shots } = useGuestCamera()
 
-interface Shot { src: string; status: 'uploading' | 'done' | 'error'; blob: Blob; name: string | null; uploadId: string }
+interface Shot {
+  src: string
+  status: 'uploading' | 'done' | 'error'
+  blob: Blob
+  thumbnailBlob: Blob | null
+  name: string | null
+  uploadId: string
+}
 
 const UPLOAD_TIMEOUT_MS = 90_000
 
@@ -95,6 +104,7 @@ async function onCaptured(blob: Blob) {
     src,
     status: 'uploading',
     blob,
+    thumbnailBlob: null,
     name: name && name !== '__skip__' ? name : null,
     uploadId: crypto.randomUUID(),
   }
@@ -112,8 +122,19 @@ async function doUpload() {
   uploadController = new AbortController()
   const timeout = setTimeout(() => uploadController?.abort(), UPLOAD_TIMEOUT_MS)
   try {
+    // Generate this once and retain it for retries. Failure is non-fatal: older
+    // browsers can still upload the original and the API will fall back to it.
+    if (!shot.thumbnailBlob) {
+      try {
+        shot.thumbnailBlob = await createGalleryThumbnail(shot.blob)
+      } catch (error) {
+        console.warn('Gallery thumbnail generation failed', error)
+      }
+    }
+
     const form = new FormData()
     form.append('photo', shot.blob, 'shot.jpg')
+    if (shot.thumbnailBlob) form.append('thumbnail', shot.thumbnailBlob, 'shot-thumbnail.jpg')
     form.append('uploadId', shot.uploadId)
     if (shot.name) form.append('guestName', shot.name)
     const result = await $fetch<{ key: string; url: string; remaining: number; limit: number }>('/api/cam/upload', {
