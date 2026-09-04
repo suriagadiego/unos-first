@@ -74,6 +74,25 @@ The QR matrix is the scene graph, not a picture laid on top of one.
 There is no crossfade to a QR image. The last frame is the same geometry the
 racetrack was built from — which is why it reconstructs bit-for-bit.
 
+### Going back
+
+Tapping the settled code (or "Back to the grid") runs the whole timeline
+**backwards** at 0.62× speed rather than resetting: the code lifts back into
+extruded track, kerbs and barriers return, the camera drops to the starting grid
+and the car reverses onto pole. Because every visual is a pure function of one
+clock value, the rewind is the forward animation with time running the other way —
+no separate reverse animation to keep in sync. Start lights, tyre smoke and camera
+shake are suppressed while rewinding, since those only make sense going forwards.
+
+### Decoration on the settled code
+
+The finished plate carries a checkered flag border, kerb-red corner brackets and a
+UNO 01 pit board. **All of it sits outside the quiet zone** — the symbol keeps its
+full 5 clear modules on every side — so none of it can affect a scan. The border
+thickness is rounded to whole pixels so the white plate, and therefore every
+module, still lands on the pixel grid. The plate also keeps a soft drop shadow so
+it reads as the diorama base seen from above rather than a flat image.
+
 ---
 
 ## Dependencies
@@ -90,13 +109,14 @@ chunk, both loaded only on `/race`.
 
 ## Mobile and performance
 
-- Measured draw cost is **~1.1 ms/frame**, and **~4.5 ms under a 4× CPU throttle**.
+- Measured draw cost is **~1.2 ms/frame**, and **~5.5 ms under a 4× CPU throttle**.
 - Same-colour quads are batched into one fill per colour per row, and the batch
   buffers are reused between frames, so a frame costs ~150 fills and allocates
   nothing. Rows draw far-to-near for correct occlusion.
-- `devicePixelRatio` is capped at 2. No `shadowBlur` anywhere (it is the single
-  most expensive canvas 2D operation) — contact shadows are offset quads merged
-  into one path so overlaps do not double-darken.
+- `devicePixelRatio` is capped at 2. No `shadowBlur` in the animation loop (it is
+  the single most expensive canvas 2D operation) — contact shadows are offset quads
+  merged into one path so overlaps do not double-darken. The one `shadowBlur` is on
+  the settled plate, which is drawn once after the loop has stopped.
 - A rolling average of real draw cost downgrades quality once (dropping shadows,
   centre lines, barriers, decor and particles) if a device is genuinely slow.
 - The render loop stops when the code has settled and when the tab is hidden.
@@ -126,11 +146,13 @@ The final code was checked by reconstructing the matrix from rendered pixels and
 comparing it against the source matrix module by module — an exact match on all
 625 modules across Pixel 5, iPhone 12, iPhone SE, desktop and reduced-motion. Real
 screenshots of the production build were also decoded with `jsQR` at full size and
-downscaled to 20%, on six viewports from 320×568 to 1920×1080, plus after replay,
-after resize (settled and mid-animation), after backgrounding, and via Skip.
+downscaled to 20%, on six viewports from 320×568 to 1920×1080, plus after three
+rewind-and-rerun cycles, after resize (settled and mid-animation), after
+backgrounding, and via Skip.
 
-Light modules render at luminance 255, dark at 0, with a uniformly white 5-module
-quiet zone (the spec minimum is 4).
+Light modules render at luminance 255, dark at 0. The quiet zone is probed at
+every module of the full 4-module band on all four sides, corners included, and
+comes back pure white — which is what proves the decorative frame clears it.
 
 ## Known limitations
 
@@ -140,5 +162,8 @@ quiet zone (the spec minimum is 4).
 - The car briefly overlaps the code area mid-flight. It is gone well before the
   code settles, so it never affects scanning, but a screenshot taken mid-animation
   will not decode — that is expected.
+- On a 320px-wide phone (iPhone SE 1st gen) the decorative border costs one module
+  of size, leaving 7px modules. Still verified to decode, including downscaled, but
+  it is the tightest case.
 - Audio uses `AudioContext` directly; on iOS it only produces sound with the ringer
   switch on.

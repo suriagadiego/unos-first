@@ -4,7 +4,7 @@ import type { QrMatrix } from '~/utils/raceQr'
 
 const props = defineProps<{ target: string }>()
 
-type Status = 'loading' | 'ready' | 'racing' | 'done' | 'fallback'
+type Status = 'loading' | 'ready' | 'racing' | 'done' | 'rewinding' | 'fallback'
 
 const status = ref<Status>('loading')
 const errorMessage = ref('')
@@ -47,6 +47,9 @@ onMounted(async () => {
       onFrame: onFrame,
       onComplete: () => {
         status.value = 'done'
+      },
+      onRewound: () => {
+        status.value = 'ready'
       },
     })
 
@@ -161,15 +164,17 @@ function skip() {
   status.value = 'done'
 }
 
-function replay() {
-  if (!renderer) return
-  renderer.reset()
-  status.value = 'ready'
+/** Runs the transformation backwards, back to the starting grid. */
+function rewind() {
+  if (!renderer || status.value !== 'done') return
+  status.value = 'rewinding'
+  renderer.rewind()
 }
 
 function onStageClick(event: MouseEvent) {
   if ((event.target as HTMLElement).closest('button, a')) return
   if (status.value === 'ready') launch()
+  else if (status.value === 'done') rewind()
 }
 </script>
 
@@ -177,7 +182,7 @@ function onStageClick(event: MouseEvent) {
   <div
     ref="stageRef"
     class="race-stage"
-    :class="`race-stage--${layoutMode}`"
+    :class="[`race-stage--${layoutMode}`, { 'race-stage--rewindable': status === 'done' }]"
     @click="onStageClick"
   >
     <canvas
@@ -211,7 +216,13 @@ function onStageClick(event: MouseEvent) {
         <div v-if="status === 'done'" key="done" class="race-footer__inner">
           <p class="race-scan">Scan to join the race</p>
           <a class="race-link" :href="target" rel="noopener">{{ prettyTarget }}</a>
-          <button type="button" class="race-ghost race-replay" @click="replay">Run it again</button>
+          <button type="button" class="race-ghost race-replay" @click="rewind">
+            Back to the grid
+          </button>
+        </div>
+
+        <div v-else-if="status === 'rewinding'" key="rewinding" class="race-footer__inner">
+          <p class="race-hint">Rewinding…</p>
         </div>
 
         <div v-else-if="status === 'fallback'" key="fallback" class="race-footer__inner">
@@ -270,6 +281,10 @@ function onStageClick(event: MouseEvent) {
 </template>
 
 <style scoped>
+.race-stage--rewindable {
+  cursor: pointer;
+}
+
 .race-stage {
   position: fixed;
   inset: 0;

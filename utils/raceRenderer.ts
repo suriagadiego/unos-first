@@ -17,6 +17,9 @@ import {
 } from './raceWorld'
 import { RACE_QR_QUIET_ZONE } from './raceQr'
 
+/** Thickness of the decorative checkered border, in modules. Outside the quiet zone. */
+const RACE_QR_FRAME = 1.5
+
 /**
  * Canvas 2D renderer for the race-to-QR transformation.
  *
@@ -249,7 +252,7 @@ export const REDUCED_TIMELINE: Timeline = {
 
 // ---------------------------------------------------------------- renderer
 
-export type RacePhase = 'idle' | 'racing' | 'qr'
+export type RacePhase = 'idle' | 'racing' | 'rewinding' | 'qr'
 export type RaceLayoutMode = 'portrait' | 'landscape'
 
 export interface FrameInfo {
@@ -267,6 +270,7 @@ export interface RaceRendererOptions {
   reducedMotion: boolean
   onFrame?: (info: FrameInfo) => void
   onComplete?: () => void
+  onRewound?: () => void
 }
 
 const START_PITCH = 30
@@ -301,6 +305,7 @@ export function createRaceRenderer(options: RaceRendererOptions) {
   let phase: RacePhase = 'idle'
   let raceTime = 0
   let launchedAt = 0
+  let rewindStartedAt = 0
   let clock = 0
   let rafId = 0
   let lastStamp = 0
@@ -320,6 +325,8 @@ export function createRaceRenderer(options: RaceRendererOptions) {
   let cardX = 0
   let cardY = 0
   let cardSize = 0
+  /** Checkered flag border, outside the quiet zone. Purely decorative. */
+  let framePx = 0
   let qrX = 0
   let qrY = 0
   let startDist = 100
@@ -351,31 +358,47 @@ export function createRaceRenderer(options: RaceRendererOptions) {
     canvas.height = Math.round(vh * dpr)
     ctx!.setTransform(dpr, 0, 0, dpr, 0, 0)
 
-    const cellsAcross = size + RACE_QR_QUIET_ZONE * 2
+    // The card is the plate (symbol + quiet zone) plus a decorative flag border.
+    // The border is rounded to whole pixels so the plate — and therefore every
+    // module — still lands on the pixel grid.
+    const plateCells = size + RACE_QR_QUIET_ZONE * 2
+    const fitCells = plateCells + Math.ceil(RACE_QR_FRAME * 2)
     layoutMode = vw / vh > 1.35 && vh < 560 ? 'landscape' : 'portrait'
 
+    let box: number
     if (layoutMode === 'landscape') {
       const pad = Math.min(30, vh * 0.08)
       safeTop = pad
       safeBottom = pad
-      const box = Math.min(vh - pad * 2, vw * 0.46, 460)
-      modulePx = Math.max(2, Math.floor(box / cellsAcross))
-      cardSize = modulePx * cellsAcross
-      cardX = Math.round(vw * 0.72 - cardSize / 2)
-      cardY = Math.round((vh - cardSize) / 2)
+      box = Math.min(vh - pad * 2, vw * 0.46, 460)
     } else {
       safeTop = Math.min(120, vh * 0.16)
       safeBottom = Math.min(184, vh * 0.24)
+      box = Math.min(vw * 0.9, Math.max(120, vh - safeTop - safeBottom), 460)
+    }
+
+    modulePx = Math.max(2, Math.floor(box / fitCells))
+    framePx = Math.round(modulePx * RACE_QR_FRAME)
+    cardSize = framePx * 2 + modulePx * plateCells
+    // Rounding the border up can overshoot the box by a pixel or two; step down.
+    while (cardSize > box && modulePx > 2) {
+      modulePx--
+      framePx = Math.round(modulePx * RACE_QR_FRAME)
+      cardSize = framePx * 2 + modulePx * plateCells
+    }
+
+    if (layoutMode === 'landscape') {
+      cardX = Math.round(vw * 0.72 - cardSize / 2)
+      cardY = Math.round((vh - cardSize) / 2)
+    } else {
       const availableH = Math.max(120, vh - safeTop - safeBottom)
-      const box = Math.min(vw * 0.9, availableH, 460)
-      modulePx = Math.max(2, Math.floor(box / cellsAcross))
-      cardSize = modulePx * cellsAcross
       cardX = Math.round((vw - cardSize) / 2)
       cardY = Math.round(safeTop + (availableH - cardSize) / 2)
     }
+
     marginPx = modulePx * RACE_QR_QUIET_ZONE
-    qrX = cardX + marginPx
-    qrY = cardY + marginPx
+    qrX = cardX + framePx + marginPx
+    qrY = cardY + framePx + marginPx
 
     focal = Math.max(vw, vh) * 1.15
     finalDist = focal / modulePx
@@ -478,7 +501,7 @@ export function createRaceRenderer(options: RaceRendererOptions) {
     params.detail = 1 - clamp01(params.cleanT * 1.6)
 
     params.lightsLit = 0
-    if (phase !== 'idle') {
+    if (phase === 'racing' || phase === 'qr') {
       for (let i = 0; i < timeline.lightOn.length; i++) if (t >= timeline.lightOn[i]) params.lightsLit = i + 1
     }
     params.lightsOut = t >= timeline.lightsOut
@@ -495,7 +518,8 @@ export function createRaceRenderer(options: RaceRendererOptions) {
     params.carPitch = -2.6 * Math.exp(-runT * 9) * Math.min(1, runT * 22)
 
     const shakeWindow = clamp01((t - timeline.lightsOut) / 620)
-    params.shake = reduced ? 0 : (1 - shakeWindow) * (t >= timeline.lightsOut ? 1 : 0) * 3.4
+    params.shake =
+      reduced || phase !== 'racing' ? 0 : (1 - shakeWindow) * (t >= timeline.lightsOut ? 1 : 0) * 3.4
   }
 
   /** Per-module flatten, 0 = full height, 1 = flat on the grid. */
@@ -630,12 +654,11 @@ export function createRaceRenderer(options: RaceRendererOptions) {
     }
 
     if (params.snapT > 0.995) {
+      // The plate is the quiet zone; the flag border sits outside it.
+      const plate = modulePx * (size + RACE_QR_QUIET_ZONE * 2)
       ctx!.fillStyle = topColor
-      const r = 16 * params.snapT
-      ctx!.beginPath()
-      if (typeof ctx!.roundRect === 'function') ctx!.roundRect(cardX, cardY, cardSize, cardSize, r)
-      else ctx!.rect(cardX, cardY, cardSize, cardSize)
-      ctx!.fill()
+      ctx!.fillRect(cardX + framePx, cardY + framePx, plate, plate)
+      drawRaceFrame(params.snapT)
     } else {
       const p = quadOf(-e, e, 0, e, e, 0, e, -e, 0, -e, -e, 0)
       ctx!.fillStyle = topColor
@@ -1157,7 +1180,7 @@ export function createRaceRenderer(options: RaceRendererOptions) {
   const puffs: Puff[] = []
 
   function spawnSmoke(t: number) {
-    if (reduced || quality === 'low') return
+    if (reduced || quality === 'low' || phase !== 'racing') return
     if (t < timeline.lightsOut || t > timeline.lightsOut + 700) return
     if (puffs.length > 16) return
     for (const side of [-1, 1]) {
@@ -1274,16 +1297,84 @@ export function createRaceRenderer(options: RaceRendererOptions) {
   // ------------------------------------------------------------ settled QR
 
   /**
-   * The finished code, drawn on whole pixels with no perspective, no decoration
-   * and nothing overlapping it. Geometrically identical to the last animated
-   * frame, so there is no visible handover.
+   * Checkered flag border around the plate: kerb accents at every corner and a
+   * UNO 01 number board along the bottom edge. It sits entirely outside the quiet
+   * zone — the code keeps its full 5 clear modules — so it cannot affect a scan.
+   */
+  function drawRaceFrame(alpha: number) {
+    if (alpha <= 0.01 || framePx <= 0) return
+    // Fit a whole number of flag squares across the card so the ring tiles cleanly.
+    const count = Math.max(8, Math.round(cardSize / framePx))
+    const cell = cardSize / count
+    const dark = css(PALETTE.backdrop)
+    const light = css(PALETTE.cream)
+
+    ctx!.save()
+    ctx!.globalAlpha = alpha
+    for (let gy = 0; gy < count; gy++) {
+      for (let gx = 0; gx < count; gx++) {
+        if (gx > 0 && gy > 0 && gx < count - 1 && gy < count - 1) continue
+        ctx!.fillStyle = (gx + gy) % 2 === 0 ? light : dark
+        ctx!.fillRect(cardX + gx * cell, cardY + gy * cell, cell + 0.5, cell + 0.5)
+      }
+    }
+
+    // Kerb corners, in the same red the track kerbs use.
+    ctx!.fillStyle = css(PALETTE.kerbRed)
+    const run = cell * 2
+    for (const [edgeX, edgeY] of [
+      [0, 0],
+      [cardSize, 0],
+      [0, cardSize],
+      [cardSize, cardSize],
+    ]) {
+      const left = cardX + (edgeX > 0 ? edgeX - run : 0)
+      const top = cardY + (edgeY > 0 ? edgeY - cell : 0)
+      ctx!.fillRect(left, top, run, cell)
+      ctx!.fillRect(
+        cardX + (edgeX > 0 ? edgeX - cell : 0),
+        cardY + (edgeY > 0 ? edgeY - run : 0),
+        cell,
+        run,
+      )
+    }
+
+    // Number board on the bottom edge, the way a pit board carries the car number.
+    const boardW = Math.min(cardSize * 0.44, cell * 10)
+    const bx = cardX + (cardSize - boardW) / 2
+    const by = cardY + cardSize - cell
+    ctx!.fillStyle = css(PALETTE.blue)
+    ctx!.fillRect(bx, by, boardW, cell)
+    ctx!.fillStyle = css(PALETTE.cream)
+    ctx!.textAlign = 'center'
+    ctx!.textBaseline = 'middle'
+    ctx!.font = `700 ${(cell * 0.54).toFixed(1)}px Formula1, 'Plus Jakarta Sans', sans-serif`
+    ctx!.fillText('UNO 01', bx + boardW / 2, by + cell * 0.56)
+    ctx!.restore()
+  }
+
+
+  /**
+   * The finished code: whole pixels, no perspective, nothing overlapping the
+   * symbol or its quiet zone. Geometrically identical to the last animated frame,
+   * so there is no visible handover — the decoration only ever sits outside.
    */
   function drawSettledQr() {
+    // The plate keeps a little physical depth, so it still reads as the diorama
+    // base seen from above rather than a flat image pasted on.
+    ctx!.save()
+    ctx!.shadowColor = 'rgba(0,0,0,0.55)'
+    ctx!.shadowBlur = Math.max(12, modulePx * 2.4)
+    ctx!.shadowOffsetY = Math.max(4, modulePx * 0.8)
+    ctx!.fillStyle = css(PALETTE.backdrop)
+    ctx!.fillRect(cardX, cardY, cardSize, cardSize)
+    ctx!.restore()
+
+    drawRaceFrame(1)
+
+    const plate = modulePx * (size + RACE_QR_QUIET_ZONE * 2)
     ctx!.fillStyle = css(PALETTE.groundFinal)
-    ctx!.beginPath()
-    if (typeof ctx!.roundRect === 'function') ctx!.roundRect(cardX, cardY, cardSize, cardSize, 16)
-    else ctx!.rect(cardX, cardY, cardSize, cardSize)
-    ctx!.fill()
+    ctx!.fillRect(cardX + framePx, cardY + framePx, plate, plate)
 
     ctx!.fillStyle = '#000000'
     for (let row = 0; row < size; row++) {
@@ -1344,6 +1435,14 @@ export function createRaceRenderer(options: RaceRendererOptions) {
         phase = 'qr'
         options.onComplete?.()
       }
+    } else if (phase === 'rewinding') {
+      const p = clamp01((stamp - rewindStartedAt) / rewindDuration())
+      raceTime = timeline.end * (1 - easeInOutCubic(p))
+      if (p >= 1) {
+        raceTime = 0
+        phase = 'idle'
+        options.onRewound?.()
+      }
     }
 
     const t0 = performance.now()
@@ -1363,6 +1462,8 @@ export function createRaceRenderer(options: RaceRendererOptions) {
     // Nothing moves once the code has settled — stop burning battery.
     if (phase === 'qr') stop()
   }
+
+  const rewindDuration = () => timeline.end * 0.62
 
   function relayout(): RaceLayoutMode {
     layout()
@@ -1394,6 +1495,17 @@ export function createRaceRenderer(options: RaceRendererOptions) {
       raceTime = 0
       start()
     },
+    /**
+     * Runs the whole transformation backwards: the code lifts back into a
+     * racetrack, the camera drops to the grid and the car reverses onto pole.
+     * Quicker than the forward run, so it reads as a rewind rather than a replay.
+     */
+    rewind() {
+      if (phase !== 'qr') return
+      phase = 'rewinding'
+      rewindStartedAt = performance.now()
+      start()
+    },
     /** Skip / fallback path: land on the finished code immediately. */
     finish() {
       phase = 'qr'
@@ -1404,12 +1516,6 @@ export function createRaceRenderer(options: RaceRendererOptions) {
       drawSettledQr()
       options.onComplete?.()
       stop()
-    },
-    reset() {
-      phase = 'idle'
-      raceTime = 0
-      puffs.length = 0
-      start()
     },
     setReducedMotion(value: boolean) {
       if (reduced === value) return
