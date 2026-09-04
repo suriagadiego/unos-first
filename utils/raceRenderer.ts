@@ -106,6 +106,18 @@ const STRUCTURE_TONES = [
   [52, 61, 68],
 ].map(c => css(c as unknown as Rgb))
 
+/**
+ * Asphalt that carries a kerb, stained by it. The kerb stripes themselves are
+ * decoration and clear away with everything else, but the rubber they laid down
+ * does not — so in the settled code the red still traces the track edges. Same
+ * dark band as the plain asphalt, so it costs nothing in contrast.
+ */
+const KERB_TONES = [
+  [78, 34, 30],
+  [66, 29, 26],
+  [88, 40, 35],
+].map(c => css(c as unknown as Rgb))
+
 const PAVING_TONES = [
   [216, 208, 195],
   [208, 200, 188],
@@ -924,6 +936,7 @@ export function createRaceRenderer(options: RaceRendererOptions) {
    */
   function topColor(i: number) {
     const kind = world.kind[i]
+    if (world.kerb[i]) return KERB_TONES[world.shade[i] % KERB_TONES.length]
     const tones = kind === CELL_TRACK || kind === CELL_TIMING ? ASPHALT_TONES : STRUCTURE_TONES
     return tones[world.shade[i] % tones.length]
   }

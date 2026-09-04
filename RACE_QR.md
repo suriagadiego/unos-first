@@ -97,9 +97,18 @@ decoration bolted around the outside puts the illusion back.
 
 Both materials are cast in five tones with slight hue drift as well as value drift,
 so the code keeps the texture of separately laid track sections rather than reading
-as flat fill. The tones are banded — asphalt 34–59 luma, paving 197–223 — which
-holds the worst-case contrast anywhere on the code at **6.5:1**, comfortably above
-what scanners need. The quiet zone is the surrounding paddock ground at 205 luma.
+as flat fill.
+
+Kerbs get the same treatment. The red-and-cream stripes are decoration and clear
+away with everything else, but the asphalt they sit on is **stained** by them: any
+module carrying a kerb renders in a dark red tone. So the red does not vanish when
+the scene resolves — it traces exactly where the track edges were, and the red runs
+you see in the opening shot are the red modules you see from overhead. About 19% of
+the track modules for the default URL.
+
+The tones are banded — asphalt and kerb 34–59 luma, paving 197–223 — which holds
+the worst-case contrast anywhere on the code at **6.5:1**, comfortably above what
+scanners need. The quiet zone is the surrounding paddock ground at 205 luma.
 
 ---
 
