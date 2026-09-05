@@ -97,18 +97,35 @@ decoration bolted around the outside puts the illusion back.
 
 Both materials are cast in five tones with slight hue drift as well as value drift,
 so the code keeps the texture of separately laid track sections rather than reading
-as flat fill.
+as flat fill. The tones are banded — asphalt 34–59 luma, paving 197–223 — which
+holds the worst-case contrast anywhere on the code at **6.5:1**, comfortably above
+what scanners need. The quiet zone is the surrounding paddock ground at 205 luma.
 
-Kerbs get the same treatment. The red-and-cream stripes are decoration and clear
-away with everything else, but the asphalt they sit on is **stained** by them: any
-module carrying a kerb renders in a dark red tone. So the red does not vanish when
-the scene resolves — it traces exactly where the track edges were, and the red runs
-you see in the opening shot are the red modules you see from overhead. About 19% of
-the track modules for the default URL.
+---
 
-The tones are banded — asphalt and kerb 34–59 luma, paving 197–223 — which holds
-the worst-case contrast anywhere on the code at **6.5:1**, comfortably above what
-scanners need. The quiet zone is the surrounding paddock ground at 205 luma.
+## Downloading the code
+
+The settled state has a **Download SVG** control. It emits a plain black-on-white
+code straight off the matrix — none of the race styling — sized in real
+millimetres (100mm plate by default) so it lands at the right scale in CAD.
+
+Shaped for 3D printing:
+
+- vector, so it extrudes cleanly at any size instead of being resampled;
+- `#plate` and `#modules` are separate groups, so they can be extruded to
+  different heights (raised code on a base) without reselecting geometry;
+- horizontally adjacent modules are merged into single rectangles, which cuts the
+  entity count roughly in half and removes coincident edges that some CAD tools
+  object to on extrude;
+- a 4-module quiet zone is baked into the plate, so the printed part carries its
+  own clear margin and does not rely on whatever it is mounted on.
+
+At the 100mm default a module is 3.03mm and the narrowest feature is a single
+3.03mm module — comfortably above any nozzle width. Scale the whole thing down as
+far as about 40mm before modules approach 1.2mm.
+
+`qrMatrixToSvg` in `utils/raceQr.ts` takes `millimetres` and `quietZone` if you
+want different numbers.
 
 ---
 

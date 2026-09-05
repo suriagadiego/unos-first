@@ -164,6 +164,23 @@ function skip() {
   status.value = 'done'
 }
 
+/**
+ * Plain black-on-white SVG of the same code, for printing or 3D printing. Nothing
+ * to do with how the scene renders it — it comes straight off the matrix.
+ */
+function downloadSvg() {
+  if (!matrix.value) return
+  const svg = qrMatrixToSvg(matrix.value, { millimetres: 100, label: props.target })
+  const url = URL.createObjectURL(new Blob([svg], { type: 'image/svg+xml' }))
+  const link = document.createElement('a')
+  link.href = url
+  link.download = `${prettyTarget.value.replace(/[^a-z0-9]+/gi, '-').toLowerCase()}-qr.svg`
+  document.body.appendChild(link)
+  link.click()
+  link.remove()
+  URL.revokeObjectURL(url)
+}
+
 /** Runs the transformation backwards, back to the starting grid. */
 function rewind() {
   if (!renderer || status.value !== 'done') return
@@ -216,9 +233,14 @@ function onStageClick(event: MouseEvent) {
         <div v-if="status === 'done'" key="done" class="race-footer__inner">
           <p class="race-scan">Scan to join the race</p>
           <a class="race-link" :href="target" rel="noopener">{{ prettyTarget }}</a>
-          <button type="button" class="race-ghost race-replay" @click="rewind">
-            Back to the grid
-          </button>
+          <div class="race-actions">
+            <button type="button" class="race-ghost race-replay" @click="rewind">
+              Back to the grid
+            </button>
+            <button type="button" class="race-ghost" @click.stop="downloadSvg">
+              Download SVG
+            </button>
+          </div>
         </div>
 
         <div v-else-if="status === 'rewinding'" key="rewinding" class="race-footer__inner">
@@ -228,6 +250,9 @@ function onStageClick(event: MouseEvent) {
         <div v-else-if="status === 'fallback'" key="fallback" class="race-footer__inner">
           <p class="race-scan">Scan to join the race</p>
           <a class="race-link" :href="target" rel="noopener">{{ prettyTarget }}</a>
+          <button v-if="matrix" type="button" class="race-ghost" @click.stop="downloadSvg">
+            Download SVG
+          </button>
         </div>
 
         <div v-else-if="status === 'racing'" key="racing" class="race-footer__inner">
@@ -469,6 +494,13 @@ function onStageClick(event: MouseEvent) {
 .race-ghost:hover {
   border-color: rgba(245, 240, 235, 0.45);
   color: #f5f0eb;
+}
+
+.race-actions {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  justify-content: center;
 }
 
 .race-ghost--quiet {

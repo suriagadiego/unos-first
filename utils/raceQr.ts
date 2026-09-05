@@ -61,3 +61,54 @@ export async function createQrMatrix(
       col >= 0 && row >= 0 && col < size && row < size && bits[row * size + col] === 1,
   }
 }
+
+export interface QrSvgOptions {
+  /** Light modules around the symbol. 4 is the spec minimum and plenty in print. */
+  quietZone?: number
+  /** Physical size of the whole plate, including the quiet zone. */
+  millimetres?: number
+  /** Written into <title> so the file says what it encodes. */
+  label?: string
+}
+
+/**
+ * A plain black-on-white SVG of the code — no race styling — sized in real
+ * millimetres so it arrives at the right scale in CAD.
+ *
+ * Shaped for 3D printing:
+ *  - vector, so it extrudes cleanly at any size instead of being resampled;
+ *  - plate and modules are separate groups, so they can be extruded to different
+ *    heights (raised code on a base) without reselecting geometry;
+ *  - horizontally adjacent modules are merged into single rectangles, which cuts
+ *    the entity count sharply and removes coincident edges that some CAD tools
+ *    object to on extrude.
+ */
+export function qrMatrixToSvg(matrix: QrMatrix, options: QrSvgOptions = {}) {
+  const quiet = options.quietZone ?? 4
+  const mm = options.millimetres ?? 100
+  const cells = matrix.size + quiet * 2
+
+  const rects: string[] = []
+  for (let row = 0; row < matrix.size; row++) {
+    let runStart = -1
+    for (let col = 0; col <= matrix.size; col++) {
+      const dark = col < matrix.size && matrix.isDark(col, row)
+      if (dark && runStart < 0) runStart = col
+      if (!dark && runStart >= 0) {
+        rects.push(
+          `<rect x="${runStart + quiet}" y="${row + quiet}" width="${col - runStart}" height="1"/>`,
+        )
+        runStart = -1
+      }
+    }
+  }
+
+  const title = options.label ? `<title>${options.label.replace(/[<>&]/g, '')}</title>\n` : ''
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="${mm}mm" height="${mm}mm" viewBox="0 0 ${cells} ${cells}" shape-rendering="crispEdges">
+${title}<g id="plate"><rect width="${cells}" height="${cells}" fill="#ffffff"/></g>
+<g id="modules" fill="#000000">
+${rects.join('\n')}
+</g>
+</svg>
+`
+}
