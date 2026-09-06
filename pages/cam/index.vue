@@ -333,12 +333,11 @@ onUnmounted(() => {
       </div>
 
       <!-- ── BOTTOM CONTROLS (overlaid) ── -->
-      <div :inert="showNamePrompt" :aria-hidden="showNamePrompt ? 'true' : undefined" class="absolute bottom-0 left-0 right-0 z-10 pb-10 pt-8"
-        style="background:linear-gradient(to top,rgba(0,0,0,0.65) 0%,transparent 100%)">
-        <div class="relative flex items-center justify-center" style="height:78px">
+      <div :inert="showNamePrompt" :aria-hidden="showNamePrompt ? 'true' : undefined" class="camera-controls absolute bottom-0 left-0 right-0 z-10 pb-10 pt-8">
+        <div class="camera-controls__row relative flex items-center justify-center" style="height:78px">
 
           <!-- Corner thumbnail with upload state -->
-          <div class="absolute left-5 top-1/2 -translate-y-1/2 flex flex-col items-center gap-1">
+          <div class="camera-gallery-control absolute left-5 top-1/2 -translate-y-1/2 flex flex-col items-center gap-1">
             <div v-if="lastShot" class="relative w-12 h-12">
               <!-- Error → tappable retry; otherwise → gallery link -->
               <button v-if="lastShot.status === 'error'" @click="retry"
@@ -384,7 +383,7 @@ onUnmounted(() => {
             type="button" aria-label="Take photo"
             @click="onShutter"
             :disabled="shutterDisabled"
-            class="relative w-[78px] h-[78px] rounded-full flex items-center justify-center transition-transform active:scale-[0.88] disabled:opacity-25"
+            class="camera-shutter relative w-[78px] h-[78px] rounded-full flex items-center justify-center transition-transform active:scale-[0.88] disabled:opacity-25"
             :class="{ 'shutter-fire': firing }"
           >
             <div class="absolute inset-0 rounded-full border-[3px] border-white/30" />
@@ -394,7 +393,7 @@ onUnmounted(() => {
           </button>
 
           <!-- LAP / LEFT — right -->
-          <div class="absolute right-4 flex items-stretch gap-1.5 bg-black/40 backdrop-blur-sm border border-white/[0.1] rounded-xl px-2 py-1.5 transition-transform"
+          <div class="camera-counter absolute right-4 flex items-stretch gap-1.5 bg-black/40 backdrop-blur-sm border border-white/[0.1] rounded-xl px-2 py-1.5 transition-transform"
             :class="{ 'counter-pop': counterPop }">
             <div class="text-center">
               <p class="text-[5px] text-[#6B8CAE] uppercase tracking-[0.2em] font-sans mb-0.5">LAP</p>
@@ -415,6 +414,40 @@ onUnmounted(() => {
 </template>
 
 <style scoped>
+.camera-controls {
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.65) 0%, transparent 100%);
+}
+
+/* A landscape camera is easier to hold when the shutter sits beneath the
+   user's right thumb instead of floating across the bottom center. */
+@media (orientation: landscape) {
+  .camera-controls {
+    inset: 0 0 0 auto;
+    width: 112px;
+    padding: 18px 12px;
+    background: linear-gradient(to left, rgba(0, 0, 0, 0.72) 0%, transparent 100%);
+  }
+
+  .camera-controls__row {
+    height: 100% !important;
+    flex-direction: column;
+  }
+
+  .camera-gallery-control {
+    top: auto;
+    bottom: max(2px, env(safe-area-inset-bottom));
+    left: 50%;
+    transform: translateX(-50%);
+  }
+
+  .camera-counter {
+    top: max(2px, env(safe-area-inset-top));
+    right: 0;
+    left: 0;
+    justify-content: center;
+  }
+}
+
 /* Flash appears instantly, fades out smoothly */
 .flash-enter-active { transition: none; }
 .flash-leave-active { transition: opacity 0.6s ease-out; }
