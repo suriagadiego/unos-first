@@ -1,6 +1,6 @@
 import { useSupabase } from '../../utils/supabase'
 import { getObjectStorage } from '../../utils/storage'
-import { CAMERA_MODERATION_ENABLED } from '../../../utils/cameraConfig'
+import { CAMERA_GALLERY_START_AT, CAMERA_MODERATION_ENABLED } from '../../../utils/cameraConfig'
 
 export default defineEventHandler(async (event) => {
   const sb = useSupabase()
@@ -23,6 +23,7 @@ export default defineEventHandler(async (event) => {
       .select('id, guest_id, storage_key, thumbnail_storage_key, guest_name, created_at')
       .is('deleted_at', null)
       .eq('upload_state', 'ready')
+      .gte('created_at', CAMERA_GALLERY_START_AT)
       .order('created_at', { ascending: false })
       .order('id', { ascending: false })
       .range(from, from + pageSize - 1)
