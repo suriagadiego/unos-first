@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { createGalleryThumbnail } from '../../utils/cameraThumbnail.client'
+import { CAMERA_EVENT_END_AT } from '../../utils/cameraConfig'
 
 definePageMeta({ layout: false })
 
@@ -16,6 +17,9 @@ interface Shot {
 }
 
 const UPLOAD_TIMEOUT_MS = 90_000
+const eventEndTime = new Date(CAMERA_EVENT_END_AT).getTime()
+const eventEnded = ref(Date.now() >= eventEndTime)
+let eventEndTimer: ReturnType<typeof setTimeout> | null = null
 
 const flash = ref(false)
 const snapSrc = ref<string | null>(null)  // snapshot pop preview
@@ -35,6 +39,15 @@ const rollFull = computed(() => (shots.value?.remaining ?? 1) <= 0)
 const shutterDisabled = computed(() => rollFull.value || uploading.value)
 
 onMounted(() => {
+  const timeUntilEnd = eventEndTime - Date.now()
+  if (timeUntilEnd <= 0) {
+    eventEnded.value = true
+    return
+  }
+  eventEndTimer = setTimeout(() => {
+    eventEnded.value = true
+  }, timeUntilEnd)
+
   ensureAuth()
   const storedName = localStorage.getItem('uno_cam_name')
   if (!storedName || storedName === '__skip__') {
@@ -177,6 +190,7 @@ function onCaptureFailed(message: string) {
 }
 
 onUnmounted(() => {
+  if (eventEndTimer) clearTimeout(eventEndTimer)
   uploadController?.abort()
   if (lastShot.value?.src) URL.revokeObjectURL(lastShot.value.src)
 })
@@ -185,8 +199,35 @@ onUnmounted(() => {
 <template>
   <div class="bg-[#080808] flex items-center justify-center" style="height:100dvh">
 
+    <!-- ── EVENT ENDED ── -->
+    <section
+      v-if="eventEnded"
+      class="event-ended relative flex h-full w-full items-center justify-center overflow-hidden px-6 py-8 text-center"
+    >
+      <div aria-hidden="true" class="absolute inset-x-0 top-0 h-2 checker-strip opacity-70" />
+      <div aria-hidden="true" class="absolute top-6 left-6 h-10 w-10 border-l-[3px] border-t-[3px] border-[#6B8CAE]/60" />
+      <div aria-hidden="true" class="absolute top-6 right-6 h-10 w-10 border-r-[3px] border-t-[3px] border-[#6B8CAE]/60" />
+      <div aria-hidden="true" class="absolute bottom-6 left-6 h-10 w-10 border-b-[3px] border-l-[3px] border-[#6B8CAE]/60" />
+      <div aria-hidden="true" class="absolute bottom-6 right-6 h-10 w-10 border-b-[3px] border-r-[3px] border-[#6B8CAE]/60" />
+
+      <div class="relative z-10 w-full max-w-2xl">
+        <p class="font-racing text-[#A8C5DA] text-[11px] uppercase tracking-[0.34em]">Uno's first birthday</p>
+        <h1 class="mt-4 font-racing text-white text-4xl sm:text-6xl leading-none tracking-wider">THAT'S A WRAP!</h1>
+        <p class="mx-auto mt-5 max-w-lg font-sans text-base sm:text-lg leading-relaxed text-white/65">
+          Thanks for celebrating with us and capturing Uno's big day.
+        </p>
+        <NuxtLink
+          to="/gallery"
+          class="mt-8 flex min-h-20 w-full items-center justify-center rounded-2xl bg-[#6B8CAE] px-6 py-5 font-racing text-xl sm:text-2xl tracking-widest text-white shadow-2xl transition-transform active:scale-[0.98] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#A8C5DA]"
+        >
+          VIEW THE GALLERY →
+        </NuxtLink>
+        <p class="mt-4 font-sans text-[10px] uppercase tracking-[0.24em] text-white/35">Relive every lap, laugh, and memory</p>
+      </div>
+    </section>
+
     <!-- ── BEZEL ── -->
-    <div class="relative w-full mx-3 rounded-[28px] overflow-hidden" style="height:calc(100dvh - 24px)">
+    <div v-else class="relative w-full mx-3 rounded-[28px] overflow-hidden" style="height:calc(100dvh - 24px)">
 
       <!-- ── FULL SCREEN CAMERA ── -->
       <CameraViewfinder
@@ -414,6 +455,14 @@ onUnmounted(() => {
 </template>
 
 <style scoped>
+.event-ended {
+  background-image:
+    radial-gradient(circle at 50% 35%, rgba(107, 140, 174, 0.24), transparent 42%),
+    linear-gradient(rgba(107, 140, 174, 0.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(107, 140, 174, 0.05) 1px, transparent 1px);
+  background-size: auto, 40px 40px, 40px 40px;
+}
+
 .camera-controls {
   background: linear-gradient(to top, rgba(0, 0, 0, 0.65) 0%, transparent 100%);
 }
