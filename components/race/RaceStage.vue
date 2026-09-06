@@ -206,7 +206,7 @@ function onStageClick(event: MouseEvent) {
       ref="canvasRef"
       class="race-canvas"
       role="img"
-      :aria-label="`Miniature racetrack that transforms into a QR code linking to ${prettyTarget}`"
+      aria-label="Miniature racetrack that transforms into a QR code. Scan it to open the Uno camera and take photos at the party."
     />
 
     <!-- Title -->
@@ -231,7 +231,7 @@ function onStageClick(event: MouseEvent) {
     <div class="race-footer">
       <Transition name="race-fade" mode="out-in">
         <div v-if="status === 'done'" key="done" class="race-footer__inner">
-          <p class="race-scan">Scan to join the race</p>
+          <p class="race-scan">Snap your Uno memory</p>
           <a class="race-link" :href="target" rel="noopener">{{ prettyTarget }}</a>
           <div class="race-actions">
             <button type="button" class="race-ghost race-replay" @click="rewind">
@@ -248,7 +248,7 @@ function onStageClick(event: MouseEvent) {
         </div>
 
         <div v-else-if="status === 'fallback'" key="fallback" class="race-footer__inner">
-          <p class="race-scan">Scan to join the race</p>
+          <p class="race-scan">Snap your Uno memory</p>
           <a class="race-link" :href="target" rel="noopener">{{ prettyTarget }}</a>
           <button v-if="matrix" type="button" class="race-ghost" @click.stop="downloadSvg">
             Download SVG

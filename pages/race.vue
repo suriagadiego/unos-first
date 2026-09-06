@@ -8,7 +8,7 @@ const config = useRuntimeConfig()
 const target = (config.public.raceQrUrl as string) || RACE_QR_DEFAULT_TARGET
 
 const title = "Uno's First Fast Run"
-const description = 'Tap the car, watch the racetrack become a QR code, and scan it to join the race.'
+const description = 'Tap the car, watch the racetrack become a QR code, then scan it to open the camera and snap your Uno memories.'
 const url = 'https://unosfirst.com/race'
 const image = 'https://unosfirst.com/uno-preview.jpg'
 
