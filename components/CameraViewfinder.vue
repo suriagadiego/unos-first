@@ -291,7 +291,7 @@ defineExpose({ capture, start, status, flipCamera })
       <div class="absolute bottom-4 right-4 w-7 h-7 border-b-2 border-r-2 border-white/25 pointer-events-none" />
       <button @click="flipCamera"
         type="button" aria-label="Switch between front and rear camera"
-        class="absolute top-8 right-4 w-10 h-10 rounded-full bg-black/40 backdrop-blur-sm border border-white/10 flex items-center justify-center z-10 transition-opacity hover:opacity-100 opacity-60">
+        class="camera-flip-button absolute top-8 right-4 w-10 h-10 rounded-full bg-black/40 backdrop-blur-sm border border-white/10 flex items-center justify-center z-10 transition-opacity hover:opacity-100 opacity-60">
         <img src="~/assets/images/reverse-camera.svg" class="w-[30px] h-[30px]" alt="" />
       </button>
     </template>
@@ -301,5 +301,13 @@ defineExpose({ capture, start, status, flipCamera })
 </template>
 
 <style scoped>
+@media (orientation: landscape) {
+  .camera-flip-button {
+    top: 16px;
+    right: 124px;
+    z-index: 30;
+  }
+}
+
 @keyframes camFlash { from { opacity: 0.85; } to { opacity: 0; } }
 </style>
